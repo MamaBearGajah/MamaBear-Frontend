@@ -3,7 +3,7 @@ import {
   ResFetchProducts,
   ResFetchReviewsByProductId,
   Review,
-} from "@/types";
+} from "../types";
 
 const BASE_URL = "https://werent-backend-production.up.railway.app";
 // const BASE_URL = "http://localhost:4000"; //Change to deployed BASE_URL later
