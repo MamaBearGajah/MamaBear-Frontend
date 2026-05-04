@@ -1,3 +1,4 @@
+import Newsletter from "@/components/Newsletter";
 
 
 const Newsleter = () => {
@@ -8,4 +9,4 @@ const Newsleter = () => {
   );
 };
 
-export default Page;
+export default Newsletter;
