@@ -8,7 +8,8 @@ export default function Home() {
     <div className="flex flex-1 flex-col items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex w-full max-w-3xl flex-1 flex-col items-center justify-between bg-white px-16 py-32 sm:items-start dark:bg-black">
         <HomeBanner/>
-          Home Page
+          <p className='font-quicksand'>Home Page</p>
+
         <TopProducts/>
         <Testimonial/>
       </main>
