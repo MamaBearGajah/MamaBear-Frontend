@@ -16,12 +16,11 @@ export default async function ProductDetailPage({params,}: {
 	return (
 		<div className="mx-auto w-full xl:w-[1280px] flex flex-col justify-center gap-2 px-10 lg:px-30">
 			{/* ^^^ div to be deleted */}
-            <div>
-                <FilterSection productId={productId}/>
-            </div>
-			<div className="w-full">
-				<ProductSection productId={productId}/>
-			</div>
+
+			<div className="w-full flex justify-center border ">
+				<div className='w-full md:w-[20%]'><FilterSection productId={productId}/></div>
+				<div className='w-full md:w-[70%]'><ProductSection productId={productId}/>
+			</div></div>
 			<div className="w-full">
 				<ReviewSection/>
 			</div>
