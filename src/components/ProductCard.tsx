@@ -18,12 +18,14 @@ export default async function ProductCard({
             {/* <h2>{fetchedProduct.title}</h2>
             <p>{fetchedProduct.price}</p>
             <p>{fetchedProduct.description}</p> */}
-            <h4>{mockProducts[0].category.name}</h4>
-            <h2>{mockProducts[0].name}</h2>
-            <div className='flex justify-start'> <Stars rating={mockProducts[0].rating}/>{mockProducts[0].bestseller ? (<span className='bg-pink-400 rounded-lg p-2 ml-2'>🏆Bestseller</span>) : null}</div>
+            <h4 className='text-xs text-[var(--mamabear-dark-pink)]'>{mockProducts[0].category.name}</h4>
+            <h2 className='text-2xl font-bold'>{mockProducts[0].name}</h2>
+            <div className='flex justify-start items-center'> <Stars rating={mockProducts[0].rating}/>{mockProducts[0].bestseller ? (<span className='bg-pink-400 rounded-lg p-2 ml-2'>🏆Bestseller</span>) : null}</div>
 
-            <p>{mockProducts[0].price}</p>
+            <p className='text-[var(--mamabear-dark-pink)] text-4xl font-bold font-[var(--font-quicksand)]'>${mockProducts[0].price}</p>
+            <p>In Stock</p>
             <p>{mockProducts[0].description}</p>
+            <p>Flavour : <span className='text-[var(--mamabear-dark-pink)] font-bold'>{mockProducts[0].variants[0].value}</span></p>
             <div>Add To Cart</div>
         </div>
 
