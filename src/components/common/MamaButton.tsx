@@ -18,15 +18,15 @@ interface MamaButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<MamaButtonVariant, string> = {
   primary:
-    "bg-mama-primary text-white hover:bg-mama-primary-dark shadow-sm",
+    "bg-[#D85B88] text-white shadow-sm hover:bg-[#C54F7A]",
   secondary:
-    "bg-mama-soft text-mama-brown hover:bg-pink-100 border border-mama-border",
+    "border border-[#F3D9E3] bg-[#FFF1F5] text-[#6B4637] hover:bg-[#FFE3EC]",
   outline:
-    "bg-white text-mama-brown border border-mama-border hover:bg-mama-soft",
+    "border border-[#D85B88] bg-white text-[#D85B88] hover:bg-[#FFF1F5]",
   ghost:
-    "bg-transparent text-mama-brown hover:bg-mama-soft",
+    "bg-transparent text-[#6B4637] hover:bg-[#FFF1F5]",
   danger:
-    "bg-mama-danger text-white hover:opacity-90",
+    "bg-red-500 text-white hover:bg-red-600",
 };
 
 const sizeClasses: Record<MamaButtonSize, string> = {
@@ -58,7 +58,7 @@ export const MamaButton = forwardRef<HTMLButtonElement, MamaButtonProps>(
         type={type}
         disabled={disabled || isLoading}
         className={cn(
-          "inline-flex items-center justify-center gap-2 rounded-pill font-bold transition-all duration-200",
+          "inline-flex items-center justify-center gap-2 rounded-full font-bold transition-all duration-200",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mama-primary/40",
           "disabled:cursor-not-allowed disabled:opacity-50",
           variantClasses[variant],

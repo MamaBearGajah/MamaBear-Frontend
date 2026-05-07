@@ -61,7 +61,7 @@ export const MamaInput = forwardRef<HTMLInputElement, MamaInputProps>(
             id={id}
             type={currentType}
             className={cn(
-              "h-12 w-full rounded-pill border bg-white px-4 text-sm text-mama-brown outline-none transition-all",
+              "h-12 w-full rounded-full border bg-white px-4 text-sm text-mama-brown outline-none transition-all",
               "placeholder:text-mama-muted focus:ring-2 focus:ring-mama-primary/20",
               leftIcon && "pl-11",
               (rightIcon || isPasswordField) && "pr-11",
