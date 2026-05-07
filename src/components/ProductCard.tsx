@@ -20,8 +20,8 @@ export default async function ProductCard({
             <p>{fetchedProduct.description}</p> */}
             <h4>{mockProducts[0].category.name}</h4>
             <h2>{mockProducts[0].name}</h2>
-            <p> <Stars rating={mockProducts[0].rating}/></p>
-            {mockProducts[0].bestseller ? (<div>🏆Bestseller</div>) : null}
+            <div className='flex justify-start'> <Stars rating={mockProducts[0].rating}/>{mockProducts[0].bestseller ? (<span className='bg-pink-400 rounded-lg p-2 ml-2'>🏆Bestseller</span>) : null}</div>
+
             <p>{mockProducts[0].price}</p>
             <p>{mockProducts[0].description}</p>
             <div>Add To Cart</div>
