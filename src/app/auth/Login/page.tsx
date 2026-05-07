@@ -26,7 +26,10 @@ import AuthBanner from "@/components/AuthBanner";
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const loginSchema = z.object({
-    email: z.email().min(1, "Email is required"),
+    email: z
+      .string()
+      .min(1, "Email is required")
+      .pipe(z.email("Invalid email format")),
     password: z.string().min(1, "Password is required"),
     rememberMe: z.boolean(),
   });
