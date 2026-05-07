@@ -1,6 +1,6 @@
 "use client";
 
-import { BadgeCheck, Eye, EyeOff, LockIcon, MailIcon } from "lucide-react";
+import { Eye, EyeOff, LockIcon, MailIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import {
   InputGroup,
@@ -21,11 +21,10 @@ import { Button } from "@/components/ui/button";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller } from "react-hook-form";
+import AuthBanner from "@/components/AuthBanner";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
-  const imagebg =
-    "https://images.unsplash.com/photo-1648375975494-30e0629799a4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxicmVhc3RmZWVkaW5nJTIwbW90aGVyJTIwYmFieSUyMHdlbGxuZXNzJTIwaGFwcHl8ZW58MXx8fHwxNzc3NjM5MzE4fDA&ixlib=rb-4.1.0&q=80&w=1080";
   const loginSchema = z.object({
     email: z.email().min(1, "Email is required"),
     password: z.string().min(1, "Password is required"),
@@ -48,63 +47,10 @@ export default function Login() {
 
   return (
     <div
-      className={`my-auto flex h-screen w-full flex-col items-center justify-center lg:flex-row`}
+      className={`my-auto flex h-screen w-full flex-col items-center justify-center bg-[#FFF5F8] lg:flex-row`}
     >
-      <div
-        className={`relative hidden h-full w-[50%] bg-[url(${imagebg})] bg- bg-cover bg-right bg-no-repeat lg:block`}
-      >
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(213,85,126,0.85)_0%,rgba(108,71,53,0.7)_100%)]" />
-        <div className="relative z-10 flex h-full flex-col items-center justify-center p-12 text-center">
-          <div className="flex items-center justify-center gap-2">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-lg font-bold text-white">
-              MB
-            </div>{" "}
-            <span className="text-3xl font-black text-white">mamabear</span>
-          </div>
-          <h2 className="mb-4 text-3xl leading-tight font-black text-white">
-            Supporting Every Mama&apos;s Journey 🐻
-          </h2>
-          <p className="mb-8 leading-relaxed text-pink-100">
-            Join 50,000+ breastfeeding mamas who trust Mamabear for natural,
-            effective ASI boosters.
-          </p>
-          <div className="w-full max-w-xs space-y-3 text-left">
-            <div className="flex items-center gap-3 text-white">
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/20">
-                <BadgeCheck />
-              </div>
-              <span className="text-sm font-semibold">
-                Exclusive member discounts
-              </span>
-            </div>
-            <div className="flex items-center gap-3 text-white">
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/20">
-                <BadgeCheck />
-              </div>
-              <span className="text-sm font-semibold">
-                Free lactation consultation
-              </span>
-            </div>
-            <div className="flex items-center gap-3 text-white">
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/20">
-                <BadgeCheck />
-              </div>
-              <span className="text-sm font-semibold">
-                Personalized product recommendations
-              </span>
-            </div>
-            <div className="flex items-center gap-3 text-white">
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/20">
-                <BadgeCheck />
-              </div>
-              <span className="text-sm font-semibold">
-                Track your orders easily
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="flex flex-col items-center justify-center lg:w-[50%]">
+      <AuthBanner />
+      <div className="form flex flex-col items-center justify-center text-[#6C4735] lg:w-[50%]">
         <h1 className="mb-1 text-2xl font-black">Welcome back, Mama! 👋</h1>
         <p className="mb-6 text-sm">Sign in to your Mamabear account</p>
         {/* FORM */}
