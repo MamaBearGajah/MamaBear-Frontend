@@ -9,6 +9,10 @@ export default async function ProductDetailPage({params}: {
 	const { slug } = await params;
 
 	const products : PlatziProduct = await getProductSlug(slug)
+	if (!products) {
+		return 
+		<div>Product Not Found</div>
+	}
 
 	if (!slug) {
 		return 
