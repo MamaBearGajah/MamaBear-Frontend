@@ -4,6 +4,7 @@ import { useState } from "react";
 import { getProductId } from "../../server";
 import { mockProducts } from "../../lib/MockProducts";
 import ProductCarousel from "./ProductCarousel";
+import AddToCartQuantity from "./AddToCartQuantity";
 import Stars from "./Stars";
 
 export default function ProductCard({
@@ -61,7 +62,8 @@ export default function ProductCard({
                 <img src='/package-svgrepo-com.svg' className='w-[20px]'></img>{mockProducts[0].weight} gram (15 sacks)
               </div>
             </div>
-            <div>Add To Cart</div>
+            <div></div>
+            <AddToCartQuantity price={mockProducts[0].price}/>
         </div>
 
     </div>
