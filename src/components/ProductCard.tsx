@@ -16,13 +16,13 @@ export default function ProductCard({
   const imageArray = mockProducts[0].images.map((item) => item.imageUrl)
   // const fetchedProduct = await getProductId(productId);
   return (
-    <div className="bg-white border border-zinc-300 md:flex md:items-start rounded transition-transform duration-200 cursor-pointer hover:-translate-y-1 hover:shadow-lg">
+    <div className="bg-white  border md:flex md:items-start rounded transition-transform duration-200">
         <div>
             {/* <img src={fetchedProduct.images[0]}   className="w-[400px]"/> */}
             <ProductCarousel images={imageArray}/>
             {/* <img src={mockProducts[0].images[0].imageUrl}   className="w-[400px]"/> */}
         </div>
-        <div className='p-2 rounded-md'>
+        <div className='p-2 rounded-md border w-[90%]'>
             {/* <h2>{fetchedProduct.title}</h2>
             <p>{fetchedProduct.price}</p>
             <p>{fetchedProduct.description}</p> */}
