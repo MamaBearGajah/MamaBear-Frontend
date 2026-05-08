@@ -29,6 +29,26 @@ export const mockProducts = [
         createdAt: new Date(),
         updatedAt: new Date(),
       },
+      {
+        id: "img2",
+        productId: "p2",
+        imageUrl: "https://placehold.co/600x400/EEE/31343C?font=lato&text=Lato",
+        altText: "Metal chair",
+        sortOrder: 2,
+        isFeatured: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: "img3",
+        productId: "p3",
+        imageUrl: "https://placehold.co/600x400/EEE/31343C?font=raleway&text=Raleway",
+        altText: "Stone chair",
+        sortOrder: 3,
+        isFeatured: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
     ],
     variants: [
       {

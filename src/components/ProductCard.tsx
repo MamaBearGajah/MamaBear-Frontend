@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { getProductId } from "../../server";
 import { mockProducts } from "../../lib/MockProducts";
+import ProductCarousel from "./ProductCarousel";
 import Stars from "./Stars";
 
 export default function ProductCard({
@@ -11,12 +12,14 @@ export default function ProductCard({
   productId: number;
 })  {
   const [selected, setSelected] = useState<string | null>(null)
+  const imageArray = mockProducts[0].images.map((item) => item.imageUrl)
   // const fetchedProduct = await getProductId(productId);
   return (
     <div className="bg-white border border-zinc-300 md:flex md:items-start rounded transition-transform duration-200 cursor-pointer hover:-translate-y-1 hover:shadow-lg">
         <div>
             {/* <img src={fetchedProduct.images[0]}   className="w-[400px]"/> */}
-            <img src={mockProducts[0].images[0].imageUrl}   className="w-[400px]"/>
+            <ProductCarousel images={imageArray}/>
+            {/* <img src={mockProducts[0].images[0].imageUrl}   className="w-[400px]"/> */}
         </div>
         <div className='p-2 rounded-md'>
             {/* <h2>{fetchedProduct.title}</h2>
