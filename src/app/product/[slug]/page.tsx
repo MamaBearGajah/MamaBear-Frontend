@@ -8,11 +8,11 @@ export default async function ProductDetailPage({params}: {
   params: Promise<{ slug: string }>;}) {
 	const { slug } = await params;
 
-	const products : PlatziProduct = await getProductSlug(slug)
-	if (!products) {
-		return 
-		<div>Product Not Found</div>
-	}
+	// const products : PlatziProduct = await getProductSlug(slug)
+	// if (!products) {
+	// 	return 
+	// 	<div>Product Not Found</div>
+	// }
 
 	if (!slug) {
 		return 
@@ -21,8 +21,9 @@ export default async function ProductDetailPage({params}: {
 	return (
 		<div className="mx-auto w-full xl:w-[1600px] md:flex md:flex-col justify-center gap-2 px-5 lg:px-20">
 			<div className="w-full block md:flex md:justify-center border ">
-				<div className='hidden md:block md:w-[20%]'><FilterSection productId={products.id}/></div>
-				<div className='w-full md:w-[70%] top-5'><ProductSection productId={products.id}/></div>
+				{/* products.id */}
+				<div className='hidden md:block md:w-[20%]'><FilterSection productId={1}/></div> 
+				<div className='w-full md:w-[70%] top-5'><ProductSection productId={1}/></div>
 			</div>
 			<div className="w-full">
 				<ReviewSection/>
