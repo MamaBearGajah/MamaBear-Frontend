@@ -9,7 +9,7 @@ import ProductDetailNav from "./ProductDetailNav"
 export default function ReviewSection({ productId }: { productId: number }) {
     const [navValue, setnavValue] = useState("Description")
     return(
-        <div className='h-[20vh] md:h-[40vh] flex flex-col justify-center items-start'>
+        <div className='h-[20vh] md:h-[40vh] w-full flex flex-col justify-start items-start'>
             <ProductDetailNav setParentNavValue={setnavValue}/>
 
             <ReviewCard navValue={navValue} productId={productId}/>
