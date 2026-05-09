@@ -16,13 +16,13 @@ export default function ProductCard({
   const imageArray = mockProducts[0].images.map((item) => item.imageUrl)
   // const fetchedProduct = await getProductId(productId);
   return (
-    <div className="bg-white  border md:flex md:items-start rounded transition-transform duration-200">
+    <div className="bg-white border md:flex md:items-start rounded transition-transform duration-200">
         <div>
             {/* <img src={fetchedProduct.images[0]}   className="w-[400px]"/> */}
             <ProductCarousel images={imageArray}/>
             {/* <img src={mockProducts[0].images[0].imageUrl}   className="w-[400px]"/> */}
         </div>
-        <div className='p-2 rounded-md border w-[90%]'>
+        <div className='p-2 md:pl-5 rounded-md border w-[90%] flex flex-col gap-2'>
             {/* <h2>{fetchedProduct.title}</h2>
             <p>{fetchedProduct.price}</p>
             <p>{fetchedProduct.description}</p> */}
@@ -51,7 +51,7 @@ export default function ProductCard({
                 })
               }
               <br></br>
-              <div className='grid grid-cols-2 grid-rows-3 mt-3 border bg-gray-100 rounded-lg p-4'>
+              <div className='grid grid-cols-2 grid-rows-3 mt-3 border bg-gray-100 rounded-lg p-4 gap-2'>
                 <div className='col-start-1 col-end-3 row-start-1 row-end-2 text-[var(--mamabear-dark-pink)]'>KEY BENEFIT</div>
                 <div className='col-start-1 col-end-2 row-start-2 row-end-3'>Affordable Items</div>
                 <div className='col-start-2 col-end-3 row-start-2 row-end-3'>High Quality</div>
