@@ -16,7 +16,7 @@ export default function ProductDetailNav({setParentNavValue}: Props){
     }
     return(
     <div>
-        <div className='flex justify-start items-center gap-3'>
+        <div className='flex justify-start items-center gap-10 w-full'>
                 <p onClick={() => handleClick("Description")} className={`cursor-pointer ${active==="Description" ? "underline text-[var(--mamabear-light-pink)]" : null}`}>
                     Description
                 </p>
