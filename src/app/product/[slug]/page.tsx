@@ -26,7 +26,7 @@ export default async function ProductDetailPage({params}: {
 				<div className='w-full md:w-[95%] top-5'><ProductSection productId={1}/></div>
 			</div>
 			<div className="w-full">
-				<ReviewSection/>
+				<ReviewSection productId={1}/>
 			</div>
 			<div className="block lg:hidden">
 				{/* <AddToCartMobile /> */}
