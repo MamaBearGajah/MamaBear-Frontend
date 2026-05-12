@@ -93,6 +93,8 @@ export default function ProductCard({
                       `rounded-full pl-8 pr-8 pt-2 pb-2 ml-2 mb-3 mt-3 border 
                           ${selected===item.value ? "bg-[var(--mamabear-dark-pink)] text-white" : "bg-white text-black"}
                           cursor-pointer
+                          hover:shadow-lg
+                          transition duration-300
                       `}>
                         {item.value}
                     </span>
