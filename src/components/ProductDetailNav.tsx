@@ -65,9 +65,6 @@ export default function ProductDetailNav({setParentNavValue}: Props){
                         Ingredients
                     </p>
                 </DropdownMenuItem>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
                 <DropdownMenuItem>
                     <p onClick={() => handleClick("How To Use")} className={`cursor-pointer ${active==="How To Use" ? "underline text-[var(--mamabear-light-pink)]" : null}`}>
                         How To Use
