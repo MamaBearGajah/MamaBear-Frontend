@@ -8,7 +8,7 @@ export default function ReviewCard({navValue, productId}:{navValue:string, produ
   switch (navValue){
     case "Description":
         return(
-        <div className='flex flex-col justify-start items-center w-[60%]'>
+        <div className='flex flex-col justify-start items-center md:w-[60%]'>
             <p className="text-left">{mockProducts[productId].name}</p>
           
             <p>{mockProducts[productId].description}</p>
@@ -19,7 +19,7 @@ export default function ReviewCard({navValue, productId}:{navValue:string, produ
 
     case "Ingredients":
         return(
-        <div className='flex flex-col justify-start items-center w-[60%]'>
+        <div className='flex flex-col justify-start items-center md:w-[60%]'>
             
         {mockProducts[productId].ingredients}
         <USPCard/>
@@ -28,7 +28,7 @@ export default function ReviewCard({navValue, productId}:{navValue:string, produ
         
     case "How To Use":
         return(
-        <div className='flex flex-col justify-start items-center w-[60%]'>
+        <div className='flex flex-col justify-start items-center md:w-[60%]'>
             
             This is the How To Use
             <USPCard/>
@@ -37,7 +37,7 @@ export default function ReviewCard({navValue, productId}:{navValue:string, produ
         
       case "Review":
         return(
-        <div className='flex flex-col justify-start items-center w-[60%]'>
+        <div className='flex flex-col justify-start items-center md:w-[60%]'>
       
             This is the Review
             <USPCard/>

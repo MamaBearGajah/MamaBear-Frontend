@@ -14,7 +14,7 @@ type Product = {
 const YouMightAlsoLoveCard = ({product}:{product:Product}) => {
   return (
     <div className='borded rounded-full flex flex-col justify-center items-center md:w-[30%]'>
-        <img className='w-full' src={product.imageUrl}></img>
+        <img className='w-[800px]' src={product.imageUrl}></img>
         <h2>{product.name}</h2>
         <p>{product.rating}</p>
         <p>$ {product.price}</p>
