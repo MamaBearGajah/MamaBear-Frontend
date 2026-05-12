@@ -8,40 +8,40 @@ export default function ReviewCard({navValue, productId}:{navValue:string, produ
   switch (navValue){
     case "Description":
         return(
-        <div className='flex flex-col justify-start items-center md:w-[60%]'>
+        <div className='flex flex-col justify-start items-start md:w-[60%] md:h-[400px]'>
             <p className="text-left">{mockProducts[productId].name}</p>
           
             <p>{mockProducts[productId].description}</p>
-            <USPCard/>
-            <YouMightAlsoLove/>
+            {/* <USPCard/>
+            <YouMightAlsoLove/> */}
         </div>)
        
 
     case "Ingredients":
         return(
-        <div className='flex flex-col justify-start items-center md:w-[60%]'>
+        <div className='flex flex-col justify-start items-start md:w-[60%] md:h-[400px]'>
             
         {mockProducts[productId].ingredients}
-        <USPCard/>
-        <YouMightAlsoLove/>
+        {/* <USPCard/>
+        <YouMightAlsoLove/> */}
         </div>)
         
     case "How To Use":
         return(
-        <div className='flex flex-col justify-start items-center md:w-[60%]'>
+        <div className='flex flex-col justify-start items-start md:w-[60%] md:h-[60%]'>
             
             This is the How To Use
-            <USPCard/>
-            <YouMightAlsoLove/>
+            {/* <USPCard/>
+            <YouMightAlsoLove/> */}
         </div>)
         
       case "Review":
         return(
-        <div className='flex flex-col justify-start items-center md:w-[60%]'>
+        <div className='flex flex-col justify-start items-start md:w-[60%] md:h-[60%]'>
       
             This is the Review
-            <USPCard/>
-            <YouMightAlsoLove/>
+            {/* <USPCard/>
+            <YouMightAlsoLove/> */}
         </div>)
         
       default:
