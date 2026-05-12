@@ -25,7 +25,7 @@ export default async function ProductDetailPage({params}: {
 				{/* <div className='hidden md:block md:w-[20%]'><FilterSection productId={1}/></div>  */}
 				<div className='w-full md:w-[95%] top-5'><ProductSection productId={1}/></div>
 			</div>
-			<div className="w-full border">
+			<div className="w-full">
 				<ReviewSection productId={1}/>
 			</div>
 			<div className="block lg:hidden">
