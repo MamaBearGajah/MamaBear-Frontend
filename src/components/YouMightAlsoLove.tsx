@@ -5,8 +5,8 @@ import { mockBestSellingProducts } from '../../lib/MockBestSelling';
 const YouMightAlsoLove = () => {
   return (
     <div className='mt-3'>
-      <h2 className='font-bold text-2xl flex justify-start items-center'><img className='w-[20px] mr-3' src='/heart.svg'/>You Might Also Love</h2>
-      <div className='md:flex md:justify-start md:items-center inline'>
+      <h2 className='font-bold text-2xl flex justify-start items-center'><img className='w-[20px] mr-1' src='/heart.svg'/>You Might Also Love</h2>
+      <div className='md:flex md:justify-start md:items- inline md:w-[70%]'>
         {mockBestSellingProducts.map((item, index)=>{
           return(
             <div key={index}>
