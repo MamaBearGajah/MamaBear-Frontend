@@ -3,6 +3,8 @@ import {
   ResFetchProducts,
   ResFetchReviewsByProductId,
   Review,
+  ProductVariant,
+  ProductCategory
 } from "../types";
 import axios from "axios";
 
@@ -43,6 +45,17 @@ export const fetchProductSlug = async (slug: string): Promise<Product> => {
     throw new Error("Failed to fetch product");
   }
 };
+
+export const fetchProductVariantId = async (id:string): Promise<ProductVariant[]> => {
+  try{
+    const response = await axios.get(`${BASE_URL}/Products/${id}/variants`)
+    return response.data;
+  }catch(error){
+    console.error("Error fetching product variant:", error);
+    throw new Error("Failed to fetch product variant");
+
+  }
+}
 
 
 export const CreateProduct = async (product: Product): Promise<Product> => {

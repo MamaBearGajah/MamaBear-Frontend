@@ -37,6 +37,7 @@ export interface ProductVariant {
   productId: string;
   name: string;
   value: string;
+  imageUrl:string;
   priceAdjustment: number; // Decimal → number (or string if you want precision-safe)
   stock: number;
   sku?: string | null;
@@ -44,6 +45,7 @@ export interface ProductVariant {
   createdAt: string | Date;
   updatedAt: string | Date;
 }
+
 
 export interface ProductImage {
   id: string;
