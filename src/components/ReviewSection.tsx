@@ -10,7 +10,7 @@ import ProductDetailNav from "./ProductDetailNav"
 import USPCard from './USPCard';
 import YouMightAlsoLove from './YouMightAlsoLove';
 
-export default function ReviewSection({ productId, product }: { productId: number, product: Product }) {
+export default function ReviewSection({ productId, product, slicedData }: { productId: number, product: Product, slicedData: Product[] }) {
     const [navValue, setnavValue] = useState("Description")
     return(
         <div className='h-[800px] md:h-[800px] w-full flex flex-col justify-start items-start'>
@@ -19,7 +19,7 @@ export default function ReviewSection({ productId, product }: { productId: numbe
                 <ReviewCard navValue={navValue} productId={productId} product={product}/>
          
             <USPCard/>
-            <YouMightAlsoLove/>
+            <YouMightAlsoLove product={slicedData}/>
             {/* <ReviewModal/> */}
         </div>
     )
