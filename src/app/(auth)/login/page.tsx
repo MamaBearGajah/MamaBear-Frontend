@@ -136,7 +136,7 @@ export default function Login() {
               {/* forgot password */}
               <Field>
                 <Link
-                  href="/auth/forgot-password"
+                  href="/forgot-password"
                   className="text-right text-sm text-pink-500"
                 >
                   Forgot password?
@@ -154,10 +154,7 @@ export default function Login() {
         <div className="flex items-center justify-center">
           <h3 className="text-sm text-black">
             Don&apos;t have an account?{" "}
-            <Link
-              href="/auth/Register"
-              className="text-lg font-bold text-pink-500"
-            >
+            <Link href="/register" className="text-lg font-bold text-pink-500">
               Register Here
             </Link>
           </h3>
