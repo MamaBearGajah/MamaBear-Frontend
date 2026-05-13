@@ -40,7 +40,7 @@ export default function AddToCartQuantity({price}:{price:number}){
             </div>
             <br></br>
             <div className='text-[var(--mamabear-dark-pink)] font-bold border border-2 border-black rounded-full w-full pt-2 pb-2 hover:bg-gray-300 flex justify-center items-center'>
-                Buy Now - {Quantity * price}
+                Buy Now - Rp {Quantity * price}
             </div>
         </div>
     )

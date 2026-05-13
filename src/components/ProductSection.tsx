@@ -1,18 +1,11 @@
 import ProductCard from "./ProductCard"
+import { Product } from "../../types"
 import ProductModal from "./ProductModal"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
 
-export default async function ProductSection({ productId }: { productId: number }) {
+export default async function ProductSection({ productId, product }: { productId: string, product: Product }) {
     return(
-        <div className='md:h-[100vh] flex flex-col justify-center'>
-            <ProductCard productId={productId}/>
+        <div className='md:h-[150vh] flex flex-col justify-center'>
+            <ProductCard productId={productId} product={product}/>
             {/* <ProductModal/> */}
         </div>
     )
