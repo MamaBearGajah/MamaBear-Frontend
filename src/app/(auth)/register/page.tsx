@@ -264,10 +264,7 @@ export default function Register() {
         <div className="flex items-center justify-center">
           <h3 className="text-sm text-black">
             Already have an account?{" "}
-            <Link
-              href="/auth/Login"
-              className="text-lg font-bold text-pink-500"
-            >
+            <Link href="/login" className="text-lg font-bold text-pink-500">
               Login Here
             </Link>
           </h3>
