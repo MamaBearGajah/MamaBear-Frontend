@@ -1,16 +1,35 @@
 export interface Product {
   id: string;
+  categoryId: string;
   name: string;
   slug: string;
-  description?: string;
-  price: number;
+  description: string;
+  basePrice: string;        // keep as string if coming from DB
+  discountPrice: string;
   weight: number;
   sku: string;
   stock: number;
-  status: 'active' | 'inactive' | 'draft';
-  categoryId?: string;
+  mainImage: string;
+  status: "active" | "inactive" | string;
+
+  createdAt: string;
+  updatedAt: string;
+
   images: ProductImage[];
-  variants: ProductVariant[];
+  category: ProductCategory;
+}
+
+export interface ProductCategory {
+  id: string;
+  parentId: string | null;
+  name: string;
+  slug: string;
+  description: string | null;
+  imageUrl: string | null;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ProductVariant {
@@ -30,11 +49,11 @@ export interface ProductImage {
   id: string;
   productId: string;
   imageUrl: string;
-  altText: string | null;
+  altText: string;
   sortOrder: number;
   isFeatured: boolean;
-  createdAt: string | Date;
-  updatedAt: string | Date;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface CategoryPlatzi {
@@ -54,18 +73,6 @@ export interface PlatziProduct{
   images: string[];
 }
 
-
-
-// export interface Product {
-//   id: number;
-//   name: string;
-//   brand: string;
-//   price: number;
-//   rating: number;
-//   description: string;
-//   imageUrls: string[];
-//   reviews?: Review[];
-// }
 
 export interface Review {
   id: number;

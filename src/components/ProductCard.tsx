@@ -5,6 +5,7 @@ import { getProductId } from "../../server";
 import { mockProducts } from "../../lib/MockProducts";
 import ProductCarousel from "./ProductCarousel";
 import AddToCartQuantity from "./AddToCartQuantity";
+import { Product } from "../../types";
 import Stars from "./Stars";
 import {
   Breadcrumb,
@@ -16,13 +17,23 @@ import {
 } from "@/components/ui/breadcrumb"
 
 export default function ProductCard({
-  productId,
+  productId, product
 }: {
-  productId: number;
+  productId: string;
+  product: Product
 })  {
   const [selected, setSelected] = useState<string | null>(null)
   const imageArray = mockProducts[0].images.map((item) => item.imageUrl)
-  // const fetchedProduct = await getProductId(productId);
+  const fetchedProduct = product;
+  const productName = product.name;
+  const productCategory = product?.category?.name ?? "No Category";
+  const productDescription = product.description;
+  // const productImageArray = product.images.map((item) => item.imageUrl) ?? [];
+  const productStock = product.stock; 
+  const productWeight = product.weight;
+  const productBasePrice = product.basePrice;
+  const productDiscountPrice = product.discountPrice;
+
   return (
     <div>
         <Breadcrumb>
@@ -36,11 +47,11 @@ export default function ProductCard({
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>{mockProducts[0].category.name}</BreadcrumbPage>
+                <BreadcrumbPage>{productCategory}</BreadcrumbPage>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>{mockProducts[0].name}</BreadcrumbPage>
+                <BreadcrumbPage>{productName}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -60,12 +71,25 @@ export default function ProductCard({
             <p>{fetchedProduct.price}</p>
             <p>{fetchedProduct.description}</p> */}
 
-            <h4 className='text-xs text-[var(--mamabear-dark-pink)]'>{mockProducts[0].category.name}</h4>
-            <h2 className='text-2xl font-bold'>{mockProducts[0].name}</h2>
-            <div className='flex justify-start items-center'> <Stars rating={mockProducts[0].rating}/><div className='ml-2 mr-2 md:ml-6 md:mr-6'>(284 reviews)</div>{mockProducts[0].bestseller ? (<span className='bg-pink-300 text-[var(--mamabear-dark-pink)] rounded-full md:pl-4 md:pr-4 pl-5 pr-5 pt-2 pb-2 ml-2'>🏆Bestseller</span>) : null}</div>
+            <h4 className='text-xs text-[var(--mamabear-dark-pink)]'>{productCategory}</h4>
+            <h2 className='text-2xl font-bold'>{productName}</h2>
+            <div className='flex justify-start items-center'> 
+              <Stars rating={mockProducts[0].rating}/>
+              <div className='ml-2 mr-2 md:ml-6 md:mr-6 md:block hidden'>(284 reviews)</div>
+              {mockProducts[0].bestseller ? 
+                (<span className='bg-pink-300 text-[var(--mamabear-dark-pink)] rounded-full md:pl-4 md:pr-4 pl-5 pr-5 pt-2 pb-2 ml-4'>🏆Bestseller</span>) 
+                : null
+              }
+              </div>
 
-            <div className='flex items-end justify-start'><p className='text-[var(--mamabear-dark-pink)] text-4xl font-bold font-[var(--font-quicksand)]'>${mockProducts[0].price}</p><p className='text-xl ml-4 opacity-35'><s>${mockProducts[0].fullprice}</s></p><div className='ml-4 pl-6 pr-6 pt-2 pb-2 font-bold rounded-full bg-[var(--mamabear-dark-pink)] text-[var(--mamabear-light-pink)]'>Save {(((mockProducts[0].fullprice - mockProducts[0].price) / mockProducts[0].fullprice) * 100).toFixed(1)}%</div></div>
-            <p>{mockProducts[0].stock>0 ? 
+            <div className='flex items-end justify-start'>
+              <p className='text-[var(--mamabear-dark-pink)] md:text-4xl text-2xl font-bold font-[var(--font-quicksand)]'>Rp {productDiscountPrice}</p>
+              <p className='md:text-xl text-md ml-4 opacity-35'><s>Rp {productBasePrice}</s></p>
+              <div className='ml-4 pl-6 pr-6 pt-2 pb-2 font-bold rounded-full text-sm md:text-xl bg-[var(--mamabear-dark-pink)] text-[var(--mamabear-light-pink)]'>
+                Save {(((productBasePrice - productDiscountPrice) / productBasePrice) * 100).toFixed(0)}%
+              </div>
+            </div>
+            <p>{productStock ? 
                 (
                   <span className="flex items-center gap-1">
                     <img className="w-[20px]" src="/check.svg" alt="check" />
@@ -80,7 +104,7 @@ export default function ProductCard({
                 )
               }
             </p>
-            <p className='mt-2 mb-2'>{mockProducts[0].description}</p>
+            <p className='mt-2 mb-2'>{productDescription}</p>
             <p>Flavour : <span className='text-[var(--mamabear-dark-pink)] font-bold'>{mockProducts[0].variants[0].value}</span></p>
             <div className='mt-2 mb-2'>
               {
@@ -111,11 +135,11 @@ export default function ProductCard({
               </div>
               <br></br>
               <div className='flex justify-start items-center'>
-                <img src='/package-svgrepo-com.svg' className='w-[20px]'></img>{mockProducts[0].weight} gram (15 sacks)
+                <img src='/package-svgrepo-com.svg' className='w-[20px]'></img>{productWeight} gram (15 sacks)
               </div>
             </div>
             <div></div>
-            <AddToCartQuantity price={mockProducts[0].price}/>
+            <AddToCartQuantity price={Number(productDiscountPrice)}/>
         </div>
 
     </div>

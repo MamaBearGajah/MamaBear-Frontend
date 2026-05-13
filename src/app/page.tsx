@@ -9,7 +9,6 @@ export default function Home() {
       <main className="flex w-full max-w-3xl flex-1 flex-col items-center justify-between bg-white px-16 py-32 sm:items-start dark:bg-black">
         <HomeBanner/>
           <p className='font-quicksand'>Home Page</p>
-
         <TopProducts/>
         <Testimonial/>
       </main>

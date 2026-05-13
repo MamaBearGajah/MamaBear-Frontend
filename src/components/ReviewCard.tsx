@@ -1,17 +1,18 @@
 "use client"
 import {useState, React} from 'react';
 import { mockProducts } from '../../lib/MockProducts';
+import { Product } from '../../types';
 import USPCard from './USPCard';
 import YouMightAlsoLove from './YouMightAlsoLove';
 
-export default function ReviewCard({navValue, productId}:{navValue:string, productId:number}) {
+export default function ReviewCard({navValue, productId, product}:{navValue:string, productId:number, product: Product}) {
   switch (navValue){
     case "Description":
         return(
-        <div className='flex flex-col justify-start items-start md:w-[60%] md:h-[400px]'>
-            <p className="text-left">{mockProducts[productId].name}</p>
-          
-            <p>{mockProducts[productId].description}</p>
+        <div className='flex flex-col justify-start items-start mt-2 md:w-[60%] md:h-[400px]'>
+            <p className="text-left font-bold">{product.name}</p>
+            <br></br>
+            <p>{product.description}</p>
             {/* <USPCard/>
             <YouMightAlsoLove/> */}
         </div>)
@@ -21,7 +22,7 @@ export default function ReviewCard({navValue, productId}:{navValue:string, produ
         return(
         <div className='flex flex-col justify-start items-start md:w-[60%] md:h-[400px]'>
             
-        {mockProducts[productId].ingredients}
+        {mockProducts[1].ingredients}
         {/* <USPCard/>
         <YouMightAlsoLove/> */}
         </div>)
