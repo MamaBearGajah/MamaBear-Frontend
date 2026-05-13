@@ -10,6 +10,7 @@ import Stars from "./Stars";
 import StructuredSnippet from "./StructuredSnippet";
 import { ProductVariant } from "../../types";
 import ShareThisProduct from "./ShareThisProduct";
+import KeyBenefit from "./KeyBenefit";
 import { fetchProductVariantId } from "../../services";
 import {
   Breadcrumb,
@@ -112,7 +113,7 @@ export default function ProductCard({
                 )
               }
             </p>
-            <p className='mt-2 mb-2'>{productDescription}</p>
+            <p className='mt-2 mb-2 text-sm text-gray-500'>{productDescription}</p>
             <p>Flavour : <span className='text-[var(--mamabear-dark-pink)] font-bold'>{productVariantData[0].name}</span></p>
             <div className='mt-3 mb-2'>
               {
@@ -138,17 +139,7 @@ export default function ProductCard({
                 })
               }
               <br></br><br></br>
-              <div className='grid grid-cols-2 grid-rows-3 mt-3 border bg-gray-100 rounded-lg p-4 gap-2'>
-                <div className='col-start-1 col-end-3 row-start-1 row-end-2 font-bold text-[var(--mamabear-dark-pink)]'>KEY BENEFIT</div>
-                <div className='col-start-1 col-end-2 row-start-2 row-end-3'>Affordable Items</div>
-                <div className='col-start-2 col-end-3 row-start-2 row-end-3'>High Quality</div>
-                <div className='col-start-1 col-end-2 row-start-3 row-end-4'>Many Variants</div>
-                <div className='col-start-2 col-end-3 row-start-3 row-end-4'>Nutritious</div>
-              </div>
-              <br></br>
-              <div className='flex justify-start items-center'>
-                <img src='/package-svgrepo-com.svg' className='w-[20px]'></img>{productWeight} gram (15 sacks)
-              </div>
+              <KeyBenefit weight={productWeight}/>
             </div>
 
             <AddToCartQuantity price={Number(productDiscountPrice)}/>
