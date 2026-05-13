@@ -45,6 +45,11 @@ export default function ProductCarousel({images, variantselectedimage, setvarian
         <img
           src={selectedImage}
           alt="Selected"
+          onError={(e) => {
+              // Cast target to HTMLImageElement to access the src property
+              const target = e.target as HTMLImageElement;
+              target.src = "/Logo Mamabear.png"; // Your fallback path
+            }}
           className="w-full md:h-[50vh] object-cover"
         />
       </div>
