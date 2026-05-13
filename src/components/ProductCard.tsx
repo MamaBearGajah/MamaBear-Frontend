@@ -7,6 +7,8 @@ import ProductCarousel from "./ProductCarousel";
 import AddToCartQuantity from "./AddToCartQuantity";
 import { Product } from "../../types";
 import Stars from "./Stars";
+import StructuredSnippet from "./StructuredSnippet";
+import ShareThisProduct from "./ShareThisProduct";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -138,8 +140,14 @@ export default function ProductCard({
                 <img src='/package-svgrepo-com.svg' className='w-[20px]'></img>{productWeight} gram (15 sacks)
               </div>
             </div>
-            <div></div>
+
             <AddToCartQuantity price={Number(productDiscountPrice)}/>
+            <div>
+              <StructuredSnippet/>
+            </div>
+            <div>
+              <ShareThisProduct/>
+            </div>
         </div>
 
     </div>
