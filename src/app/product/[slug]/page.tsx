@@ -2,6 +2,8 @@ import ProductSection from "@/components/ProductSection";
 import ReviewSection from "@/components/ReviewSection";
 import { fetchProductSlug } from "../../../../services";
 import { fetchProducts } from "../../../../services";
+import { fetchProductVariantId } from "../../../../services";
+import { ProductVariant } from "../../../../types";
 import FilterSection from "@/components/FilterSection";
 import { getProductSlug } from "../../../../server";
 import { PlatziProduct } from "../../../../types";
@@ -25,11 +27,12 @@ export default async function ProductDetailPage({
 	const slicedData = fetchedAllDataData?.slice(0,3);
 	// console.log("slicedData", slicedData)
 	const productId = fetchedDataData.id;
+	const productVariant = await fetchProductVariantId(productId)
 	
 	return (
-		<div className="mx-auto w-full xl:w-[95%] md:flex md:flex-col justify-center gap-2 px-5 lg:px-20">
+		<div className="mx-auto w-full xl:w-[100%] md:flex md:flex-col justify-center gap-2 px-5 lg:px-20">
 			<div className="w-full block md:flex md:justify-center">
-				<div className='w-full md:w-[95%] top-5'><ProductSection productId={productId} product={fetchedDataData}/></div>
+				<div className='w-full md:w-[100%] top-2'><ProductSection productId={productId} product={fetchedDataData}  productVariant={productVariant}/></div>
 			</div>
 			<div className="w-full">
 				<ReviewSection productId={productId} product={fetchedDataData} slicedData={slicedData}/>

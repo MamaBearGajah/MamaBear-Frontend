@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react";
+import { Dispatch, SetStateAction } from 'react';
 
 const image = [
   "https://picsum.photos/500/500?1",
@@ -9,18 +10,42 @@ const image = [
   "https://picsum.photos/500/500?4",
 ]
 
-export default function ProductCarousel({images}:{images:string[]}) {
+
+interface ProductCarouselProps {
+  images: string[];
+  variantselectedimage?: string | null;
+  // Add the setter function prop here
+  setvariantselectedimage: (value: string | null) => void;
+}
+
+
+export default function ProductCarousel({images, variantselectedimage, setvariantselectedimage}:ProductCarouselProps) {
   const [selectedImage, setSelectedImage] = useState(images[0])
+  //  let varselectedimage=variantselectedimage;
+  useEffect(() =>{
+      // varselectedimage = variantselectedimage
+      setSelectedImage(variantselectedimage ?? images[0])
+
+    
+    },[variantselectedimage]
+
+  )
+
+  console.log("variantselectedimage",variantselectedimage , selectedImage);
+  function resetvariantimage(image:string){
+    setvariantselectedimage(null);
+    setSelectedImage(image)
+  }
 
   return (
-    <div className="w-full max-w-md">
+    <div className="w-full max-w-md border">
       
       {/* Big Image */}
-      <div className="border rounded-xl overflow-hidden mb-4">
+      <div className="border rounded-xl overflow-hidden mb-4 ">
         <img
           src={selectedImage}
           alt="Selected"
-          className="w-full h-[400px] object-cover"
+          className="w-full md:h-[50vh] object-cover"
         />
       </div>
 
@@ -31,7 +56,7 @@ export default function ProductCarousel({images}:{images:string[]}) {
             key={index}
             src={image}
             alt={`Thumbnail ${index}`}
-            onClick={() => setSelectedImage(image)}
+            onClick={() => resetvariantimage(image)}
             className={`
               w-20 h-20 object-cover rounded-lg cursor-pointer border-2 transition
               ${

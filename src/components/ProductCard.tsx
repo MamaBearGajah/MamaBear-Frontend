@@ -8,7 +8,9 @@ import AddToCartQuantity from "./AddToCartQuantity";
 import { Product } from "../../types";
 import Stars from "./Stars";
 import StructuredSnippet from "./StructuredSnippet";
+import { ProductVariant } from "../../types";
 import ShareThisProduct from "./ShareThisProduct";
+import { fetchProductVariantId } from "../../services";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -19,12 +21,14 @@ import {
 } from "@/components/ui/breadcrumb"
 
 export default function ProductCard({
-  productId, product
+  productId, product, productVariant
 }: {
   productId: string;
-  product: Product
+  product: Product;
+  productVariant: ProductVariant[];
 })  {
   const [selected, setSelected] = useState<string | null>(null)
+  const [variantSelectedImage, setvariantSelectedImage] = useState<string | null>(null)
   const imageArray = mockProducts[0].images.map((item) => item.imageUrl)
   const fetchedProduct = product;
   const productName = product.name;
@@ -35,6 +39,8 @@ export default function ProductCard({
   const productWeight = product.weight;
   const productBasePrice = product.basePrice;
   const productDiscountPrice = product.discountPrice;
+  const productVariantData = productVariant.data;
+  // console.log("ProductVariant", productVariant)
 
   return (
     <div>
@@ -63,12 +69,12 @@ export default function ProductCard({
 
     <div className="bg-white md:flex md:items-start rounded transition-transform duration-200">
 
-        <div>
+        <div className='md:w-[35%] border'>
             {/* <img src={fetchedProduct.images[0]}   className="w-[400px]"/> */}
-            <ProductCarousel images={imageArray}/>
+            <ProductCarousel images={imageArray} variantselectedimage={variantSelectedImage} setvariantselectedimage={setvariantSelectedImage}/>
             {/* <img src={mockProducts[0].images[0].imageUrl}   className="w-[400px]"/> */}
         </div>
-        <div className='p-2 md:pl-10 rounded-md w-[90%] md:w-[50%] flex flex-col gap-2'>
+        <div className='p-2 md:pl-10 rounded-md w-[90%] md:w-[60%] flex flex-col gap-2'>
             {/* <h2>{fetchedProduct.title}</h2>
             <p>{fetchedProduct.price}</p>
             <p>{fetchedProduct.description}</p> */}
@@ -107,16 +113,20 @@ export default function ProductCard({
               }
             </p>
             <p className='mt-2 mb-2'>{productDescription}</p>
-            <p>Flavour : <span className='text-[var(--mamabear-dark-pink)] font-bold'>{mockProducts[0].variants[0].value}</span></p>
-            <div className='mt-2 mb-2'>
+            <p>Flavour : <span className='text-[var(--mamabear-dark-pink)] font-bold'>{productVariantData[0].name}</span></p>
+            <div className='mt-3 mb-2'>
               {
-                mockProducts[0].variants.map((item,index) =>{
+                productVariantData.map((item,index) =>{
+                    function variantselected(item:ProductVariant){
+                      setSelected(item.value);
+                      setvariantSelectedImage("/Logo Mamabear.png");
+                    }
                   return(
                     <span 
                     key={item.value} 
-                    onClick={()=>setSelected(item.value)} 
+                    onClick={() =>variantselected(item)} 
                     className={
-                      `rounded-full pl-8 pr-8 pt-2 pb-2 ml-2 mb-3 mt-3 border 
+                      `rounded-full md:pl-8 md:pr-8 px-2 py-2 md:pb-5 md:pt-5 mb-3 mt-3 border-2 whitespace-nowrap 
                           ${selected===item.value ? "bg-[var(--mamabear-dark-pink)] text-white" : "bg-white text-black"}
                           cursor-pointer
                           hover:shadow-lg
