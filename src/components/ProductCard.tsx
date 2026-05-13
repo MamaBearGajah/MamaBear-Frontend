@@ -119,7 +119,7 @@ export default function ProductCard({
                 productVariantData.map((item,index) =>{
                     function variantselected(item:ProductVariant){
                       setSelected(item.value);
-                      setvariantSelectedImage("/Logo Mamabear.png");
+                      setvariantSelectedImage(item.imageUrl ?? "/Logo Mamabear.png");
                     }
                   return(
                     <span 
