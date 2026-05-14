@@ -12,7 +12,7 @@ export default function ReviewCard({navValue, productId, product}:{navValue:stri
         <div className='flex flex-col justify-start items-start mt-2 md:w-[60%] md:h-[400px]'>
             <p className="text-left font-bold">{product.name}</p>
             <br></br>
-            <p>{product.description}</p>
+            <p className=' text-gray-400'>{product.description}</p>
             {/* <USPCard/>
             <YouMightAlsoLove/> */}
         </div>)

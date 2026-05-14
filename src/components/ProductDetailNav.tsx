@@ -27,19 +27,19 @@ export default function ProductDetailNav({setParentNavValue}: Props){
     return(
     <div>
         <div className='hidden md:flex md:justify-start md:items-center gap-10 w-full'>
-                <p onClick={() => handleClick("Description")} className={`cursor-pointer ${active==="Description" ? "underline text-[var(--mamabear-light-pink)]" : null}`}>
+                <p onClick={() => handleClick("Description")} className={`cursor-pointer ${active==="Description" ? "underline text-[var(--mamabear-dark-pink)]" : null}`}>
                     Description
                 </p>
 
-                <p onClick={() => handleClick("Ingredients")} className={`cursor-pointer ${active==="Ingredients" ? "underline text-[var(--mamabear-light-pink)]" : null}`}>
+                <p onClick={() => handleClick("Ingredients")} className={`cursor-pointer ${active==="Ingredients" ? "underline text-[var(--mamabear-dark-pink)]" : null}`}>
                     Ingredients
                 </p>
 
-                <p onClick={() => handleClick("How To Use")} className={`cursor-pointer ${active==="How To Use" ? "underline text-[var(--mamabear-light-pink)]" : null}`}>
+                <p onClick={() => handleClick("How To Use")} className={`cursor-pointer ${active==="How To Use" ? "underline text-[var(--mamabear-dark-pink)]" : null}`}>
                     How To Use
                 </p>
 
-                <p onClick={() => handleClick("Review")} className={`cursor-pointer ${active==="Review" ? "underline text-[var(--mamabear-light-pink)]" : null}`}>
+                <p onClick={() => handleClick("Review")} className={`cursor-pointer ${active==="Review" ? "underline text-[var(--mamabear-dark-pink)]" : null}`}>
                     Review
                 </p>
         </div>
