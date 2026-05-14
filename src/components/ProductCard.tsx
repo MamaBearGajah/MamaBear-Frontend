@@ -114,7 +114,7 @@ export default function ProductCard({
               }
             </p>
             <p className='mt-2 mb-2 text-sm text-gray-500'>{productDescription}</p>
-            <p>Flavour : <span className='text-[var(--mamabear-dark-pink)] font-bold'>{productVariantData[0].name}</span></p>
+            <p><span className='text-[var(--mamabear-dark-pink)] font-bold'>{productVariantData[0].name}</span></p>
             <div className='mt-3 mb-2'>
               {
                 productVariantData.map((item,index) =>{

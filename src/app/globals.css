@@ -20,6 +20,11 @@
   font-display: swap;
 }
 
+body {
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
 :root {
 	--font-quicksand: 'Quicksand', sans-serif;
 	--font-urbanist: 'Urbanist', sans-serif;
