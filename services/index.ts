@@ -4,6 +4,7 @@ import {
   ResFetchReviewsByProductId,
   Review,
   ProductVariant,
+  ProductImage,
   ProductCategory
 } from "../types";
 import axios from "axios";
@@ -103,5 +104,40 @@ export const CreateProductVariant = async (id: string, productVariant: ProductVa
   } catch (error) {
     console.error("Error creating product variant:", error);
     throw new Error("Failed to create product variant");
+  }
+};
+
+export const DeleteVariant = async (id: string, variantId: string): Promise<void> => {
+  try {
+    const response = await axios.delete(`${BASE_URL}/Products/${id}/variants/${variantId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting Product Variant:", error);
+    throw new Error("Failed to delete product variant");
+  }
+};
+
+
+export const UpdateProductVariant = async (
+  id: string,
+  variantId: string,
+  productVariant: Partial<ProductVariant>
+): Promise<ProductVariant> => {
+  try {
+    const response = await axios.patch<ProductVariant>(`${BASE_URL}/Products/${id}/variants/${variantId}`, productVariant);
+    return response.data;
+  } catch (error) {
+    console.error("Error patching productVariant:", error);
+    throw new Error("Failed to patch product variant");
+  }
+};
+
+export const CreateImage = async (id: string, image: ProductImage): Promise<ProductImage> => {
+  try {
+    const response = await axios.post<ProductImage>(`${BASE_URL}/Products/${id}/images`, image);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating image:", error);
+    throw new Error("Failed to create image");
   }
 };
