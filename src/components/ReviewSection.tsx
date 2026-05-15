@@ -1,12 +1,26 @@
+"use client"
+
+import {useState,useEffect, React} from 'react';
+
 import ReviewCard from "./ReviewCard"
 import ReviewModal from "./ReviewModal"
 import Search from "./Search"
-export default async function ReviewSection() {
+import { Product } from '../../types';
+import ProductDetailNav from "./ProductDetailNav"
+import USPCard from './USPCard';
+import YouMightAlsoLove from './YouMightAlsoLove';
+
+export default function ReviewSection({ productId, product, slicedData }: { productId: number, product: Product, slicedData: Product[] }) {
+    const [navValue, setnavValue] = useState("Description")
     return(
-        <div className='border h-[20vh] md:h-[40vh] flex flex-col justify-center items-center'>
-            Review Section
-            <ReviewCard/>
-            <ReviewModal/>
+        <div className='h-[800px] md:h-[950px] w-full flex flex-col justify-start items-start'>
+            <ProductDetailNav setParentNavValue={setnavValue}/>
+        
+                <ReviewCard navValue={navValue} productId={productId} product={product}/>
+         
+            <USPCard/>
+            <YouMightAlsoLove product={slicedData}/>
+            {/* <ReviewModal/> */}
         </div>
     )
     }
