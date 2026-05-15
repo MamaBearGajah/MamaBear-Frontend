@@ -1,17 +1,17 @@
 "use client"
 
 import { useState } from "react";
-import { getProductId } from "../../server";
-import { mockProducts } from "../../lib/MockProducts";
-import ProductCarousel from "./ProductCarousel";
+import { getProductId } from "../../../server";
+import { mockProducts } from "../../../lib/MockProducts";
+import ProductCarousel from "../ProductCarousel";
 import AddToCartQuantity from "./AddToCartQuantity";
-import { Product } from "../../types";
+import { Product } from "../../../types";
 import Stars from "./Stars";
 import StructuredSnippet from "./StructuredSnippet";
-import { ProductVariant } from "../../types";
+import { ProductVariant } from "../../../types";
 import ShareThisProduct from "./ShareThisProduct";
 import KeyBenefit from "./KeyBenefit";
-import { fetchProductVariantId } from "../../services";
+import { fetchProductVariantId } from "../../../services";
 import {
   Breadcrumb,
   BreadcrumbItem,

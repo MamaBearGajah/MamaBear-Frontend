@@ -1,5 +1,5 @@
-import ProductSection from "@/components/ProductSection";
-import ReviewSection from "@/components/ReviewSection";
+import ProductSection from "@/components/productDetail/ProductSection";
+import ReviewSection from "@/components/productDetail/ReviewSection";
 import { fetchProductSlug } from "../../../../../services";
 import { fetchProducts } from "../../../../../services";
 import { fetchProductVariantId } from "../../../../../services";

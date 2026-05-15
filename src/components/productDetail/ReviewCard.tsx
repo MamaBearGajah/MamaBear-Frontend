@@ -1,9 +1,9 @@
 "use client"
 import {useState, React} from 'react';
-import { mockProducts } from '../../lib/MockProducts';
-import { Product } from '../../types';
+import { mockProducts } from '../../../lib/MockProducts';
+import { Product } from '../../../types';
 import USPCard from './USPCard';
-import YouMightAlsoLove from './YouMightAlsoLove';
+import YouMightAlsoLove from '../YouMightAlsoLove';
 
 export default function ReviewCard({navValue, productId, product}:{navValue:string, productId:number, product: Product}) {
   switch (navValue){
