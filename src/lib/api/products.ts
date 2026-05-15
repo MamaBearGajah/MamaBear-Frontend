@@ -4,10 +4,10 @@ import {
   ProductVariant,
   ProductImage,
   ProductCategory
-} from "../types";
+} from "../../../types";
 import axios from "axios";
 
-// const BASE_URL = "https://werent-backend-production.up.railway.app";
+
 const BASE_URL = "http://localhost:3000/api"; //Change to deployed BASE_URL later
 
 
@@ -124,15 +124,5 @@ export const UpdateProductVariant = async (
   } catch (error) {
     console.error("Error patching productVariant:", error);
     throw new Error("Failed to patch product variant");
-  }
-};
-
-export const CreateImage = async (id: string, image: ProductImage): Promise<ProductImage> => {
-  try {
-    const response = await axios.post<ProductImage>(`${BASE_URL}/Products/${id}/images`, image);
-    return response.data;
-  } catch (error) {
-    console.error("Error creating image:", error);
-    throw new Error("Failed to create image");
   }
 };
