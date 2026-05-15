@@ -1,8 +1,8 @@
 import ProductSection from "@/components/productDetail/ProductSection";
 import ReviewSection from "@/components/productDetail/ReviewSection";
-import { fetchProductSlug } from "../../../../../services";
-import { fetchProducts } from "../../../../../services";
-import { fetchProductVariantId } from "../../../../../services";
+import {fetchProductSlug} from "../../../../lib/api/products"
+import { fetchProducts } from "../../../../lib/api/products";
+import { fetchProductVariantId } from "../../../../lib/api/products";
 import { ProductVariant } from "../../../../../types";
 import FilterSection from "@/components/FilterSection";
 import { getProductSlug } from "../../../../../server";
