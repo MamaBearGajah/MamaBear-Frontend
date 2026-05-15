@@ -11,10 +11,8 @@ export interface Product {
   stock: number;
   mainImage: string;
   status: "active" | "inactive" | string;
-
   createdAt: string;
   updatedAt: string;
-
   images: ProductImage[];
   category: ProductCategory;
 }
@@ -58,23 +56,6 @@ export interface ProductImage {
   updatedAt: string;
 }
 
-interface CategoryPlatzi {
-  id: number;
-  name: string;
-  image: string;
-  slug: string;
-}
-
-export interface PlatziProduct{
-  id:number;
-  title:string;
-  slug:string;
-  price:number;
-  description:string;
-  category: CategoryPlatzi;
-  images: string[];
-}
-
 
 export interface Review {
   id: number;
@@ -94,14 +75,33 @@ export interface Pagination {
   hasNextPage: boolean;
 }
 
-export interface ResFetchProducts {
-  success: boolean;
-  data: Product[];
-  pagination: Pagination;
+export interface User {
+  id: string; name: string; email: string; phone?: string;
+  role: 'customer' | 'admin' | 'super_admin';
+  isVerified: boolean; createdAt: string; updatedAt: string;
 }
 
-export interface ResFetchReviewsByProductId {
-  success: boolean;
-  data: Review[];
-  pagination: Pagination;
+export interface CartItem {
+  id: string; productId: string; variantId?: string;
+  quantity: number; price: number; product?: Product;
 }
+
+export interface Order {
+  id: string; userId: string; addressId: string;
+  status: 'pending'|'paid'|'processing'|'shipped'|'delivered'|'cancelled';
+  paymentStatus: 'pending'|'paid'|'failed'|'expired'|'refunded';
+  total: number; shippingCost: number; courier: string; service: string;
+  trackingNumber?: string; items: OrderItem[];
+  createdAt: string;
+}
+
+export interface ApiResponse<T> {
+  success: boolean; data: T; meta?: PaginationMeta;
+}
+export interface PaginationMeta {
+  page: number; limit: number; totalItems: number; totalPages: number;
+}
+
+// Effective price helper
+export const effectivePrice = (p: Pick<Product,'basePrice','discountPrice'>) =>
+  p.discountPrice ?? p.basePrice;
