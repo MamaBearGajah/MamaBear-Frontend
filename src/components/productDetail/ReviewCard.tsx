@@ -1,6 +1,6 @@
 "use client"
 import {useState, React} from 'react';
-import { mockProducts } from '../../../lib/MockProducts';
+import { mockProducts } from '../../lib/MockProducts';
 import { Product } from '../../../types';
 import USPCard from './USPCard';
 import YouMightAlsoLove from '../YouMightAlsoLove';

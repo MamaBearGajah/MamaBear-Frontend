@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { getProductId } from "../../../server";
-import { mockProducts } from "../../../lib/MockProducts";
+import { mockProducts } from "../../lib/MockProducts";
 import ProductCarousel from "../ProductCarousel";
 import AddToCartQuantity from "./AddToCartQuantity";
 import { Product } from "../../../types";
