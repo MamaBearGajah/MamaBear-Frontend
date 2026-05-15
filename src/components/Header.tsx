@@ -9,9 +9,9 @@ export default function Header() {
         <Link href='/about'>About</Link>
         <Link href='/product'>Product</Link>
         <Link href='/consultation'>Consultation</Link>
-        <Link href='/auth/Login'>Login</Link>
-        <Link href='/auth/Register'>Register</Link>
-        <Link href='/auth/admin'>Admin</Link>
+        <Link href="/login">Login</Link>
+        <Link href="/auth/Register">Register</Link>
+        <Link href="/admin">Admin</Link>
       </div>
       
     )
