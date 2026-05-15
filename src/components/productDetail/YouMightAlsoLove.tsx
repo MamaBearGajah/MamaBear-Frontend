@@ -13,7 +13,7 @@ const YouMightAlsoLove = ({product}:{product:Product[]}) => {
         {product.map((item, index)=>{
           return(
             <div key={index}>
-              <YouMightAlsoLoveCard product={{name:item.name, rating:1, price:item.discountPrice, imageUrl: item.images[0].imageUrl, stock: item.stock, createdAt: item.createdAt}}/>
+              <YouMightAlsoLoveCard product={{name:item.name, rating:1, price:item.discountPrice, imageUrl: item.images[0].imageUrl, stock: item.stock, createdAt: item.createdAt, slug:item.slug}}/>
             </div>
           )
         })}
