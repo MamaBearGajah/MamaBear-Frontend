@@ -7,7 +7,7 @@ export default function Header() {
         <Link href='/'>Home</Link>
         <Link href='#'>Search</Link>
         <Link href='/about'>About</Link>
-        <Link href='/product'>Product</Link>
+        <Link href='/products'>Product</Link>
         <Link href='/consultation'>Consultation</Link>
         <Link href='/login'>Login</Link>
         <Link href='/register'>Register</Link>
