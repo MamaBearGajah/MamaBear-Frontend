@@ -3,7 +3,7 @@ import {
   ResFetchProducts,
   ResFetchReviewsByProductId,
   Review,
-} from "../types";
+} from "../src/types";
 
 const BASE_URL = "https://werent-backend-production.up.railway.app";
 // const BASE_URL = "http://localhost:4000"; //Change to deployed BASE_URL later
@@ -45,7 +45,7 @@ export const fetchReviews = async (
   options?: {
     limit?: number;
     cursor?: number;
-  },
+  }
 ): Promise<ResFetchReviewsByProductId> => {
   try {
     const params = new URLSearchParams();
@@ -91,13 +91,16 @@ export const fetchReview = async (id: number): Promise<Review> => {
 export const createReview = async (review: Review): Promise<Review> => {
   try {
     const { id, numUpvotes, createdAt, ...reviewPayload } = review;
-    const response = await fetch(`${BASE_URL}/products/${review.productId}/reviews`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(reviewPayload),
-    });
+    const response = await fetch(
+      `${BASE_URL}/products/${review.productId}/reviews`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(reviewPayload),
+      }
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -112,11 +115,17 @@ export const createReview = async (review: Review): Promise<Review> => {
   }
 };
 
-export const addUpvotes = async (reviewId: number, productId: number): Promise<Review> => {
+export const addUpvotes = async (
+  reviewId: number,
+  productId: number
+): Promise<Review> => {
   try {
-    const response = await fetch(`${BASE_URL}/products/${productId}/reviews/${reviewId}/upvote`, {
-      method: "PATCH",
-    });
+    const response = await fetch(
+      `${BASE_URL}/products/${productId}/reviews/${reviewId}/upvote`,
+      {
+        method: "PATCH",
+      }
+    );
 
     if (!response.ok) {
       throw new Error("Failed to add upvotes");
