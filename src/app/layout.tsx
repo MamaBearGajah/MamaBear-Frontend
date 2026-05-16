@@ -28,9 +28,13 @@ const urbanist = localFont({
   variable: '--font-urbanist', // optional (for Tailwind/custom CSS)
 });
 
+
 export const metadata: Metadata = {
-  title: "MamaBear",
-  description: "MamaBear frontend application",
+  title: {
+    default: "MamaBear",
+    template: "%s | MamaBear",
+  },
+  description: "MamaBear e-commerce — produk ibu dan anak",
 };
 
 export default function RootLayout({
@@ -39,9 +43,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" suppressHydrationWarning className={cn("font-sans", inter.variable, quicksand.className, urbanist.className)}>
+    <html 
+    lang="id" 
+    suppressHydrationWarning 
+    className={cn(
+      "font-sans", 
+      inter.variable, 
+      quicksand.className,
+       urbanist.className
+       )}>
 
-      <body>
+      <body className="min-h-screen antialiased">
         <Header/>
           {children}      
         <Footer/>
