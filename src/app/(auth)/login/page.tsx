@@ -22,9 +22,14 @@ import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller } from "react-hook-form";
 import AuthBanner from "@/components/AuthBanner";
+import { authApi } from "@/lib/api/auth";
+import axios from "axios";
+import AuthErrorMessage from "@/components/AuthErrorMessage";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const loginSchema = z.object({
     email: z
       .string()
@@ -44,8 +49,38 @@ export default function Login() {
     },
   });
 
-  const handleSubmit = (data: LoginSchema) => {
-    console.log(data);
+  const errorMessage = (statusCode: number) => {
+    switch (statusCode) {
+      case 401:
+        return "Email atau password salah";
+      case 403:
+        return "Email belum diverifikasi";
+      case 500:
+        return "Internal server error";
+      default:
+        return "Unknown error";
+    }
+  };
+
+  const handleSubmit = async (data: LoginSchema) => {
+    const loginData = {
+      email: data.email,
+      password: data.password,
+    };
+    try {
+      setIsLoading(true);
+      setError(null);
+      await authApi.login(loginData);
+    } catch (e: unknown) {
+      if (axios.isAxiosError(e)) {
+        setError(errorMessage(e.response?.status ?? 500));
+        console.log(e.response?.status);
+      } else {
+        setError("An unexpected error occurred");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -57,6 +92,7 @@ export default function Login() {
         <div className="w-full max-w-md">
           <h1 className="mb-1 text-2xl font-black">Welcome back, Mama! 👋</h1>
           <p className="mb-6 text-sm">Sign in to your Mamabear account</p>
+          {error && <AuthErrorMessage error={error} />}
           {/* FORM */}
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
@@ -146,6 +182,7 @@ export default function Login() {
               </div>
               <Field>
                 <Button
+                  disabled={isLoading}
                   type="submit"
                   className="w-full bg-[#D5557E] hover:bg-[#D5557E]/90"
                 >

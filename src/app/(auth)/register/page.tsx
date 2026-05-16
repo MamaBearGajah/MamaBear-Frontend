@@ -29,10 +29,17 @@ import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller } from "react-hook-form";
 import AuthBanner from "@/components/AuthBanner";
+import { authApi } from "@/lib/api/auth";
+import { useRouter } from "next/navigation";
+import axios from "axios";
+import AuthErrorMessage from "@/components/AuthErrorMessage";
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
   const registerSchema = z
     .object({
       name: z.string().min(1, "Name is required"),
@@ -40,9 +47,9 @@ export default function Register() {
         .string()
         .min(1, "Email is required")
         .pipe(z.email("Invalid email format")),
-      phone: z.string().min(1, "Phone is required"),
-      password: z.string().min(1, "Password is required"),
-      confirmPassword: z.string().min(1, "Confirm password is required"),
+      phone: z.string().optional(),
+      password: z.string().min(8, "Password is required"),
+      confirmPassword: z.string().min(8, "Confirm password is required"),
       terms: z.boolean().refine((val) => val === true, {
         message: "You must accept the Terms of Service",
       }),
@@ -65,8 +72,42 @@ export default function Register() {
     },
   });
 
-  const handleSubmit = (data: RegisterSchema) => {
-    console.log(data);
+  const errorMessage = (statusCode: number) => {
+    switch (statusCode) {
+      case 409:
+        return "Email or phone already exists";
+      case 401:
+        return "Invalid credentials";
+      case 500:
+        return "Internal server error";
+      default:
+        return "Unknown error";
+    }
+  };
+
+  const onSubmit = async (data: RegisterSchema) => {
+    const registerData = {
+      name: data.name,
+      email: data.email,
+      password: data.password,
+      phone: data.phone || "",
+    };
+    console.log(registerData);
+    try {
+      setError(null);
+      setIsLoading(true);
+      await authApi.register(registerData);
+      router.push(`/login`);
+    } catch (e: unknown) {
+      if (axios.isAxiosError(e)) {
+        setError(errorMessage(e.response?.status ?? 500));
+        console.log(e.response?.status);
+      } else {
+        setError("An unexpected error occurred");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -78,9 +119,10 @@ export default function Register() {
         <div className="w-full max-w-md">
           <h1 className="mb-1 text-2xl font-black">Join Mamabear! 🐻</h1>
           <p className="mb-6 text-sm">Create your account in just a minute</p>
+          {error && <AuthErrorMessage error={error} />}
           {/* FORM */}
           <form
-            onSubmit={form.handleSubmit(handleSubmit)}
+            onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-3 lg:max-w-md"
           >
             <FieldGroup>
@@ -259,8 +301,9 @@ export default function Register() {
               </div>
               <Field>
                 <Button
+                  disabled={isLoading}
                   type="submit"
-                  className="w-full bg-[#D5557E] hover:bg-[#D5557E]/90"
+                  className="w-full bg-[#D5557E] hover:bg-[#D5557E]/90 disabled:cursor-not-allowed"
                 >
                   Register
                 </Button>
