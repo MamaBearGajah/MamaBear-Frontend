@@ -1,3 +1,23 @@
+export type UserRole = "customer" | "admin" | "super_admin";
+
+
+export interface User {
+  id: string; 
+  name: string; 
+  email: string; 
+  phone?: string;
+  role: UserRole;
+  isVerified: boolean; 
+  createdAt: string; 
+  updatedAt: string;
+}
+
+export interface Session {
+  user: User;
+  accessToken: string;
+}
+
+export type ProductStatus = "active" | "inactive" | "draft";
 export interface Product {
   id: string;
   categoryId: string;
@@ -10,7 +30,7 @@ export interface Product {
   sku: string;
   stock: number;
   mainImage: string;
-  status: "active" | "inactive" | string;
+  status: ProductStatus;
   createdAt: string;
   updatedAt: string;
   images: ProductImage[];
@@ -52,9 +72,12 @@ export interface ProductImage {
   altText: string;
   sortOrder: number;
   isFeatured: boolean;
+  imageType?: "main" | "nutrition" | "ingredients" | "usage" | "other";
   createdAt: string;
   updatedAt: string;
 }
+
+
 
 
 export interface Review {
@@ -69,39 +92,113 @@ export interface Review {
   createdAt?: Date;
 }
 
+export interface ProductListItem {
+  id: string;
+  name: string;
+  slug: string;
+  basePrice: number;
+  discountPrice?: number;
+  stock: number;
+  avgRating?: number;
+  ratingCount?: number;
+  categoryId?: string;
+  weight?: number;
+  status?: ProductStatus;
+  images?: ProductImage[];
+}
+
+export interface Product extends ProductListItem {
+  description?: string;
+  sku: string;
+}
+
+export interface ProductPayload {
+  name: string;
+  slug: string;
+  description?: string;
+  basePrice: number;
+  discountPrice?: number;
+  weight: number;
+  sku: string;
+  stock: number;
+  status: ProductStatus;
+  categoryId?: string;
+}
 export interface Pagination {
   limit: number;
   nextCursor: number | null;
   hasNextPage: boolean;
 }
 
-export interface User {
-  id: string; name: string; email: string; phone?: string;
-  role: 'customer' | 'admin' | 'super_admin';
-  isVerified: boolean; createdAt: string; updatedAt: string;
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  isActive?: boolean;
 }
 
+
 export interface CartItem {
-  id: string; productId: string; variantId?: string;
-  quantity: number; price: number; product?: Product;
+  id: string; 
+  productId: string; 
+  variantId?: string;
+  quantity: number; 
+  price: number; 
+  product?: Product;
 }
 
 export interface Order {
-  id: string; userId: string; addressId: string;
+  id: string; 
+  userId: string; 
+  addressId: string;
   status: 'pending'|'paid'|'processing'|'shipped'|'delivered'|'cancelled';
   paymentStatus: 'pending'|'paid'|'failed'|'expired'|'refunded';
-  total: number; shippingCost: number; courier: string; service: string;
-  trackingNumber?: string; items: OrderItem[];
+  total: number; 
+  shippingCost: number; 
+  courier: string; 
+  service: string;
+  trackingNumber?: string; 
+  items: OrderItem[];
   createdAt: string;
 }
 
 export interface ApiResponse<T> {
-  success: boolean; data: T; meta?: PaginationMeta;
+  success: boolean; 
+  data: T; 
+  meta?: PaginationMeta;
+}
+
+export interface ApiErrorBody {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    details?: { field: string; message: string }[];
+  };
+}
+
+export interface ProductListParams {
+  page?: number;
+  limit?: number;
+  q?: string;
+  sortBy?: "createdAt" | "price" | "name" | "avgRating";
+  sortOrder?: "asc" | "desc";
+  categoryId?: string;
+  inStock?: boolean;
+  minPrice?: number;
+  maxPrice?: number;
 }
 export interface PaginationMeta {
-  page: number; limit: number; totalItems: number; totalPages: number;
+  page: number; 
+  limit: number; 
+  totalItems: number; 
+  totalPages: number;
 }
 
 // Effective price helper
 export const effectivePrice = (p: Pick<Product,'basePrice','discountPrice'>) =>
   p.discountPrice ?? p.basePrice;
+
+
+export type ProductPriceFields = Pick<ProductListItem, "basePrice" | "discountPrice">;
