@@ -21,20 +21,31 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller } from "react-hook-form";
 import AuthBanner from "@/components/AuthBanner";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { authApi } from "@/lib/api/auth";
+import axios from "axios";
+import AuthErrorMessage from "@/components/AuthErrorMessage";
 
 export default function ResetPassword() {
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState(false);
-  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const params = useSearchParams();
   const router = useRouter();
 
   const resetPasswordSchema = z
     .object({
-      password: z.string().min(1, "Password is required"),
-      confirmPassword: z.string().min(1, "Confirm password is required"),
+      password: z
+        .string()
+        .min(8, "Password is required and must be at least 8 characters"),
+      confirmPassword: z
+        .string()
+        .min(
+          8,
+          "Confirm password is required and must be at least 8 characters"
+        ),
     })
     .refine((data) => data.password === data.confirmPassword, {
       message: "Passwords do not match",
@@ -50,14 +61,34 @@ export default function ResetPassword() {
     },
   });
 
-  const handleSubmit = (data: ResetPasswordSchema) => {
-    console.log(data);
-    setPassword(data.password);
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+  const token = params.get("token") as string;
+
+  const errorMessage = (statusCode: number) => {
+    switch (statusCode) {
+      case 400:
+        return "Token tidak valid atau expired";
+      case 500:
+        return "Internal server error";
+      default:
+        return "Unknown error";
+    }
+  };
+
+  const handleSubmit = async (data: ResetPasswordSchema) => {
+    const { password } = data;
+    console.log(password, token);
+    try {
+      setError("");
+      setIsLoading(true);
+      await authApi.resetPassword(token, password);
       setSuccess(true);
-    }, 1000);
+    } catch (e: unknown) {
+      if (axios.isAxiosError(e)) {
+        setError(errorMessage(e.response?.status || 500));
+      } else setError("An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -75,6 +106,7 @@ export default function ResetPassword() {
           </Link>
           <h1 className="mb-1 text-2xl font-black">Reset Password 🔒</h1>
           <p className="mb-6 text-sm">Enter your new password.</p>
+          {error && <AuthErrorMessage error={error} />}
           {/* FORM */}
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
@@ -151,11 +183,11 @@ export default function ResetPassword() {
               />
               <Field>
                 <Button
-                  disabled={loading}
+                  disabled={isLoading}
                   type="submit"
                   className="w-full bg-[#D5557E] hover:bg-[#D5557E]/90"
                 >
-                  {loading ? "Resetting..." : "Reset Password"}
+                  {isLoading ? "Resetting..." : "Reset Password"}
                 </Button>
               </Field>
             </FieldGroup>

@@ -21,11 +21,14 @@ import { Controller } from "react-hook-form";
 import AuthBanner from "@/components/AuthBanner";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { authApi } from "../../../lib/api/auth";
+import axios from "axios";
+import AuthErrorMessage from "@/components/AuthErrorMessage";
 
 export default function ForgotPassword() {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [email, setEmail] = useState("");
   const router = useRouter();
 
   const forgotPasswordSchema = z.object({
@@ -43,14 +46,32 @@ export default function ForgotPassword() {
     },
   });
 
-  const handleSubmit = (data: ForgotPasswordSchema) => {
-    console.log(data);
-    setEmail(data.email);
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+  const errorMessage = (statusCode: number) => {
+    switch (statusCode) {
+      case 404:
+        return "Email not found";
+      case 500:
+        return "Internal server error";
+      default:
+        return "Unknown error";
+    }
+  };
+
+  const handleSubmit = async (data: ForgotPasswordSchema) => {
+    try {
+      setLoading(true);
+      setError(null);
+      await authApi.forgotPassword(data.email);
       setSuccess(true);
-    }, 1000);
+    } catch (e: unknown) {
+      if (axios.isAxiosError(e)) {
+        setError(errorMessage(e.response?.status ?? 500));
+      } else {
+        setError("An unexpected error occurred");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -70,6 +91,7 @@ export default function ForgotPassword() {
           <p className="mb-6 text-sm">
             No worries! Enter your email and we&apos;ll send a reset link.
           </p>
+          {error && <AuthErrorMessage error={error} />}
           {/* FORM */}
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
@@ -114,7 +136,8 @@ export default function ForgotPassword() {
               <div className="mb-4 text-6xl">📧</div>
               <h3 className="mb-2 text-xl font-black">Reset Link Sent!</h3>
               <p className="mb-2 text-sm">
-                Check your inbox at <strong>{email}</strong>
+                Check your inbox at{" "}
+                <strong>{form.getValues().email || ""}</strong>
               </p>
               <p className="mb-6 text-xs">
                 The link will expire in 1 hour. Check your spam folder if you
