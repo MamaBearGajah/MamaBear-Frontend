@@ -25,8 +25,12 @@ import AuthBanner from "@/components/AuthBanner";
 import { authApi } from "@/lib/api/auth";
 import axios from "axios";
 import AuthErrorMessage from "@/components/AuthErrorMessage";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
+  const { login } = useAuth();
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -70,7 +74,9 @@ export default function Login() {
     try {
       setIsLoading(true);
       setError(null);
-      await authApi.login(loginData);
+      // await authApi.login(loginData);
+      await login(loginData);
+      router.push("/");
     } catch (e: unknown) {
       if (axios.isAxiosError(e)) {
         setError(errorMessage(e.response?.status ?? 500));
