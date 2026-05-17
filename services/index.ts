@@ -1,139 +1,153 @@
 import {
   Product,
-  ResFetchProducts,
-  ResFetchReviewsByProductId,
   Review,
-} from "../src/types";
+  ProductVariant,
+  ProductImage,
+  ProductCategory,
+} from "../types";
+import axios from "axios";
 
-const BASE_URL = "https://werent-backend-production.up.railway.app";
-// const BASE_URL = "http://localhost:4000"; //Change to deployed BASE_URL later
+// const BASE_URL = "https://werent-backend-production.up.railway.app";
+const BASE_URL = "http://localhost:3000/api"; //Change to deployed BASE_URL later
 
-export async function fetchProducts(): Promise<Product[]> {
-  return fetchProductsRaw().then((res) => res.data);
-}
-
-const fetchProductsRaw = async (): Promise<ResFetchProducts> => {
+export const fetchProducts = async (): Promise<Product> => {
   try {
-    const response = await fetch(`${BASE_URL}/products`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch products");
-    }
-
-    return response.json();
+    const response = await axios.get(`${BASE_URL}/products`);
+    return response.data;
   } catch (error) {
     console.error("Error fetching products:", error);
     throw new Error("Failed to fetch products");
   }
 };
 
-export const fetchProduct = async (id: number): Promise<Product> => {
+export const fetchProductId = async (id: string): Promise<Product> => {
   try {
-    const response = await fetch(`${BASE_URL}/products/${id}`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch product");
-    }
-
-    return response.json();
+    const response = await axios.get(`${BASE_URL}/Products/${id}`);
+    return response.data;
   } catch (error) {
     console.error("Error fetching product:", error);
     throw new Error("Failed to fetch product");
   }
 };
 
-export const fetchReviews = async (
-  productId: number,
-  options?: {
-    limit?: number;
-    cursor?: number;
-  }
-): Promise<ResFetchReviewsByProductId> => {
+export const fetchProductSlug = async (slug: string): Promise<Product> => {
   try {
-    const params = new URLSearchParams();
-    if (typeof options?.limit === "number") {
-      params.set("limit", String(options.limit));
-    }
-    if (typeof options?.cursor === "number") {
-      params.set("cursor", String(options.cursor));
-    }
-
-    const queryString = params.toString();
-    const url = queryString
-      ? `${BASE_URL}/products/${productId}/reviews?${queryString}`
-      : `${BASE_URL}/products/${productId}/reviews`;
-
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error("Failed to fetch reviews");
-    }
-
-    return response.json();
+    const response = await axios.get(`${BASE_URL}/Products/slug/${slug}`);
+    return response.data;
   } catch (error) {
-    console.error("Error fetching reviews:", error);
-    throw new Error("Failed to fetch reviews");
+    console.error("Error fetching product:", error);
+    throw new Error("Failed to fetch product");
   }
 };
 
-export const fetchReview = async (id: number): Promise<Review> => {
+export const CreateProduct = async (product: Product): Promise<Product> => {
   try {
-    const response = await fetch(`${BASE_URL}/reviews/${id}`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch review");
-    }
-
-    return response.json();
+    const response = await axios.post<Product>(`${BASE_URL}/Products`, product);
+    return response.data;
   } catch (error) {
-    console.error("Error fetching review:", error);
-    throw new Error("Failed to fetch review");
+    console.error("Error creating product:", error);
+    throw new Error("Failed to create product");
   }
 };
 
-// EXTRA MILES =========================
-export const createReview = async (review: Review): Promise<Review> => {
+export const UpdateProduct = async (
+  id: string,
+  product: Partial<Product>
+): Promise<Product> => {
   try {
-    const { id, numUpvotes, createdAt, ...reviewPayload } = review;
-    const response = await fetch(
-      `${BASE_URL}/products/${review.productId}/reviews`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(reviewPayload),
-      }
+    const response = await axios.patch<Product>(
+      `${BASE_URL}/Products/${id}`,
+      product
     );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Backend error response:", errorText);
-      throw new Error(`Failed to create review: ${errorText}`);
-    }
-
-    return response.json();
+    return response.data;
   } catch (error) {
-    console.error("Error creating review:", error);
-    throw new Error("Failed to create review");
+    console.error("Error patching product:", error);
+    throw new Error("Failed to patch product");
   }
 };
 
-export const addUpvotes = async (
-  reviewId: number,
-  productId: number
-): Promise<Review> => {
+export const DeleteProduct = async (id: string): Promise<void> => {
   try {
-    const response = await fetch(
-      `${BASE_URL}/products/${productId}/reviews/${reviewId}/upvote`,
-      {
-        method: "PATCH",
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error("Failed to add upvotes");
-    }
-
-    return response.json();
+    const response = await axios.delete(`${BASE_URL}/Products/${id}`);
+    return response.data;
   } catch (error) {
-    console.error("Error adding upvotes:", error);
-    throw new Error("Failed to add upvotes");
+    console.error("Error deleting product:", error);
+    throw new Error("Failed to delete product");
+  }
+};
+
+export const fetchProductVariantId = async (
+  id: string
+): Promise<ProductVariant[]> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/Products/${id}/variants`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching product variant:", error);
+    throw new Error("Failed to fetch product variant");
+  }
+};
+
+export const CreateProductVariant = async (
+  id: string,
+  productVariant: ProductVariant
+): Promise<ProductVariant> => {
+  try {
+    const response = await axios.post<ProductVariant>(
+      `${BASE_URL}/Products/${id}/variants`,
+      productVariant
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error creating product variant:", error);
+    throw new Error("Failed to create product variant");
+  }
+};
+
+export const DeleteVariant = async (
+  id: string,
+  variantId: string
+): Promise<void> => {
+  try {
+    const response = await axios.delete(
+      `${BASE_URL}/Products/${id}/variants/${variantId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting Product Variant:", error);
+    throw new Error("Failed to delete product variant");
+  }
+};
+
+export const UpdateProductVariant = async (
+  id: string,
+  variantId: string,
+  productVariant: Partial<ProductVariant>
+): Promise<ProductVariant> => {
+  try {
+    const response = await axios.patch<ProductVariant>(
+      `${BASE_URL}/Products/${id}/variants/${variantId}`,
+      productVariant
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error patching productVariant:", error);
+    throw new Error("Failed to patch product variant");
+  }
+};
+
+export const CreateImage = async (
+  id: string,
+  image: ProductImage
+): Promise<ProductImage> => {
+  try {
+    const response = await axios.post<ProductImage>(
+      `${BASE_URL}/Products/${id}/images`,
+      image
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error creating image:", error);
+    throw new Error("Failed to create image");
   }
 };
