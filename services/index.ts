@@ -4,7 +4,7 @@ import {
   ProductVariant,
   ProductImage,
   ProductCategory,
-} from "../types";
+} from "@/types/index";
 import axios from "axios";
 
 // const BASE_URL = "https://werent-backend-production.up.railway.app";

@@ -1,4 +1,4 @@
-import apiClient from "@/lib/api/client";
+import { apiClient } from "@/lib/api/client";
 import type { RegisterPayload, LoginPayload } from "@/types/index";
 
 // src/lib/api/auth.ts
