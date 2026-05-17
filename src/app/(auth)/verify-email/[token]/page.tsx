@@ -5,6 +5,7 @@ import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import AuthBanner from "@/components/AuthBanner";
+import { authApi } from "@/lib/api/auth";
 
 export default function VerifyEmail({
   params,
@@ -26,8 +27,9 @@ export default function VerifyEmail({
         // if (!response.ok) throw new Error(data.message || "Verification failed");
 
         // Simulate API call delay
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-
+        // await new Promise((resolve) => setTimeout(resolve, 2000));
+        const response = await authApi.verifyEmail(token);
+        console.log(response);
         if (token === "invalid") {
           throw new Error("This verification link is invalid or has expired.");
         }
@@ -36,10 +38,12 @@ export default function VerifyEmail({
         setMessage(
           "Your email has been successfully verified! You can now sign in to your Mamabear account."
         );
-      } catch (error: any) {
+      } catch (error: unknown) {
         setStatus("error");
         setMessage(
-          error.message || "An error occurred while verifying your email."
+          error instanceof Error
+            ? error.message
+            : "An error occurred while verifying your email."
         );
       }
     };
