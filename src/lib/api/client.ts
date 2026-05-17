@@ -7,10 +7,14 @@ export const tokenStore = {
   logoutFn: null as (() => void) | null,
 };
 
-const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+const baseURL =
+  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ||
+  "http://localhost:3000/api";
+
+export const apiClient = axios.create({
+  baseURL,
   headers: { "Content-Type": "application/json" },
-  timeout: 30000,
+  timeout: 15000,
 });
 
 // Request interceptor: inject Bearer token
@@ -38,4 +42,8 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-export default apiClient;
+
+export function authHeaders(accessToken?: string) {
+  if (!accessToken) return {};
+  return { Authorization: `Bearer ${accessToken}` };
+}

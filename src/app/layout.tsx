@@ -28,8 +28,11 @@ const urbanist = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "MamaBear",
-  description: "MamaBear frontend application",
+  title: {
+    default: "MamaBear",
+    template: "%s | MamaBear",
+  },
+  description: "MamaBear e-commerce — produk ibu dan anak",
 };
 
 export default function RootLayout({
@@ -47,7 +50,7 @@ export default function RootLayout({
       )}
     >
       <AuthProvider>
-        <body>{children}</body>
+        <body className="min-h-screen antialiased">{children}</body>
       </AuthProvider>
     </html>
   );
