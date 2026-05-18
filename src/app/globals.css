@@ -76,6 +76,10 @@ body {
 @theme inline {
   --font-heading: var(--font-urbanist);
   --font-sans: var(--font-quicksand);
+  --mamabear-font-1: var(--mamabear-font-1);
+  --mamabear-font-2: var(--mamabear-font-2);
+  --mamabear-font-3: var(--mamabear-font-3);
+  --mamabear-font-4: var(--mamabear-font-4);
   --light-pink: var(--mamabear-light-pink);
   --dark-pink: var(--mamabear-dark-pink);
   --brown: var(--mamabear-brown);
