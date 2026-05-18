@@ -67,12 +67,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (data: LoginPayload) => {
     const res = await authApi.login(data);
     const { accessToken, refreshToken, user } = res.data.data;
+    localStorage.setItem("mamabear_at", accessToken);
     localStorage.setItem("mamabear_rt", refreshToken);
     dispatch({ type: "LOGIN", payload: { user, accessToken, refreshToken } });
   }, []); // dispatch is stable, no deps needed
 
   const logout = useCallback(() => {
     authApi.logout().catch(() => {});
+    localStorage.removeItem("mamabear_at");
     localStorage.removeItem("mamabear_rt");
     dispatch({ type: "LOGOUT" });
   }, []);
