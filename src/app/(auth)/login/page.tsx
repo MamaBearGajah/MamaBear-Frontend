@@ -74,7 +74,7 @@ export default function Login() {
     try {
       setIsLoading(true);
       setError(null);
-      // await authApi.login(loginData);
+      await authApi.login(loginData);
       await login(loginData);
       router.push("/");
     } catch (e: unknown) {
