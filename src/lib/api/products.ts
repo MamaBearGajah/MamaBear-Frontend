@@ -8,7 +8,7 @@ import {
   ProductListParams,
   ProductPayload,
   ApiResponse,
-} from "../../../types";
+} from "@/types";
 import { apiClient, authHeaders } from "./client";
 import axios from "axios";
 import {
@@ -19,9 +19,7 @@ import {
 } from "./mock-data";
 import { fetchMockProductList } from "./mock-products";
 
-
 const BASE_URL = "http://localhost:3000/api"; //Change to deployed BASE_URL later
-
 
 export const fetchProducts = async (): Promise<Product> => {
   try {
@@ -43,7 +41,6 @@ export const fetchProductId = async (id: string): Promise<Product> => {
   }
 };
 
-
 export const fetchProductSlug = async (slug: string): Promise<Product> => {
   try {
     const response = await axios.get(`${BASE_URL}/Products/slug/${slug}`);
@@ -54,25 +51,27 @@ export const fetchProductSlug = async (slug: string): Promise<Product> => {
   }
 };
 
-
 export async function getProductList(
   params: ProductListParams = {},
-  accessToken?: string,
+  accessToken?: string
 ): Promise<ApiResponse<ProductListItem[]>> {
   if (isMockProductsEnabled()) {
     return fetchMockProductList(params);
   }
 
-  const { data } = await apiClient.get<ApiResponse<ProductListItem[]>>("/products", {
-    params,
-    headers: authHeaders(accessToken),
-  });
+  const { data } = await apiClient.get<ApiResponse<ProductListItem[]>>(
+    "/products",
+    {
+      params,
+      headers: authHeaders(accessToken),
+    }
+  );
   return data;
 }
 
 export async function getProductById(
   id: string,
-  accessToken?: string,
+  accessToken?: string
 ): Promise<Product> {
   if (isMockProductsEnabled()) {
     const product = getMockProductById(id);
@@ -84,12 +83,14 @@ export async function getProductById(
     return product;
   }
 
-  const { data } = await apiClient.get<ApiResponse<Product>>(`/products/${id}`, {
-    headers: authHeaders(accessToken),
-  });
+  const { data } = await apiClient.get<ApiResponse<Product>>(
+    `/products/${id}`,
+    {
+      headers: authHeaders(accessToken),
+    }
+  );
   return data.data;
 }
-
 
 export const CreateProduct = async (product: Product): Promise<Product> => {
   try {
@@ -101,13 +102,15 @@ export const CreateProduct = async (product: Product): Promise<Product> => {
   }
 };
 
-
 export const UpdateProduct = async (
   id: string,
   product: Partial<Product>
 ): Promise<Product> => {
   try {
-    const response = await axios.patch<Product>(`${BASE_URL}/Products/${id}`, product);
+    const response = await axios.patch<Product>(
+      `${BASE_URL}/Products/${id}`,
+      product
+    );
     return response.data;
   } catch (error) {
     console.error("Error patching product:", error);
@@ -117,34 +120,40 @@ export const UpdateProduct = async (
 
 export async function createProduct(
   payload: ProductPayload,
-  accessToken?: string,
+  accessToken?: string
 ): Promise<Product> {
   if (isMockProductsEnabled()) {
     return createMockProduct(payload);
   }
 
-  const { data } = await apiClient.post<ApiResponse<Product>>("/products", payload, {
-    headers: authHeaders(accessToken),
-  });
+  const { data } = await apiClient.post<ApiResponse<Product>>(
+    "/products",
+    payload,
+    {
+      headers: authHeaders(accessToken),
+    }
+  );
   return data.data;
 }
 
 export async function updateProduct(
   id: string,
   payload: ProductPayload,
-  accessToken?: string,
+  accessToken?: string
 ): Promise<Product> {
   if (isMockProductsEnabled()) {
     return updateMockProduct(id, payload);
   }
 
-  const { data } = await apiClient.put<ApiResponse<Product>>(`/products/${id}`, payload, {
-    headers: authHeaders(accessToken),
-  });
+  const { data } = await apiClient.put<ApiResponse<Product>>(
+    `/products/${id}`,
+    payload,
+    {
+      headers: authHeaders(accessToken),
+    }
+  );
   return data.data;
 }
-
-
 
 export const DeleteProduct = async (id: string): Promise<void> => {
   try {
@@ -158,7 +167,7 @@ export const DeleteProduct = async (id: string): Promise<void> => {
 
 export async function deleteProduct(
   id: string,
-  accessToken?: string,
+  accessToken?: string
 ): Promise<void> {
   if (isMockProductsEnabled()) {
     const { deleteMockProduct } = await import("./mock-data");
@@ -175,22 +184,27 @@ export async function deleteProduct(
   });
 }
 
-
-
-export const fetchProductVariantId = async (id:string): Promise<ProductVariant[]> => {
-  try{
-    const response = await axios.get(`${BASE_URL}/Products/${id}/variants`)
+export const fetchProductVariantId = async (
+  id: string
+): Promise<ApiResponse<ProductVariant[]>> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/Products/${id}/variants`);
     return response.data;
-  }catch(error){
+  } catch (error) {
     console.error("Error fetching product variant:", error);
     throw new Error("Failed to fetch product variant");
-
   }
-}
+};
 
-export const CreateProductVariant = async (id: string, productVariant: ProductVariant): Promise<ProductVariant> => {
+export const CreateProductVariant = async (
+  id: string,
+  productVariant: ProductVariant
+): Promise<ProductVariant> => {
   try {
-    const response = await axios.post<ProductVariant>(`${BASE_URL}/Products/${id}/variants`, productVariant);
+    const response = await axios.post<ProductVariant>(
+      `${BASE_URL}/Products/${id}/variants`,
+      productVariant
+    );
     return response.data;
   } catch (error) {
     console.error("Error creating product variant:", error);
@@ -198,9 +212,14 @@ export const CreateProductVariant = async (id: string, productVariant: ProductVa
   }
 };
 
-export const DeleteVariant = async (id: string, variantId: string): Promise<void> => {
+export const DeleteVariant = async (
+  id: string,
+  variantId: string
+): Promise<void> => {
   try {
-    const response = await axios.delete(`${BASE_URL}/Products/${id}/variants/${variantId}`);
+    const response = await axios.delete(
+      `${BASE_URL}/Products/${id}/variants/${variantId}`
+    );
     return response.data;
   } catch (error) {
     console.error("Error deleting Product Variant:", error);
@@ -208,14 +227,16 @@ export const DeleteVariant = async (id: string, variantId: string): Promise<void
   }
 };
 
-
 export const UpdateProductVariant = async (
   id: string,
   variantId: string,
   productVariant: Partial<ProductVariant>
 ): Promise<ProductVariant> => {
   try {
-    const response = await axios.patch<ProductVariant>(`${BASE_URL}/Products/${id}/variants/${variantId}`, productVariant);
+    const response = await axios.patch<ProductVariant>(
+      `${BASE_URL}/Products/${id}/variants/${variantId}`,
+      productVariant
+    );
     return response.data;
   } catch (error) {
     console.error("Error patching productVariant:", error);

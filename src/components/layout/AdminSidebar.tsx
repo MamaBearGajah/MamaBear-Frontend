@@ -27,11 +27,22 @@ type NavItem = {
 const mainNav: NavItem[] = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Produk", href: "/admin/products", icon: Package },
-  { label: "Pesanan", href: "/admin/orders", icon: ShoppingCart, disabled: true },
+  { label: "Variants", href: "/admin/variants", icon: Package },
+  {
+    label: "Pesanan",
+    href: "/admin/orders",
+    icon: ShoppingCart,
+    disabled: true,
+  },
   { label: "Pelanggan", href: "/admin/customers", icon: Users, disabled: true },
   { label: "Kategori", href: "/admin/categories", icon: Tags, disabled: true },
   { label: "Laporan", href: "/admin/reports", icon: BarChart3, disabled: true },
-  { label: "Settings", href: "/admin/settings", icon: Settings, disabled: true },
+  {
+    label: "Settings",
+    href: "/admin/settings",
+    icon: Settings,
+    disabled: true,
+  },
 ];
 
 const footerNav: NavItem[] = [
@@ -50,7 +61,7 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
     isActive
       ? "rounded-l-full bg-[var(--mamabear-dark-pink)] text-white"
       : "text-white/85 hover:bg-white/10 hover:text-white",
-    item.disabled && "pointer-events-none cursor-not-allowed opacity-45",
+    item.disabled && "pointer-events-none cursor-not-allowed opacity-45"
   );
 
   const content = (
@@ -70,14 +81,23 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
 
   if (item.external) {
     return (
-      <a href={item.href} target="_blank" rel="noopener noreferrer" className={className}>
+      <a
+        href={item.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={className}
+      >
         {content}
       </a>
     );
   }
 
   return (
-    <Link href={item.href} className={className} aria-current={isActive ? "page" : undefined}>
+    <Link
+      href={item.href}
+      className={className}
+      aria-current={isActive ? "page" : undefined}
+    >
       {content}
     </Link>
   );
@@ -106,12 +126,17 @@ export default function AdminSidebar() {
           MB
         </div>
         <div className="min-w-0">
-          <p className="truncate font-heading text-sm font-semibold leading-tight">mamabear</p>
+          <p className="font-heading truncate text-sm leading-tight font-semibold">
+            mamabear
+          </p>
           <p className="truncate text-xs text-white/75">Admin Panel</p>
         </div>
       </div>
 
-      <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto py-4 pr-0" aria-label="Main">
+      <nav
+        className="flex flex-1 flex-col gap-0.5 overflow-y-auto py-4 pr-0"
+        aria-label="Main"
+      >
         {mainNav.map((item) => (
           <NavLink key={item.label} item={item} pathname={pathname} />
         ))}
