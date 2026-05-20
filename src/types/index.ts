@@ -109,6 +109,8 @@ export interface Review {
   createdAt?: Date;
 }
 
+export type ProductBadgeType = "best-seller" | "fan-favorite" | "new";
+
 export interface ProductListItem {
   id: string;
   name: string;
@@ -122,6 +124,8 @@ export interface ProductListItem {
   weight?: number;
   status?: ProductStatus;
   images?: ProductImage[];
+  badge?: ProductBadgeType;
+  flavorTags?: string[];
 }
 
 export interface Product extends ProductListItem {
@@ -157,4 +161,70 @@ export interface ResFetchReviewsByProductId {
   success: boolean;
   data: Review[];
   pagination: Pagination;
+}
+
+/** Admin + shop category list item */
+export interface Category {
+  id: string;
+  parentId?: string | null;
+  name: string;
+  slug: string;
+  isActive: boolean;
+}
+
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  totalItems: number;
+  totalPages: number;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  meta?: PaginationMeta;
+  message?: string;
+}
+
+export type ProductSortBy = "createdAt" | "name" | "price" | "avgRating";
+export type SortOrder = "asc" | "desc";
+
+export interface ProductListParams {
+  page?: number;
+  limit?: number;
+  q?: string;
+  /** @deprecated Prefer categoryIds for multi-select */
+  categoryId?: string;
+  categoryIds?: string[];
+  minPrice?: number;
+  maxPrice?: number;
+  inStock?: boolean;
+  /** Storefront: request only sellable products when API supports it */
+  status?: ProductStatus;
+  sortBy?: ProductSortBy;
+  sortOrder?: SortOrder;
+}
+
+export interface SearchSuggestion {
+  id: string;
+  name: string;
+  slug: string;
+  imageUrl?: string;
+}
+
+export interface ShopFiltersState {
+  page: number;
+  limit: number;
+  q?: string;
+  categoryId?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  inStock?: boolean;
+  sortBy: ProductSortBy;
+  sortOrder: SortOrder;
+}
+
+export interface ShopPriceBounds {
+  min: number;
+  max: number;
 }
