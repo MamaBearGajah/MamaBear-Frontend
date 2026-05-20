@@ -240,6 +240,20 @@ export interface ShopFiltersState {
   sortOrder: SortOrder;
 }
 
+export interface ProductVariant {
+  id: string;
+  productId: string;
+  name: string;
+  value: string;
+  imageUrl:string;
+  priceAdjustment: number; // Decimal → number (or string if you want precision-safe)
+  stock: number;
+  sku?: string | null;
+  isActive: boolean;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
 export interface ShopPriceBounds {
   min: number;
   max: number;

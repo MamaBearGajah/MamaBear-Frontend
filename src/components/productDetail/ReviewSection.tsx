@@ -3,9 +3,9 @@
 import {useState,useEffect, React} from 'react';
 
 import ReviewCard from "./ReviewCard"
-import ReviewModal from "../ReviewModal"
+// import ReviewModal from "../ReviewModal"
 import Search from "../Search"
-import { Product } from '../../../types';
+import { Product } from '@/types';
 import ProductDetailNav from "./ProductDetailNav"
 import USPCard from './USPCard';
 import YouMightAlsoLove from './YouMightAlsoLove';

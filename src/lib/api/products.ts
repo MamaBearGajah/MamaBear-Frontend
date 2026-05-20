@@ -32,6 +32,16 @@ export const fetchProducts = async (): Promise<Product> => {
   }
 };
 
+export const fetchProductSlug2 = async (slug: string): Promise<Product> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/Products/slug/${slug}`);
+    return response.data.data;
+  } catch (error) {
+    console.error("Error fetching product:", error);
+    throw new Error("Failed to fetch product");
+  }
+};
+
 export const fetchProductId = async (id: string): Promise<Product> => {
   try {
     const response = await axios.get(`${BASE_URL}/Products/${id}`);
@@ -41,6 +51,8 @@ export const fetchProductId = async (id: string): Promise<Product> => {
     throw new Error("Failed to fetch product");
   }
 };
+
+
 
 /** API contract §5.2 — GET /products/slug/{slug} */
 export async function getProductBySlug(
@@ -214,6 +226,18 @@ export const fetchProductVariantId = async (
     throw new Error("Failed to fetch product variant");
   }
 };
+
+
+export const fetchProductVariantId2 = async (id:string): Promise<ProductVariant[]> => {
+  try{
+    const response = await axios.get(`${BASE_URL}/Products/${id}/variants`)
+    return response.data.data;
+  }catch(error){
+    console.error("Error fetching product variant:", error);
+    throw new Error("Failed to fetch product variant");
+
+  }
+}
 
 export const CreateProductVariant = async (
   id: string,
