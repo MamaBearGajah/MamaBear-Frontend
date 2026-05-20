@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
-import "./globals.css";
-import { Inter } from "next/font/google";
-import { cn } from "@/lib/utils";
 import localFont from "next/font/local";
+import "./globals.css";
+import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/context/AuthContext";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 const quicksand = localFont({
   src: [
@@ -15,6 +12,7 @@ const quicksand = localFont({
     },
   ],
   variable: "--font-quicksand",
+  display: "swap",
 });
 
 const urbanist = localFont({
@@ -25,6 +23,7 @@ const urbanist = localFont({
     },
   ],
   variable: "--font-urbanist",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -40,17 +39,12 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
-      lang="id"
+      lang="en"
       suppressHydrationWarning
-      className={cn(
-        "font-sans",
-        inter.variable,
-        quicksand.className,
-        urbanist.className
-      )}
+      className={cn(quicksand.variable, urbanist.variable, "font-sans")}
     >
       <AuthProvider>
-        <body className="min-h-screen antialiased">{children}</body>
+        <body className="min-h-screen">{children}</body>
       </AuthProvider>
     </html>
   );
