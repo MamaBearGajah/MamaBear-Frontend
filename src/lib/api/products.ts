@@ -14,6 +14,7 @@ import axios from "axios";
 import {
   createMockProduct,
   getMockProductById,
+  getMockProductBySlug,
   isMockProductsEnabled,
   updateMockProduct,
 } from "./mock-data";
@@ -41,15 +42,33 @@ export const fetchProductId = async (id: string): Promise<Product> => {
   }
 };
 
-export const fetchProductSlug = async (slug: string): Promise<Product> => {
-  try {
-    const response = await axios.get(`${BASE_URL}/Products/slug/${slug}`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching product:", error);
-    throw new Error("Failed to fetch product");
+/** API contract §5.2 — GET /products/slug/{slug} */
+export async function getProductBySlug(
+  slug: string,
+  accessToken?: string,
+): Promise<Product> {
+  if (isMockProductsEnabled()) {
+    const product = getMockProductBySlug(slug);
+    if (!product) {
+      const err = new Error("Product not found") as Error & { code?: string };
+      err.code = "NOT_FOUND";
+      throw err;
+    }
+    return product;
   }
-};
+
+  const { data } = await apiClient.get<ApiResponse<Product>>(
+    `/products/slug/${slug}`,
+    { headers: authHeaders(accessToken) },
+  );
+  return data.data;
+}
+
+/** @deprecated Use getProductBySlug — kept for legacy callers */
+export async function fetchProductSlug(slug: string): Promise<Product> {
+  return getProductBySlug(slug);
+}
+
 
 export async function getProductList(
   params: ProductListParams = {},

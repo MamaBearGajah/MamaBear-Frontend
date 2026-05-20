@@ -1,3 +1,4 @@
+import { filterStorefrontProducts } from "@/lib/shop/storefront-products";
 import { effectivePrice } from "@/lib/utils";
 import type { ApiResponse, ProductListItem, ProductListParams } from "@/types";
 import { getMockProductsStore } from "./mock-data";
@@ -9,6 +10,10 @@ export function fetchMockProductList(
   const limit = params.limit ?? 20;
   let items = [...getMockProductsStore()];
 
+  if (params.status === "active") {
+    items = filterStorefrontProducts(items);
+  }
+
   if (params.q) {
     const q = params.q.toLowerCase();
     items = items.filter(
@@ -19,6 +24,11 @@ export function fetchMockProductList(
 
   if (params.categoryId) {
     items = items.filter((p) => p.categoryId === params.categoryId);
+  } else if (params.categoryIds && params.categoryIds.length > 0) {
+    const idSet = new Set(params.categoryIds);
+    items = items.filter(
+      (p) => p.categoryId != null && idSet.has(p.categoryId),
+    );
   }
 
   if (params.inStock === true) {

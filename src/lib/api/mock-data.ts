@@ -1,9 +1,76 @@
 import type { Category, Product, ProductListItem, ProductPayload } from "@/types";
 
 export const MOCK_CATEGORIES: Category[] = [
-  { id: "cat-1", name: "ASI Booster Tea", slug: "asi-booster-tea", isActive: true },
-  { id: "cat-2", name: "ASI Booster Capsules", slug: "asi-booster-capsules", isActive: true },
-  { id: "cat-3", name: "Kookie Bites", slug: "kookie-bites", isActive: true },
+  {
+    id: "cat-root",
+    parentId: null,
+    name: "Semua Produk",
+    slug: "semua-produk",
+    isActive: true,
+  },
+  {
+    id: "cat-1",
+    parentId: "cat-root",
+    name: "ASI Booster Tea",
+    slug: "asi-booster-tea",
+    isActive: true,
+  },
+  {
+    id: "cat-2",
+    parentId: "cat-root",
+    name: "ASI Booster Capsules",
+    slug: "asi-booster-capsules",
+    isActive: true,
+  },
+  {
+    id: "cat-3",
+    parentId: "cat-root",
+    name: "Kookie Bites",
+    slug: "kookie-bites",
+    isActive: true,
+  },
+  {
+    id: "cat-4",
+    parentId: "cat-root",
+    name: "Chocomalt",
+    slug: "chocomalt",
+    isActive: true,
+  },
+  {
+    id: "cat-5",
+    parentId: "cat-root",
+    name: "Sprinkles Cereal",
+    slug: "sprinkles-cereal",
+    isActive: true,
+  },
+  {
+    id: "cat-6",
+    parentId: "cat-root",
+    name: "Superfood Pancake Mix",
+    slug: "superfood-pancake-mix",
+    isActive: true,
+  },
+  {
+    id: "cat-7",
+    parentId: "cat-root",
+    name: "Protein Bites",
+    slug: "protein-bites",
+    isActive: true,
+  },
+  {
+    id: "cat-8",
+    parentId: "cat-root",
+    name: "Pregnancy Support",
+    slug: "pregnancy-support",
+    isActive: true,
+  },
+  {
+    id: "cat-9",
+    parentId: "cat-root",
+    name: "Postpartum Recovery",
+    slug: "postpartum-recovery",
+    isActive: true,
+  },
 ];
 
 const PLACEHOLDER_IMAGE =
@@ -20,6 +87,8 @@ export const INITIAL_MOCK_PRODUCTS: ProductListItem[] = [
     ratingCount: 284,
     categoryId: "cat-1",
     weight: 150,
+    badge: "best-seller",
+    flavorTags: ["Hazelnut", "Lychee", "Thai"],
     images: [{ id: "img-1", imageUrl: PLACEHOLDER_IMAGE, isFeatured: true }],
   },
   {
@@ -33,6 +102,8 @@ export const INITIAL_MOCK_PRODUCTS: ProductListItem[] = [
     ratingCount: 156,
     categoryId: "cat-1",
     weight: 150,
+    badge: "new",
+    flavorTags: ["Original", "Honey"],
     images: [{ id: "img-2", imageUrl: PLACEHOLDER_IMAGE, isFeatured: true }],
   },
   {
@@ -61,14 +132,17 @@ export const INITIAL_MOCK_PRODUCTS: ProductListItem[] = [
   },
   {
     id: "p-5",
-    name: "Kookie Bites – Chocolate",
+    name: "Kookie Bites – Chocolate Chip",
     slug: "kookie-bites-chocolate",
-    basePrice: 45000,
+    basePrice: 55000,
+    discountPrice: 45000,
     stock: 55,
-    avgRating: 4.5,
-    ratingCount: 201,
+    avgRating: 4.8,
+    ratingCount: 367,
     categoryId: "cat-3",
     weight: 200,
+    badge: "fan-favorite",
+    flavorTags: ["Chocolate", "Oat", "Peanut"],
     images: [{ id: "img-5", imageUrl: PLACEHOLDER_IMAGE, isFeatured: true }],
   },
   {
@@ -125,6 +199,7 @@ export const INITIAL_MOCK_PRODUCTS: ProductListItem[] = [
     slug: "asi-booster-capsules-trial",
     basePrice: 75000,
     stock: 8,
+    badge: "new",
     avgRating: 4.2,
     ratingCount: 45,
     categoryId: "cat-2",
@@ -156,16 +231,43 @@ export const INITIAL_MOCK_PRODUCTS: ProductListItem[] = [
     weight: 450,
     images: [{ id: "img-12", imageUrl: PLACEHOLDER_IMAGE, isFeatured: true }],
   },
+  {
+    id: "p-draft",
+    name: "Internal Draft Product",
+    slug: "internal-draft",
+    basePrice: 99000,
+    stock: 10,
+    status: "draft",
+    categoryId: "cat-4",
+    images: [{ id: "img-draft", imageUrl: PLACEHOLDER_IMAGE, isFeatured: true }],
+  },
 ];
 
 let mockProductsStore = [...INITIAL_MOCK_PRODUCTS];
 
+/**
+ * Mock data toggle (development).
+ * Backend live: set NEXT_PUBLIC_API_URL and MOCK_PRODUCTS=false (see .env.example).
+ */
 export function isMockProductsEnabled(): boolean {
-  return (
-    process.env.NODE_ENV === "development" &&
-    (process.env.MOCK_PRODUCTS === "true" ||
-      process.env.NEXT_PUBLIC_MOCK_PRODUCTS === "true")
-  );
+  if (
+    process.env.MOCK_PRODUCTS === "false" ||
+    process.env.NEXT_PUBLIC_MOCK_PRODUCTS === "false"
+  ) {
+    return false;
+  }
+  if (
+    process.env.MOCK_PRODUCTS === "true" ||
+    process.env.NEXT_PUBLIC_MOCK_PRODUCTS === "true"
+  ) {
+    return process.env.NODE_ENV === "development";
+  }
+  return false;
+}
+
+export function getMockProductBySlug(slug: string): Product | null {
+  const item = mockProductsStore.find((p) => p.slug === slug);
+  return item ? toFullProduct(item) : null;
 }
 
 export function resetMockProductsStore() {

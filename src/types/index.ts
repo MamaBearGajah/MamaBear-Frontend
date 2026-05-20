@@ -87,6 +87,8 @@ export interface Review {
   createdAt?: Date;
 }
 
+export type ProductBadgeType = "best-seller" | "fan-favorite" | "new";
+
 export interface ProductListItem {
   id: string;
   name: string;
@@ -100,6 +102,8 @@ export interface ProductListItem {
   weight?: number;
   status?: ProductStatus;
   images?: ProductImage[];
+  badge?: ProductBadgeType;
+  flavorTags?: string[];
 }
 
 export interface Product extends ProductListItem {
@@ -165,30 +169,25 @@ export interface Order {
 
 export interface ApiResponse<T> {
   success: boolean;
-  data: T;
-  meta?: PaginationMeta;
+  data: Product[];
+  pagination: Pagination;
 }
 
-export interface ApiErrorBody {
-  success: false;
-  error: {
-    code: string;
-    message: string;
-    details?: { field: string; message: string }[];
-  };
+export interface ResFetchReviewsByProductId {
+  success: boolean;
+  data: Review[];
+  pagination: Pagination;
 }
 
-export interface ProductListParams {
-  page?: number;
-  limit?: number;
-  q?: string;
-  sortBy?: "createdAt" | "price" | "name" | "avgRating";
-  sortOrder?: "asc" | "desc";
-  categoryId?: string;
-  inStock?: boolean;
-  minPrice?: number;
-  maxPrice?: number;
+/** Admin + shop category list item */
+export interface Category {
+  id: string;
+  parentId?: string | null;
+  name: string;
+  slug: string;
+  isActive: boolean;
 }
+
 export interface PaginationMeta {
   page: number;
   limit: number;
@@ -196,12 +195,52 @@ export interface PaginationMeta {
   totalPages: number;
 }
 
-// Effective price helper
-export const effectivePrice = (
-  p: Pick<Product, "basePrice", "discountPrice">
-) => p.discountPrice ?? p.basePrice;
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  meta?: PaginationMeta;
+  message?: string;
+}
 
-export type ProductPriceFields = Pick<
-  ProductListItem,
-  "basePrice" | "discountPrice"
->;
+export type ProductSortBy = "createdAt" | "name" | "price" | "avgRating";
+export type SortOrder = "asc" | "desc";
+
+export interface ProductListParams {
+  page?: number;
+  limit?: number;
+  q?: string;
+  /** @deprecated Prefer categoryIds for multi-select */
+  categoryId?: string;
+  categoryIds?: string[];
+  minPrice?: number;
+  maxPrice?: number;
+  inStock?: boolean;
+  /** Storefront: request only sellable products when API supports it */
+  status?: ProductStatus;
+  sortBy?: ProductSortBy;
+  sortOrder?: SortOrder;
+}
+
+export interface SearchSuggestion {
+  id: string;
+  name: string;
+  slug: string;
+  imageUrl?: string;
+}
+
+export interface ShopFiltersState {
+  page: number;
+  limit: number;
+  q?: string;
+  categoryId?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  inStock?: boolean;
+  sortBy: ProductSortBy;
+  sortOrder: SortOrder;
+}
+
+export interface ShopPriceBounds {
+  min: number;
+  max: number;
+}
