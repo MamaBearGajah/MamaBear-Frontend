@@ -1,25 +1,3 @@
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  role: "customer" | "admin" | "super_admin";
-  isVerified: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface RegisterPayload {
-  email: string;
-  password: string;
-  phone: string;
-}
-
-export interface LoginPayload {
-  email: string;
-  password: string;
-}
-
 export type UserRole = "customer" | "admin" | "super_admin";
 
 export interface User {
@@ -147,14 +125,83 @@ export interface Pagination {
   hasNextPage: boolean;
 }
 
-export interface ResFetchProducts {
-  success: boolean;
-  data: Product[];
-  pagination: Pagination;
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  isActive?: boolean;
 }
 
-export interface ResFetchReviewsByProductId {
-  success: boolean;
-  data: Review[];
-  pagination: Pagination;
+export interface CartItem {
+  id: string;
+  productId: string;
+  variantId?: string;
+  quantity: number;
+  price: number;
+  product?: Product;
 }
+
+export interface Order {
+  id: string;
+  userId: string;
+  addressId: string;
+  status:
+    | "pending"
+    | "paid"
+    | "processing"
+    | "shipped"
+    | "delivered"
+    | "cancelled";
+  paymentStatus: "pending" | "paid" | "failed" | "expired" | "refunded";
+  total: number;
+  shippingCost: number;
+  courier: string;
+  service: string;
+  trackingNumber?: string;
+  items: OrderItem[];
+  createdAt: string;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  meta?: PaginationMeta;
+}
+
+export interface ApiErrorBody {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    details?: { field: string; message: string }[];
+  };
+}
+
+export interface ProductListParams {
+  page?: number;
+  limit?: number;
+  q?: string;
+  sortBy?: "createdAt" | "price" | "name" | "avgRating";
+  sortOrder?: "asc" | "desc";
+  categoryId?: string;
+  inStock?: boolean;
+  minPrice?: number;
+  maxPrice?: number;
+}
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  totalItems: number;
+  totalPages: number;
+}
+
+// Effective price helper
+export const effectivePrice = (
+  p: Pick<Product, "basePrice", "discountPrice">
+) => p.discountPrice ?? p.basePrice;
+
+export type ProductPriceFields = Pick<
+  ProductListItem,
+  "basePrice" | "discountPrice"
+>;
