@@ -28,7 +28,7 @@ export default function Pagination({ meta }: PaginationProps) {
       aria-label="Pagination"
     >
       <p className="text-sm text-muted-foreground">
-        Halaman {meta.page} dari {meta.totalPages} ({meta.totalItems} produk)
+        Page {meta.page} of {meta.totalPages} ({meta.totalItems} products)
       </p>
       <div className="flex gap-2">
         <Link
@@ -40,7 +40,7 @@ export default function Pagination({ meta }: PaginationProps) {
           )}
         >
           <ChevronLeft className="size-4" />
-          Sebelumnya
+          Previous
         </Link>
         <Link
           href={buildHref(Math.min(meta.totalPages, meta.page + 1))}
@@ -50,7 +50,7 @@ export default function Pagination({ meta }: PaginationProps) {
             meta.page >= meta.totalPages && "pointer-events-none opacity-40",
           )}
         >
-          Berikutnya
+          Next
           <ChevronRight className="size-4" />
         </Link>
       </div>

@@ -1,10 +1,10 @@
-export default function ProductsLoading() {
+export default function SearchLoading() {
   return (
     <main className="min-h-[60vh] bg-light-pink/25 py-6 md:py-10">
       <div className="container-main space-y-4">
         <div className="animate-pulse space-y-3">
           <div className="h-4 w-40 rounded bg-light-pink" />
-          <div className="h-9 w-56 rounded bg-light-pink" />
+          <div className="h-9 w-72 rounded bg-light-pink" />
           <div className="h-4 w-32 rounded bg-light-pink" />
         </div>
 

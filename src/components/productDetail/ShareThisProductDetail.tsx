@@ -6,8 +6,7 @@ import {
   FaFacebook,
   FaInstagram,
   FaTiktok,
-  FaTimes,
-} from "react-icons/fa"
+} from "react-icons/fa";
 
 const ShareThisProductDetail = ({isOpen}:{isOpen: boolean}) => {
 
