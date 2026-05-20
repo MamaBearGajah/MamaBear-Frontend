@@ -1,7 +1,7 @@
 import ProductCard from "./ProductCard"
-import { Product } from "../../../types"
-import { ProductVariant } from "../../../types"
-import ProductModal from "./ProductModal"
+import { Product } from "@/types"
+import { ProductVariant } from "@/types"
+// import ProductModal from "./ProductModal"
 
 export default async function ProductSection({ productId, product, productVariant }: { productId: string, product: Product, productVariant: ProductVariant[] }) {
     return(
