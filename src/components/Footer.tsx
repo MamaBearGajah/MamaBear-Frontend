@@ -1,12 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { Mail, MapPin, Phone, Check } from "lucide-react";
 import { FaInstagram, FaFacebook, FaYoutube, FaComments } from "react-icons/fa";
+
+const certifications = ["BPOM Certified", "Halal MUI", "ISO 9001"];
 
 export default function Footer() {
   return (
     <footer className="mt-14 bg-[#D5557E] font-[var(--font-quicksand)] text-white">
-      <div className="mx-auto w-full max-w-[1280px] px-0 py-8 md:px-0 lg:px-0">
+      <div className="mx-auto w-full max-w-[1280px] px-0 py-8">
         <div className="grid gap-8 md:grid-cols-[1.25fr_1fr_1fr_1.25fr]">
           <div>
             <div className="mb-3 flex items-center gap-3">
@@ -19,7 +21,7 @@ export default function Footer() {
               />
             </div>
 
-            <p className="max-w-[208px] text-[11px] leading-[1.45] text-white/90">
+            <p className="max-w-[230px] text-[13px] leading-[1.5] text-white/90">
               Superfood products specially formulated to support breastfeeding
               mothers in their most important journey. Because every drop
               matters. 💗
@@ -58,8 +60,8 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="mb-3 text-[12px] font-semibold">Our Products</h4>
-            <div className="space-y-1.5 text-[11px] text-white/90">
+            <h4 className="mb-3 text-[15px] font-semibold">Our Products</h4>
+            <div className="space-y-1.5 text-[13px] text-white/90">
               <Link href="#" className="block transition hover:text-[#FACBD8]">
                 ASI Booster Tea
               </Link>
@@ -85,8 +87,8 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="mb-3 text-[12px] font-semibold">Support</h4>
-            <div className="space-y-1.5 text-[11px] text-white/90">
+            <h4 className="mb-3 text-[15px] font-semibold">Support</h4>
+            <div className="space-y-1.5 text-[13px] text-white/90">
               <Link href="#" className="block transition hover:text-[#FACBD8]">
                 Lactation Consultation
               </Link>
@@ -112,11 +114,11 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="mb-3 text-[12px] font-semibold">Get In Touch</h4>
-            <div className="space-y-3 text-[11px] text-white/95">
+            <h4 className="mb-3 text-[15px] font-semibold">Get In Touch</h4>
+            <div className="space-y-3 text-[13px] text-white/95">
               <div>
                 <p className="mb-1 flex items-center gap-2 font-semibold">
-                  <Phone size={11} className="text-[#FACBD8]" />
+                  <Phone size={12} className="text-[#FACBD8]" />
                   WhatsApp Customer Care
                 </p>
                 <p className="pl-5 text-white/85">+62 812 - 3456 - 7890</p>
@@ -125,7 +127,7 @@ export default function Footer() {
 
               <div>
                 <p className="mb-1 flex items-center gap-2 font-semibold">
-                  <Mail size={11} className="text-[#FACBD8]" />
+                  <Mail size={12} className="text-[#FACBD8]" />
                   Email Us
                 </p>
                 <p className="pl-5 text-white/85">hello@mamabear.id</p>
@@ -133,29 +135,33 @@ export default function Footer() {
 
               <div>
                 <p className="mb-1 flex items-center gap-2 font-semibold">
-                  <MapPin size={11} className="text-[#FACBD8]" />
+                  <MapPin size={12} className="text-[#FACBD8]" />
                   Our Store
                 </p>
                 <p className="pl-5 text-white/85">Surabaya, Indonesia</p>
               </div>
 
               <div className="flex flex-wrap gap-2 pt-1">
-                <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold text-[#D5557E]">
-                  BPOM Certified
-                </span>
-                <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold text-[#D5557E]">
-                  Halal MUI
-                </span>
-                <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold text-[#D5557E]">
-                  ISO 9001
-                </span>
+                {certifications.map((label) => (
+                  <span
+                    key={label}
+                    className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-[#7C5A4A]"
+                  >
+                    <Check
+                      size={9}
+                      strokeWidth={3}
+                      className="text-[#8D6B5B]"
+                    />
+                    {label}
+                  </span>
+                ))}
               </div>
             </div>
           </div>
         </div>
 
         <div className="mt-7 border-t border-white/35 pt-4">
-          <div className="flex flex-col gap-2 text-[10px] text-white/80 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-2 text-[11px] text-white/80 md:flex-row md:items-center md:justify-between">
             <p>
               © {new Date().getFullYear()} Mamabear. Made with ♥ for every
               nursing mama.
