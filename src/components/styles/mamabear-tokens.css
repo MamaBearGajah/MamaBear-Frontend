@@ -1,0 +1,19 @@
+:root {
+  --mb-pink: #d5557e;
+  --mb-pink-dark: #bf466e;
+  --mb-pink-light: #facbd8;
+  --mb-pink-soft: #fde6ee;
+
+  --mb-brown: #6c4735;
+  --mb-brown-dark: #4a2f23;
+  --mb-muted: #8b6352;
+
+  --mb-bg: #ffffff;
+  --mb-bg-soft: #fff5f8;
+  --mb-border: #f5e0e8;
+
+  --mb-success: #10b981;
+  --mb-warning: #f59e0b;
+  --mb-error: #ef4444;
+  --mb-info: #3b82f6;
+}
