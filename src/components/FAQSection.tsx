@@ -16,7 +16,7 @@ interface FAQSectionProps {
 }
 
 export default function FAQSection({
-  imageSrc,
+  imageSrc = "/Image%20HomePage/faq.jpg",
   alt = "FAQ image",
   faqs = [],
 }: FAQSectionProps) {
@@ -67,7 +67,7 @@ export default function FAQSection({
 
   return (
     <section className="w-full bg-white py-12 md:py-16">
-      <div className="mx-auto w-full max-w-[1280px] px-0">
+      <div className="w-full px-0">
         <div className="relative grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start">
           <div className="relative flex h-[520px] items-center justify-center">
             <div className="absolute top-[23px] left-[-0px] h-[520px] w-[552px] rounded-[24px] bg-[#FCEFF2]" />
@@ -85,7 +85,7 @@ export default function FAQSection({
                     src={imageSrc}
                     alt={alt}
                     fill
-                    className="object-cover blur-sm filter"
+                    className="object-cover"
                   />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center bg-[#F7F0F2]">
@@ -96,7 +96,7 @@ export default function FAQSection({
 
               {/* Consultation overlay above both card and placeholder */}
               <div
-                className="absolute top-[447px] left-[25px] z-50 h-[72px] w-[212.46875px] rounded-[16px] bg-white px-5"
+                className="absolute top-[447px] left-[25px] z-40 h-[72px] w-[212.46875px] rounded-[16px] bg-white px-5"
                 style={{
                   boxShadow:
                     "0px 4px 6px -4px rgba(0,0,0,0.1), 0px 10px 15px -3px rgba(0,0,0,0.1)",
@@ -152,7 +152,10 @@ export default function FAQSection({
                 </h3>
               </div>
             </div>
-            <div className="mt-6 overflow-hidden lg:absolute lg:top-[160px] lg:left-0 lg:mt-0 lg:flex lg:h-[468px] lg:w-[552px] lg:flex-col lg:gap-3">
+            <div
+              className="mt-6 overflow-hidden lg:absolute lg:top-[160px] lg:left-0 lg:mt-0 lg:flex lg:h-[468px] lg:w-[552px] lg:flex-col lg:gap-3"
+              suppressHydrationWarning
+            >
               {items.map((it) => (
                 <div
                   key={it.id}

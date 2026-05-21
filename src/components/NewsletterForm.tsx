@@ -31,7 +31,7 @@ const benefits = [
 export default function SubscribeSection() {
   return (
     <section className="w-full bg-white py-10 md:py-14">
-      <div className="mx-auto w-full max-w-[1280px] px-0">
+      <div className="w-full px-0">
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-5">
           {benefits.map((benefit) => {
             const Icon = benefit.icon;
@@ -51,7 +51,7 @@ export default function SubscribeSection() {
                 <h3 className="mt-4 text-[16px] font-bold text-[#6C4735]">
                   {benefit.title}
                 </h3>
-                <p className="mt-2 max-w-[220px] text-[13px] leading-5 text-[#8D6B5B]">
+                <p className="mt-2 max-w-[220px] text-[12px] leading-5 whitespace-normal text-[#8D6B5B] md:whitespace-nowrap">
                   {benefit.description}
                 </p>
               </div>
@@ -59,18 +59,21 @@ export default function SubscribeSection() {
           })}
         </div>
 
-        <div className="mx-auto mt-24 max-w-[920px] text-center">
+        <div className="mx-auto mt-24 max-w-[1280px] px-3 text-center md:px-[3cm]">
           <h2 className="text-[34px] leading-[1.15] font-black text-[#6C4735] md:text-[42px]">
             Dapatkan Promo & Tips
             <br />
             Menyusui untuk Mama
           </h2>
-          <p className="mx-auto mt-6 max-w-[760px] text-[18px] leading-8 text-[#8D6B5B]">
+          <p className="mx-auto mt-6 max-w-[760px] text-[18px] leading-8 text-[#8D6B5B] md:max-w-none md:whitespace-nowrap">
             Daftar promo dan nikmati info promo, produk baru, serta tips ringan
             seputar menyusui.
           </p>
 
-          <form className="mx-auto mt-12 flex max-w-[820px] flex-col gap-4 sm:flex-row sm:items-center sm:justify-center">
+          <form
+            className="mx-auto mt-12 flex max-w-[1160px] flex-col gap-4 px-3 md:flex-row md:items-center md:justify-center md:px-0"
+            suppressHydrationWarning
+          >
             <label className="sr-only" htmlFor="subscribe-email">
               Email Address
             </label>
@@ -78,11 +81,11 @@ export default function SubscribeSection() {
               id="subscribe-email"
               type="email"
               placeholder="Enter Email Address"
-              className="h-[62px] w-full rounded-full border-2 border-[#F2D9E0] bg-white px-6 text-[16px] text-[#6C4735] outline-none placeholder:text-[#B49A90] focus:border-[#D5557E] sm:max-w-[520px]"
+              className="h-[62px] w-full min-w-0 flex-1 rounded-full border-2 border-[#F2D9E0] bg-white px-6 text-[16px] text-[#6C4735] outline-none placeholder:text-[#B49A90] focus:border-[#D5557E] md:w-auto md:max-w-[1200px]"
             />
             <button
               type="submit"
-              className="inline-flex h-[62px] items-center justify-center rounded-full bg-[#D5557E] px-8 text-[16px] font-semibold text-white transition hover:opacity-90"
+              className="inline-flex h-[62px] shrink-0 items-center justify-center rounded-full bg-[#D5557E] px-6 text-[16px] font-semibold whitespace-nowrap text-white transition hover:opacity-90 md:ml-4"
             >
               Daftar Sekarang
             </button>
