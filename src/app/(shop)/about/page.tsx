@@ -16,6 +16,7 @@ import {
   Package,
 } from "lucide-react";
 import { Link } from "react-router";
+import BackTop from "@/components/common/BackToTop";
 
 const TABS = [
   { id: "story", label: "Our Story", icon: Heart },
@@ -727,6 +728,7 @@ export default function AboutPage() {
       className="w-full flex flex-col bg-white"
       style={{ fontFamily: "'Urbanist', sans-serif" }}
     >
+      <BackTop />
       {/* Header Banner - Full Bleed */}
       <div
         className="w-full relative overflow-hidden"
