@@ -1,52 +1,51 @@
 import type { Metadata } from "next";
-import Footer from "@/components/Footer";
-import Header from "@/components/Header";
+import localFont from "next/font/local";
 import "./globals.css";
-import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
-import localFont from 'next/font/local';
-
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
+import { AuthProvider } from "@/context/AuthContext";
 
 const quicksand = localFont({
   src: [
     {
-      path: '../../public/font/Quicksand/Quicksand-VariableFont_wght.ttf',
-      style: 'normal',
+      path: "../../public/font/Quicksand/Quicksand-VariableFont_wght.ttf",
+      style: "normal",
     },
   ],
-  variable: '--font-quicksand', // optional (for Tailwind/custom CSS)
+  variable: "--font-quicksand",
+  display: "swap",
 });
 
 const urbanist = localFont({
   src: [
     {
-      path: '../../public/font/Urbanist/Urbanist-VariableFont_wght.ttf',
-      style: 'normal',
+      path: "../../public/font/Urbanist/Urbanist-VariableFont_wght.ttf",
+      style: "normal",
     },
   ],
-  variable: '--font-urbanist', // optional (for Tailwind/custom CSS)
+  variable: "--font-urbanist",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "MamaBear",
-  description: "MamaBear frontend application",
+  title: {
+    default: "MamaBear",
+    template: "%s | MamaBear",
+  },
+  description: "MamaBear e-commerce — produk ibu dan anak",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="id" suppressHydrationWarning className={cn("font-sans", inter.variable, quicksand.className, urbanist.className)}>
-
-      <body>
-        <Header/>
-          {children}      
-        <Footer/>
-      </body>
-
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={cn(quicksand.variable, urbanist.variable, "font-sans")}
+    >
+      <AuthProvider>
+        <body className="min-h-screen">{children}</body>
+      </AuthProvider>
     </html>
   );
 }

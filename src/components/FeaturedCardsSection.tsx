@@ -42,7 +42,7 @@ export default function FeaturedCardsSection() {
                   <p className="text-[13px] leading-5 font-medium text-white/95">
                     {card.badge}
                   </p>
-                  <h3 className="mt-2 max-w-full text-[20px] leading-[1.08] font-bold md:max-w-[360px] md:text-[28px]">
+                  <h3 className="mt-2 max-w-full text-[20px] leading-[1.08] font-bold text-white md:max-w-[360px] md:text-[28px]">
                     {card.title}
                   </h3>
                   <p className="mt-3 max-w-full text-[13px] leading-[20px] text-white/95 md:max-w-[330px]">
@@ -89,7 +89,7 @@ export default function FeaturedCardsSection() {
                   <p className="text-[11px] leading-4 font-medium text-white/95">
                     {card.badge}
                   </p>
-                  <h3 className="mt-1 max-w-[150px] text-[16px] leading-[1.08] font-bold">
+                  <h3 className="mt-1 max-w-[150px] text-[16px] leading-[1.08] font-bold text-white">
                     {card.title}
                   </h3>
                   <p className="mt-2 max-w-[155px] text-[10px] leading-[15px] text-white/95">
