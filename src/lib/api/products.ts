@@ -53,6 +53,16 @@ export const fetchProductId = async (id: string): Promise<Product> => {
 };
 
 
+export const fetchProductVariantId2 = async (id:string): Promise<ProductVariant[]> => {
+  try{
+    const response = await axios.get(`${BASE_URL}/Products/{productId}/variants/${id}/variants`)
+    return response.data.data;
+  }catch(error){
+    console.error("Error fetching product variant:", error);
+    throw new Error("Failed to fetch product variant");
+
+  }
+}
 
 /** API contract §5.2 — GET /products/slug/{slug} */
 export async function getProductBySlug(
@@ -75,6 +85,32 @@ export async function getProductBySlug(
   );
   return data.data;
 }
+
+
+
+export async function getProductBySlug2(
+  slug: string,
+  accessToken?: string,
+): Promise<Product> {
+  if (isMockProductsEnabled()) {
+    const product = getMockProductBySlug(slug);
+    if (!product) {
+      const err = new Error("Product not found") as Error & { code?: string };
+      err.code = "NOT_FOUND";
+      throw err;
+    }
+    return product;
+  }
+
+  const { data } = await apiClient.get<ApiResponse<Product>>(
+    `/products/slug/${slug}`,
+    { headers: authHeaders(accessToken) },
+  );
+  return data.data;
+}
+
+
+
 
 /** @deprecated Use getProductBySlug — kept for legacy callers */
 export async function fetchProductSlug(slug: string): Promise<Product> {
@@ -215,29 +251,7 @@ export async function deleteProduct(
   });
 }
 
-export const fetchProductVariantId = async (
-  id: string
-): Promise<ApiResponse<ProductVariant[]>> => {
-  try {
-    const response = await axios.get(`${BASE_URL}/Products/${id}/variants`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching product variant:", error);
-    throw new Error("Failed to fetch product variant");
-  }
-};
 
-
-export const fetchProductVariantId2 = async (id:string): Promise<ProductVariant[]> => {
-  try{
-    const response = await axios.get(`${BASE_URL}/Products/${id}/variants`)
-    return response.data.data;
-  }catch(error){
-    console.error("Error fetching product variant:", error);
-    throw new Error("Failed to fetch product variant");
-
-  }
-}
 
 export const CreateProductVariant = async (
   id: string,

@@ -106,10 +106,10 @@ export interface ProductListItem {
   flavorTags?: string[];
 }
 
-export interface Product extends ProductListItem {
-  description?: string;
-  sku: string;
-}
+// export interface Product extends ProductListItem {
+//   description?: string;
+//   sku: string;
+// }
 
 export interface ProductPayload {
   name: string;
