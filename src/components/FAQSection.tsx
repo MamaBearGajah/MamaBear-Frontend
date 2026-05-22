@@ -16,7 +16,7 @@ interface FAQSectionProps {
 }
 
 export default function FAQSection({
-  imageSrc = "/Image%20HomePage/faq.jpg",
+  imageSrc = "/Image%20HomePage/faq2.png",
   alt = "FAQ image",
   faqs = [],
 }: FAQSectionProps) {
@@ -66,8 +66,9 @@ export default function FAQSection({
   const items = faqs.length ? faqs : defaultFaqs;
 
   return (
-    <section className="w-full bg-white py-12 md:py-16">
-      <div className="w-full px-0">
+    <section className="w-full bg-white pt-6 pb-8 md:pt-8 md:pb-12">
+      {/* Desktop: complex layout (keep unchanged) */}
+      <div className="hidden w-full px-0 md:block">
         <div className="relative grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start">
           <div className="relative flex h-[520px] items-center justify-center">
             <div className="absolute top-[23px] left-[-0px] h-[520px] w-[552px] rounded-[24px] bg-[#FCEFF2]" />
@@ -167,7 +168,7 @@ export default function FAQSection({
                     aria-expanded={openId === it.id}
                   >
                     <div className="flex items-center gap-4">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F7C4D2] text-sm font-semibold text-[#D5557E]">
+                      <div className="flex aspect-square h-8 min-h-8 w-8 min-w-8 flex-none items-center justify-center rounded-full bg-[#F7C4D2] text-sm font-semibold text-[#D5557E]">
                         {String(it.id).padStart(2, "0")}
                       </div>
                       <span className="text-[15px] font-semibold text-[#6C4735]">
@@ -202,6 +203,107 @@ export default function FAQSection({
               ))}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* MOBILE-ONLY: compact FAQ layout with horizontal padding */}
+      <div className="w-full px-0 md:hidden">
+        <div className="space-y-4">
+          {/* MOBILE-ONLY: show only the FAQ image (no pink background card) */}
+          {/* MOBILE-ONLY: full-bleed FAQ image with bottom pink gradient and consultation box */}
+          {imageSrc && (
+            <div className="relative right-1/2 left-1/2 h-[360px] w-screen -translate-x-1/2 overflow-hidden">
+              <Image
+                src={imageSrc}
+                alt={alt}
+                fill
+                sizes="100vw"
+                className="object-cover"
+              />
+
+              {/* bottom gradient */}
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-[#FCEFF2] to-transparent" />
+
+              {/* Free Consultation box (copied/adjusted from desktop) */}
+              <div
+                className="absolute bottom-4 left-4 z-40 h-[72px] w-[212px] rounded-[16px] bg-white px-4"
+                style={{
+                  boxShadow:
+                    "0px 4px 6px -4px rgba(0,0,0,0.1), 0px 10px 15px -3px rgba(0,0,0,0.1)",
+                }}
+              >
+                <div className="flex h-full items-center gap-3.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F7C4D2]">
+                    <Image
+                      src="/chat-balloon_446090.png"
+                      alt="Chat icon"
+                      width={18}
+                      height={18}
+                      className="opacity-90"
+                      style={{
+                        filter:
+                          "brightness(0) saturate(100%) invert(53%) sepia(77%) saturate(422%) hue-rotate(300deg) brightness(95%) contrast(90%)",
+                      }}
+                    />
+                  </div>
+                  <div className="flex flex-col justify-center leading-[1.15]">
+                    <p className="text-[14px] font-semibold text-[#6C4735]">
+                      Free Consultation
+                    </p>
+                    <p className="mt-[2px] text-[13px] text-[#8D6B5B]">
+                      Chat with our expert
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <h3 className="text-[28px] font-black text-[#6C4735]">
+            Frequently Asked <span className="text-[#D5557E]">Questions</span>
+          </h3>
+          {items.map((it) => (
+            <div
+              key={it.id}
+              className="rounded-[12px] border border-[#F0C7D5] bg-white p-4"
+            >
+              <button
+                className="flex w-full items-center justify-between text-left"
+                onClick={() => setOpenId(openId === it.id ? null : it.id)}
+                aria-expanded={openId === it.id}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="flex aspect-square h-8 min-h-8 w-8 min-w-8 flex-none items-center justify-center rounded-full bg-[#F7C4D2] text-sm font-semibold text-[#D5557E]">
+                    {String(it.id).padStart(2, "0")}
+                  </div>
+                  <span className="text-[15px] font-semibold text-[#6C4735]">
+                    {it.question}
+                  </span>
+                </div>
+                <div className="text-[#D5557E]">
+                  <svg
+                    className={`h-4 w-4 transform transition-transform ${openId === it.id ? "rotate-180" : ""}`}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M6 9l6 6 6-6"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+              </button>
+
+              {openId === it.id && (
+                <div className="mt-3 text-sm text-[#8D6B5B]">{it.answer}</div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </section>

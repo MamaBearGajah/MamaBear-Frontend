@@ -13,7 +13,7 @@ interface CategoryCardProps {
   category: Category;
   gradientClass: string;
   count: number;
-  shouldScroll: boolean;
+  shouldScroll?: boolean;
   mobileSize?: boolean;
 }
 
@@ -52,6 +52,45 @@ export const MOCK_CATEGORIES: Category[] = [
   { id: 6, name: "Kapsul", image: "/Image%20HomePage/kapsul.png", count: 3 },
 ];
 
+/*
+    API fetch skeleton (commented out)
+
+    When the backend is ready, you can fetch categories from the BE endpoint
+    `get/categories`. Keep this code commented until you want to switch from
+    the mock data to the real data.
+
+    Example (Server-side / Next.js - recommended for SSR):
+
+    // export async function fetchCategories(): Promise<Category[]> {
+    //   try {
+    //     const res = await fetch('/get/categories', { next: { revalidate: 60 } });
+    //     if (!res.ok) throw new Error('Failed to fetch categories');
+    //     const data = await res.json();
+    //     return data as Category[];
+    //   } catch (err) {
+    //     console.warn('fetchCategories failed, falling back to mock', err);
+    //     return MOCK_CATEGORIES;
+    //   }
+    // }
+
+    Example (Client-side - if you convert this component to a client component):
+
+    // import { useEffect, useState } from 'react';
+    // const [fetchedCategories, setFetchedCategories] = useState<Category[] | null>(null);
+    // useEffect(() => {
+    //   let mounted = true;
+    //   fetch('/get/categories')
+    //     .then((r) => r.ok ? r.json() : Promise.reject(r))
+    //     .then((data) => mounted && setFetchedCategories(data))
+    //     .catch(() => mounted && setFetchedCategories(MOCK_CATEGORIES));
+    //   return () => { mounted = false; };
+    // }, []);
+
+    Note: Current implementation uses `MOCK_CATEGORIES` or the `categories` prop
+    passed from the page. Leave that in place until the endpoint is live.
+
+  */
+
 function CategoryCard({
   category,
   gradientClass,
@@ -60,7 +99,7 @@ function CategoryCard({
   mobileSize,
 }: CategoryCardProps) {
   const sizeClass = mobileSize
-    ? "relative aspect-[9/10] w-[44vw] max-w-[170px] flex-shrink-0 overflow-hidden rounded-[16px] border border-[#D5557E] bg-gray-100"
+    ? "relative aspect-[9/10] w-full overflow-hidden rounded-[16px] border border-[#D5557E] bg-gray-100"
     : shouldScroll
       ? "relative aspect-[9/10] w-[200px] flex-shrink-0 overflow-hidden rounded-[16px] border border-[#D5557E] bg-gray-100"
       : "relative aspect-[9/10] w-full overflow-hidden rounded-[16px] border border-[#D5557E] bg-gray-100";
@@ -162,7 +201,7 @@ export default function CategorySection({
 
       {/* Mobile-only block: wider cards with horizontal swipe, showing 2-3 at a time */}
       <div className="w-full px-0 md:hidden">
-        <div className="mx-auto max-w-[760px] px-4 text-center">
+        <div className="mx-auto max-w-[760px] px-0 text-center">
           <span className="-mt-2 inline-flex h-[24px] items-center justify-center rounded-full bg-[#FACBD8] px-3 py-1 font-['Quicksand'] text-[12px] leading-4 font-bold tracking-[0.6px] text-[#D5557E] uppercase">
             Shop by Category
           </span>
@@ -175,23 +214,21 @@ export default function CategorySection({
           </p>
         </div>
 
-        <div className="mt-7 overflow-x-auto px-4 pb-2">
-          <div className="flex w-max snap-x snap-mandatory items-stretch gap-2.5 pr-4">
+        <div className="mt-7 px-4 pb-2">
+          <div className="grid grid-cols-2 gap-3">
             {categories.map((category, index) => {
               const gradient = gradientClasses[index % gradientClasses.length];
               const count = category.count ?? productCounts[index] ?? 0;
               const key = category.id ?? category.name + index;
 
               return (
-                <div key={key} className="snap-start">
-                  <CategoryCard
-                    category={category}
-                    gradientClass={gradient}
-                    count={count}
-                    shouldScroll
-                    mobileSize
-                  />
-                </div>
+                <CategoryCard
+                  key={key}
+                  category={category}
+                  gradientClass={gradient}
+                  count={count}
+                  mobileSize
+                />
               );
             })}
           </div>
