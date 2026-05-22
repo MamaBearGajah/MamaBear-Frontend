@@ -7,6 +7,7 @@ import { fetchProductVariantId2 } from "../../../../lib/api/products";
 import { ProductVariant } from "@/types";
 import FilterSection from "@/components/FilterSection";
 import { fetchProductSlug } from "../../../../../services";
+import AddToCartMobile from "@/components/cart/AddToCartMobile";
 
 
 export default async function ProductDetailPage({
@@ -29,6 +30,7 @@ export default async function ProductDetailPage({
     // console.log("slicedData", slicedData)
     const productId = fetchedDataData.id;
     const productVariant = await fetchProductVariantId2(productId)
+
     // console.log("productVariant", productVariant)
     
     return (
@@ -40,7 +42,7 @@ export default async function ProductDetailPage({
                 <ReviewSection productId={productId} product={fetchedDataData} slicedData={slicedData}/>
             </div>
             <div className="block lg:hidden">
-                {/* <AddToCartMobile /> */}
+                <AddToCartMobile />
             </div>
         </div>
     );
