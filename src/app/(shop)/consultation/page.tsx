@@ -2,6 +2,7 @@
 
 import React, { useEffect } from "react";
 import Link from "next/link";
+import BackToTop from "@/components/common/BackToTop";
 import { 
   Calendar, 
   Video, 
@@ -21,6 +22,7 @@ export default function ConsultationPage() {
 
   return (
     <div className="w-full" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+      <BackToTop/>
       {/* Hero Section - Full Bleed */}
       <section className="relative w-full h-[60vh] min-h-[500px] flex items-center">
         <div 
