@@ -11,6 +11,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 // import { fetchProducts } from "../../services/index";
 import { MOCK_CATEGORIES } from "@/components/CategoryShowcase";
+import BackToTop from "@/components/common/BackToTop";
 
 async function tryFetch(url: string) {
   try {
@@ -69,6 +70,7 @@ export default async function Home() {
     <div className="flex min-h-screen flex-col bg-zinc-50 font-sans dark:bg-black">
       <Header />
       <main className="flex w-full flex-1 flex-col bg-white dark:bg-black">
+        <BackToTop/>
         <HomeBanner />
         {/* MOBILE-ONLY: page gutters live here; desktop keeps 3cm gutters */}
         <section className="px-4 sm:px-[3cm]">

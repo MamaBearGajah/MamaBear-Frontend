@@ -1,6 +1,7 @@
 ﻿"use client"
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
+import BackToTop from "@/components/common/BackToTop";
 
 import { Clock, BookOpen, ChevronRight, Search, ArrowRight } from "lucide-react";
 import { getStoredArticles, ARTICLE_CATEGORIES, Article } from "@/lib/blog/articlesData";
@@ -91,7 +92,7 @@ export default function Page() {
     ARTICLE_CATEGORIES.find((c) => c.value === cat) ?? { color: "#D5557E", bg: "#FFF5F8", label: cat };
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#FFF5F8", fontFamily: "'Urbanist', sans-serif" }}>
-
+      <BackToTop/>
       {/* Hero */}
       <div
         className="relative overflow-hidden py-16 px-6 sm:px-12 lg:px-20"
