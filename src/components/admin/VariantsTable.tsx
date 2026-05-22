@@ -52,7 +52,7 @@ export default function VariantsTable({
     });
   };
 
-  if (variants.length === 0) {
+  if (!variants || variants.length === 0) {
     return (
       <div className="border-border bg-card rounded-xl border py-16 text-center">
         <p className="text-muted-foreground">Tidak ada varian ditemukan.</p>

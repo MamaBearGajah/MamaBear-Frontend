@@ -4,7 +4,7 @@ import AdminPageHeader from "@/components/layout/AdminPageHeader";
 import ProductsPageClient from "@/components/admin/ProductsPageClient";
 import { getCategoryList } from "@/lib/api/categories";
 import { isMockProductsEnabled } from "@/lib/api/mock-data";
-import { fetchProductVariantId, getProductList } from "@/lib/api/products";
+import { fetchProductVariantId2, getProductList } from "@/lib/api/products";
 import { getServerSession } from "@/lib/auth/session";
 import type { ProductFilters } from "@/components/admin/ProductFilterDialog";
 import type { ProductListParams, ApiResponse } from "@/types";
@@ -73,7 +73,7 @@ export default async function AdminVariantsPage({
   let mockMode = isMockProductsEnabled();
   const ProductId = "2e316469-8243-49a3-b242-1037d12dd710";
 
-  const variantRes = await fetchProductVariantId(ProductId);
+  const variantRes = await fetchProductVariantId2(ProductId);
 
   const { MOCK_CATEGORIES } = await import("@/lib/api/mock-data");
   const categoriesRes = { success: true, data: MOCK_CATEGORIES };
