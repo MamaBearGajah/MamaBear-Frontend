@@ -142,7 +142,7 @@ export default function ProductCard({
               <KeyBenefit weight={productWeight}/>
             </div>
 
-            <AddToCartQuantity price={Number(productDiscountPrice)}/>
+            <AddToCartQuantity price={Number(productDiscountPrice)} product={fetchedProduct}/>
             <div>
               <StructuredSnippet/>
             </div>
