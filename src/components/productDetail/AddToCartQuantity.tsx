@@ -1,12 +1,30 @@
 "use client"
 
 import {useState, useEffect, React} from 'react';
+import {useCart} from '@/hooks/useCart';
+import { CartItem } from '@/types';
+import {Product} from '@/types/index';
 
 
-export default function AddToCartQuantity({price}:{price:number}){
+export default function AddToCartQuantity({price,product}:{price:number, product: Product}){
     const [Quantity, setQuantity] = useState(1);
+    const { addItem, state, updateQuantity, itemCount, setGuestCartId, clearCart} = useCart();
+
     function AddToFavourite(){
         console.log("add to favourite")
+    }
+
+    const handleAddToCart = () => {
+        const newItem: CartItem = {
+            id: `temp-id-${Date.now()}`,
+            productId: product.id,
+            quantity: Quantity,
+            name: product.name,
+            basePrice: Number(product.basePrice),
+            discountPrice: product.discountPrice ? Number(product.discountPrice) : undefined,
+            image: product.images[0].imageUrl,
+        };
+        addItem(newItem);
     }
     return(
         <div>
@@ -31,7 +49,7 @@ export default function AddToCartQuantity({price}:{price:number}){
                             +
                     </span>
                 </div>
-                <div className='p-3 w-[55%] md:w-[60%] ml-3 flex justify-center items-center cursor-pointer hover:shadow-lg duration transition-300 rounded-full bg-[var(--mamabear-dark-pink)] text-white'>
+                <div onClick={handleAddToCart} className='p-3 w-[55%] md:w-[60%] ml-3 flex justify-center items-center cursor-pointer hover:shadow-lg duration transition-300 rounded-full bg-[var(--mamabear-dark-pink)] text-white'>
                         <img className='w-[20px]' src="/cart.svg"/>Add To Cart
                 </div>
                 <div className='border ml-3 rounded-full cursor-pointer p-3 hover:shadow-lg transition duration-300' onClick={AddToFavourite}>

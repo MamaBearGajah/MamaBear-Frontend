@@ -421,8 +421,10 @@ const CartPage = () => {
                 className="w-full mt-6 py-4 rounded-full font-black text-white flex items-center justify-center gap-2 hover:scale-[1.02] transition"
                 style={{ backgroundColor: "#D5557E" }}
               >
-                Proceed to Checkout
-                <ArrowRight size={18} />
+                <Link href="/checkout" className="flex items-center gap-2">
+                  Proceed to Checkout
+                  <ArrowRight size={18} />
+                </Link>
               </button>
             </div>
           </div>
