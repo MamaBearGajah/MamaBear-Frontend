@@ -42,7 +42,7 @@ export default async function ProductDetailPage({
                 <ReviewSection productId={productId} product={fetchedDataData} slicedData={slicedData}/>
             </div>
             <div className="block lg:hidden">
-                <AddToCartMobile />
+                <AddToCartMobile productId={productId} product={fetchedDataData} />
             </div>
         </div>
     );

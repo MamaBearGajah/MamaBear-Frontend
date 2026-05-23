@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/context/AuthContext";
+import {CartProvider} from "@/context/CartContext";
 
 const quicksand = localFont({
   src: [
@@ -44,7 +45,9 @@ export default function RootLayout({
       className={cn(quicksand.variable, urbanist.variable, "font-sans")}
     >
       <AuthProvider>
-        <body className="min-h-screen">{children}</body>
+        <CartProvider>
+          <body className="min-h-screen">{children}</body>
+        </CartProvider>
       </AuthProvider>
     </html>
   );

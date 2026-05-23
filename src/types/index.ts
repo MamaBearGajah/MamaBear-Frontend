@@ -142,8 +142,9 @@ export interface CartItem {
   productId: string;
   variantId?: string;
   quantity: number;
-  price: number;
-  product?: Product;
+  name: string;
+  basePrice: number;
+  image: string;
 }
 
 export interface Order {
