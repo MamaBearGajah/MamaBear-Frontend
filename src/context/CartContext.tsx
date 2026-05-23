@@ -78,7 +78,8 @@ type CartContextType = {
 
 function calculateSubtotal(items: CartItem[]) {
   return items.reduce((sum, item) => {
-    return sum + item.price * item.quantity;
+    const price = item.discountPrice ?? item.basePrice;
+    return sum + price * item.quantity;
   }, 0);
 }
 

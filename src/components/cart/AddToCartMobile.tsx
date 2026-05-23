@@ -1,8 +1,8 @@
 "use client"
 import Link from "next/link";
 import {useCart} from "@/hooks/useCart";
-import {cartitem} from "@/types/cartitem";
-import {Product} from "@/types/product";
+import { CartItem } from "@/types/index";
+import {Product} from "@/types/index";
 import { nanoid } from 'nanoid';
 const AddToCartMobile = ({ productId, product }: { productId: string; product: Product }) => {
   const { addItem } = useCart();
@@ -15,10 +15,13 @@ const AddToCartMobile = ({ productId, product }: { productId: string; product: P
             id: nanoid(),
             productId: product.id,
             name: product.name,
-            price: product.basePrice,
+            basePrice: Number(product.basePrice),
+            discountPrice: product.discountPrice
+              ? Number(product.discountPrice)
+              : undefined,
             image: product.images ? product.images[0].imageUrl : '/Logo Mamabear.png',
             quantity: 1,
-          } as cartitem);
+          } as CartItem);
           alert("Item added to cart!");
         }}
         className="text-white hover:underline transition"
