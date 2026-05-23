@@ -144,6 +144,7 @@ export interface CartItem {
   quantity: number;
   name: string;
   basePrice: number;
+  discountPrice?: number;
   image: string;
 }
 
