@@ -1,3 +1,7 @@
+import {Product} from "../types";
+
+const INITIAL_MOCK_PRODUCTS: Product[] = [];
+
 export const mockProducts = [
   {
     id: "p1",
@@ -6,8 +10,9 @@ export const mockProducts = [
     slug: "minimal-wooden-chair",
     description: "A simple and elegant wooden chair made from oak wood.",
     ingredients:"chocolate and vanilla",
-    price: 120.5,
-    fullprice:150,
+    discountPrice: 120.5,
+    basePrice:150,
+    mainImage: "https://placehold.co/600x400",
     rating: 4.5,
     bestseller: true,
     weight: 8,
@@ -58,6 +63,8 @@ export const mockProducts = [
         productId: "p1",
         name: "Color",
         value: "Brown",
+        basePrice: 100,
+        discountPrice: 90.5,
         priceAdjustment: 0,
         stock: 10,
         sku: "CHAIR-001-BRN",
@@ -70,6 +77,8 @@ export const mockProducts = [
         productId: "p2",
         name: "Color",
         value: "Gray",
+        basePrice: 100,
+        discountPrice: 90.5,
         priceAdjustment: 0,
         stock: 10,
         sku: "CHAIR-002-BRN",
@@ -82,6 +91,8 @@ export const mockProducts = [
         productId: "p3",
         name: "Color",
         value: "Purple",
+        basePrice: 100,
+        discountPrice: 90.5,
         priceAdjustment: 0,
         stock: 10,
         sku: "CHAIR-003-BRN",
@@ -99,8 +110,9 @@ export const mockProducts = [
     slug: "wireless-headphones",
     description: "Noise-cancelling over-ear wireless headphones.",
     ingredients:"Strawberry and Pandan",
-    price: 89.99,
-    fullprice:100,
+    discountPrice: 90.5,
+    basePrice:100,
+    mainImage: "https://placehold.co/600x400",
     rating: 4.5,
     bestseller: true,
     weight: 1,
@@ -131,6 +143,8 @@ export const mockProducts = [
         productId: "p2",
         name: "Color",
         value: "Black",
+        basePrice: 100,
+        discountPrice: 90.5,
         priceAdjustment: 0,
         stock: 30,
         sku: "HEAD-002-BLK",
@@ -148,8 +162,9 @@ export const mockProducts = [
     slug: "modern-coffee-table",
     description: "Stylish coffee table with tempered glass top.",
     ingredients:"Durian and Jackfruit",
-    price: 210,
-    fullprice:250,
+    discountPrice: 210,
+    basePrice:250,
+    mainImage: "https://placehold.co/600x400",
     rating: 4.5,
     bestseller: true,
     weight: 15,
@@ -184,8 +199,9 @@ export const mockProducts = [
     slug: "running-shoes",
     description: "Lightweight running shoes for daily training.",
     ingredients:"Melon and Cabbage",
-    price: 75,
-    fullprice:90,
+    discountPrice: 75,
+    basePrice:90,
+    mainImage: "https://placehold.co/600x400",
     rating: 4.5,
     bestseller: true,
     weight: 1,
@@ -216,6 +232,8 @@ export const mockProducts = [
         productId: "p4",
         name: "Size",
         value: "42",
+        basePrice: 100,
+        discountPrice: 90.5,
         priceAdjustment: 0,
         stock: 20,
         sku: "SHOE-004-42",
@@ -265,6 +283,8 @@ export const mockProducts = [
         productId: "p5",
         name: "Color",
         value: "Silver",
+        basePrice: 100,
+        discountPrice: 90.5,
         priceAdjustment: 10,
         stock: 8,
         sku: "WATCH-005-SLV",
@@ -275,3 +295,110 @@ export const mockProducts = [
     ],
   },
 ];
+
+
+export function isMockProductsEnabled(): boolean {
+  if (
+    process.env.MOCK_PRODUCTS === "false" ||
+    process.env.NEXT_PUBLIC_MOCK_PRODUCTS === "false"
+  ) {
+    return false;
+  }
+  if (
+    process.env.MOCK_PRODUCTS === "true" ||
+    process.env.NEXT_PUBLIC_MOCK_PRODUCTS === "true"
+  ) {
+    return process.env.NODE_ENV === "development";
+  }
+  return false;
+}
+
+export function getMockProductBySlug2(slug: string): Product | null {
+
+  const item = mockProducts.find(
+    (p) => p.slug.toLowerCase() === slug.toLowerCase()
+  );
+
+  return item ?? null;
+}
+
+export function getMockProductVariantById(id: string): Product | null {
+
+  const item = mockProducts.find(
+    (p) => p.id.toLowerCase() === id.toLowerCase()
+  );
+
+  return item.variants ?? null;
+}
+// export function resetMockProductsStore() {
+//   mockProductsStore = [...INITIAL_MOCK_PRODUCTS];
+// }
+
+// export function getMockProductsStore(): ProductListItem[] {
+//   return mockProductsStore;
+// }
+
+// export function deleteMockProduct(id: string): boolean {
+//   const before = mockProductsStore.length;
+//   mockProductsStore = mockProductsStore.filter((p) => p.id !== id);
+//   return mockProductsStore.length < before;
+// }
+
+// function toFullProduct(item: ProductListItem): Product {
+//   return {
+//     ...item,
+//     sku: (item as Product).sku ?? `SKU-${item.id.toUpperCase()}`,
+//     description: (item as Product).description ?? "",
+//     status: item.status ?? "active",
+//     weight: item.weight ?? 1,
+//   };
+// }
+
+// export function getMockProductById(id: string): Product | null {
+//   const item = mockProductsStore.find((p) => p.id === id);
+//   return item ? toFullProduct(item) : null;
+// }
+
+// export function isMockSlugTaken(slug: string, excludeId?: string): boolean {
+//   return mockProductsStore.some((p) => p.slug === slug && p.id !== excludeId);
+// }
+
+// export function createMockProduct(payload: ProductPayload): Product {
+//   if (isMockSlugTaken(payload.slug)) {
+//     const err = new Error("Slug already exists") as Error & { code?: string };
+//     err.code = "CONFLICT";
+//     throw err;
+//   }
+
+//   const product: Product = {
+//     id: `p-${Date.now()}`,
+//     ...payload,
+//     avgRating: 0,
+//     ratingCount: 0,
+//     images: [],
+//   };
+//   mockProductsStore = [product, ...mockProductsStore];
+//   return product;
+// }
+
+// export function updateMockProduct(id: string, payload: ProductPayload): Product {
+//   const index = mockProductsStore.findIndex((p) => p.id === id);
+//   if (index === -1) {
+//     const err = new Error("Product not found") as Error & { code?: string };
+//     err.code = "NOT_FOUND";
+//     throw err;
+//   }
+//   if (isMockSlugTaken(payload.slug, id)) {
+//     const err = new Error("Slug already exists") as Error & { code?: string };
+//     err.code = "CONFLICT";
+//     throw err;
+//   }
+
+//   const updated: Product = {
+//     ...mockProductsStore[index],
+//     ...payload,
+//     id,
+//   };
+//   mockProductsStore[index] = updated;
+//   return updated;
+// }

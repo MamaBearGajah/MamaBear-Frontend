@@ -31,8 +31,8 @@ export interface Product {
   stock: number;
   mainImage: string;
   status: ProductStatus;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
   images: ProductImage[];
   category: ProductCategory;
 }
