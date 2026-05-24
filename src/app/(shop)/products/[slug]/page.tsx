@@ -1,6 +1,6 @@
 import ProductSection from "@/components/productDetail/ProductSection";
 import ReviewSection from "@/components/productDetail/ReviewSection";
-import {fetchProductSlug2} from "../../../../lib/api/products"
+import {fetchProductSlug2, getProductVariantById} from "../../../../lib/api/products"
 import { fetchProducts } from "../../../../lib/api/products";
 import { fetchProductVariantId } from "../../../../lib/api/products";
 import { fetchProductVariantId2 } from "../../../../lib/api/products";
@@ -8,6 +8,8 @@ import { ProductVariant } from "@/types";
 import FilterSection from "@/components/FilterSection";
 import { fetchProductSlug } from "../../../../../services";
 import AddToCartMobile from "@/components/cart/AddToCartMobile";
+import { getProductBySlug2 } from "@/lib/api/products";
+
 
 
 export default async function ProductDetailPage({
@@ -24,12 +26,14 @@ export default async function ProductDetailPage({
     const fetchedAllData = await fetchProducts();
     const fetchedAllDataData = await fetchedAllData.data.data;
     // console.log("fetchedAllDataData", fetchedAllDataData)
-    const fetchedDataData = await fetchProductSlug2(slug);
+    // const fetchedDataData = await fetchProductSlug2(slug);
+    const fetchedDataData = await getProductBySlug2(slug);
     // console.log("fetchedDataData", fetchedDataData)
     const slicedData = fetchedAllDataData?.slice(0,3);
     // console.log("slicedData", slicedData)
     const productId = fetchedDataData.id;
-    const productVariant = await fetchProductVariantId2(productId)
+    // const productVariant = await fetchProductVariantId2(productId)
+    const productVariant = await getProductVariantById(productId);
 
     // console.log("productVariant", productVariant)
     
