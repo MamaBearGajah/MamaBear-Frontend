@@ -1,25 +1,3 @@
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  role: "customer" | "admin" | "super_admin";
-  isVerified: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface RegisterPayload {
-  email: string;
-  password: string;
-  phone: string;
-}
-
-export interface LoginPayload {
-  email: string;
-  password: string;
-}
-
 export type UserRole = "customer" | "admin" | "super_admin";
 
 export interface User {
@@ -39,13 +17,14 @@ export interface Session {
 }
 
 export type ProductStatus = "active" | "inactive" | "draft";
+
 export interface Product {
   id: string;
   categoryId: string;
   name: string;
   slug: string;
   description: string;
-  basePrice: string; // keep as string if coming from DB
+  basePrice: string;
   discountPrice: string;
   weight: number;
   sku: string;
@@ -77,7 +56,7 @@ export interface ProductVariant {
   name: string;
   value: string;
   imageUrl: string;
-  priceAdjustment: number; // Decimal → number (or string if you want precision-safe)
+  priceAdjustment: number;
   stock: number;
   sku?: string | null;
   isActive: boolean;
@@ -128,11 +107,6 @@ export interface ProductListItem {
   flavorTags?: string[];
 }
 
-export interface Product extends ProductListItem {
-  description?: string;
-  sku: string;
-}
-
 export interface ProductPayload {
   name: string;
   slug: string;
@@ -145,16 +119,52 @@ export interface ProductPayload {
   status: ProductStatus;
   categoryId?: string;
 }
+
 export interface Pagination {
   limit: number;
   nextCursor: number | null;
   hasNextPage: boolean;
 }
 
-export interface ResFetchProducts {
-  success: boolean;
-  data: Product[];
-  pagination: Pagination;
+export interface CartItem {
+  id: string;
+  productId: string;
+  variantId?: string;
+  quantity: number;
+  name: string;
+  basePrice: number;
+  discountPrice?: number;
+  image: string;
+}
+
+export interface OrderItem {
+  id: string;
+  productId: string;
+  variantId?: string;
+  quantity: number;
+  price: number;
+  name: string;
+}
+
+export interface Order {
+  id: string;
+  userId: string;
+  addressId: string;
+  status:
+    | "pending"
+    | "paid"
+    | "processing"
+    | "shipped"
+    | "delivered"
+    | "cancelled";
+  paymentStatus: "pending" | "paid" | "failed" | "expired" | "refunded";
+  total: number;
+  shippingCost: number;
+  courier: string;
+  service: string;
+  trackingNumber?: string;
+  items: OrderItem[];
+  createdAt: string;
 }
 
 export interface ResFetchReviewsByProductId {
@@ -169,6 +179,7 @@ export interface Category {
   parentId?: string | null;
   name: string;
   slug: string;
+  description?: string;
   isActive: boolean;
 }
 
