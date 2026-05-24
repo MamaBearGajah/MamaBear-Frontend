@@ -313,6 +313,10 @@ export function isMockProductsEnabled(): boolean {
   return false;
 }
 
+export function getMockAllProducts():Product[]{
+  return mockProducts;
+}
+
 export function getMockProductBySlug2(slug: string): Product | null {
 
   const item = mockProducts.find(
