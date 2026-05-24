@@ -5,10 +5,10 @@ import { getProductId } from "../../../server";
 import { mockProducts } from "../../lib/MockProducts";
 import ProductCarousel from "../ProductCarousel";
 import AddToCartQuantity from "./AddToCartQuantity";
-import { Product } from "../../../types";
+import { Product } from "@/types";
 import Stars from "./Stars";
 import StructuredSnippet from "./StructuredSnippet";
-import { ProductVariant } from "../../../types";
+import { ProductVariant } from "@/types";
 import ShareThisProduct from "./ShareThisProduct";
 import KeyBenefit from "./KeyBenefit";
 import { fetchProductVariantId } from "../../../services";
@@ -40,7 +40,7 @@ export default function ProductCard({
   const productWeight = product.weight;
   const productBasePrice = product.basePrice;
   const productDiscountPrice = product.discountPrice;
-  const productVariantData = productVariant.data;
+  const productVariantData = productVariant;
   // console.log("ProductVariant", productVariant)
 
   return (
@@ -142,7 +142,7 @@ export default function ProductCard({
               <KeyBenefit weight={productWeight}/>
             </div>
 
-            <AddToCartQuantity price={Number(productDiscountPrice)}/>
+            <AddToCartQuantity price={Number(productDiscountPrice)} product={fetchedProduct}/>
             <div>
               <StructuredSnippet/>
             </div>
