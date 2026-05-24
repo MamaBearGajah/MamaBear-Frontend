@@ -18,7 +18,7 @@ import {
   isMockProductsEnabled,
   updateMockProduct,
 } from "./mock-data";
-import {getMockProductBySlug2,getMockProductVariantById} from "@/lib/MockProducts";
+import {getMockAllProducts, getMockProductBySlug2,getMockProductVariantById} from "@/lib/MockProducts";
 import { fetchMockProductList } from "./mock-products";
 import { mapProductListItems } from "./map-product-list-item";
 import { normalizeApiResponse } from "./normalize-api-response";
@@ -98,7 +98,27 @@ export async function getProductBySlug(
   return data.data;
 }
 
+export async function getAllProducts(
+  // id: string,
+  // accessToken?: string,
+): Promise<Product> {
+  if (isMockProductsEnabled()) {
 
+    const product =getMockAllProducts();
+    if (!product) {
+      const err = new Error("Product not found") as Error & { code?: string };
+      err.code = "NOT_FOUND";
+      throw err;
+    }
+    return product;
+  }
+
+  const { data } = await apiClient.get<ApiResponse<Product>>(
+    `/Products`,
+    { },
+  );
+  return data.data.data;
+}
 
 export async function getProductBySlug2(
   slug: string,
