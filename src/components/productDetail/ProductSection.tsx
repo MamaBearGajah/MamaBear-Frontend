@@ -3,10 +3,10 @@ import { Product } from "@/types"
 import { ProductVariant } from "@/types"
 // import ProductModal from "./ProductModal"
 
-export default async function ProductSection({ productId, product, productVariant }: { productId: string, product: Product, productVariant: ProductVariant[] }) {
+export default async function ProductSection({ productId, product, productVariant, isTop5BestsellerFlag }: { productId: string, product: Product, productVariant: ProductVariant[], isTop5BestsellerFlag: boolean }) {
     return(
         <div className='md:h-[150vh] xl:h-[160vh] flex flex-col justify-center'>
-            <ProductCard productId={productId} product={product} productVariant={productVariant}/>
+            <ProductCard productId={productId} product={product} productVariant={productVariant} isTop5BestsellerFlag={isTop5BestsellerFlag}/>
             {/* <ProductModal/> */}
         </div>
     )
