@@ -34,25 +34,25 @@ function toApiProductParams(params: ProductListParams): ProductListParams {
 
 const BASE_URL = "http://localhost:3000/api"; //Change to deployed BASE_URL later
 
-export const fetchProducts = async (): Promise<Product> => {
-  try {
-    const response = await axios.get(`${BASE_URL}/products`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    throw new Error("Failed to fetch products");
-  }
-};
+// export const fetchProducts = async (): Promise<Product> => {
+//   try {
+//     const response = await axios.get(`${BASE_URL}/products`);
+//     return response.data;
+//   } catch (error) {
+//     console.error("Error fetching products:", error);
+//     throw new Error("Failed to fetch products");
+//   }
+// };
 
-export const fetchProductSlug2 = async (slug: string): Promise<Product> => {
-  try {
-    const response = await axios.get(`${BASE_URL}/Products/slug/${slug}`);
-    return response.data.data;
-  } catch (error) {
-    console.error("Error fetching product:", error);
-    throw new Error("Failed to fetch product");
-  }
-};
+// export const fetchProductSlug2 = async (slug: string): Promise<Product> => {
+//   try {
+//     const response = await axios.get(`${BASE_URL}/Products/slug/${slug}`);
+//     return response.data.data;
+//   } catch (error) {
+//     console.error("Error fetching product:", error);
+//     throw new Error("Failed to fetch product");
+//   }
+// };
 
 export const fetchProductId = async (id: string): Promise<Product> => {
   try {
@@ -90,7 +90,6 @@ export async function getProductBySlug(
     }
     return product;
   }
-
   const { data } = await apiClient.get<ApiResponse<Product>>(
     `/products/slug/${slug}`,
     { headers: authHeaders(accessToken) },

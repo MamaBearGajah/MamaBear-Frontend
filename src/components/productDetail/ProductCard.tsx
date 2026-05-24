@@ -22,14 +22,16 @@ import {
 } from "@/components/ui/breadcrumb"
 
 export default function ProductCard({
-  productId, product, productVariant
+  productId, product, productVariant, isTop5BestsellerFlag
 }: {
   productId: string;
   product: Product;
   productVariant: ProductVariant[];
+  isTop5BestsellerFlag: boolean;
 })  {
-  const [selected, setSelected] = useState<string | null>(null)
-  const [variantSelectedImage, setvariantSelectedImage] = useState<string | null>(null)
+  const [selected, setSelected] = useState<string | null>(null);
+  const [variantSelectedImage, setvariantSelectedImage] = useState<string | null>(null);
+  const [theprice, setThePrice] = useState<number>(Number(product.basePrice));
   const imageArray = mockProducts[0].images.map((item) => item.imageUrl)
   const fetchedProduct = product;
   const productName = product.name;
@@ -71,29 +73,22 @@ export default function ProductCard({
     <div className="bg-white md:flex md:items-start rounded transition-transform duration-200">
 
         <div className='md:w-[35%] border'>
-            {/* <img src={fetchedProduct.images[0]}   className="w-[400px]"/> */}
             <ProductCarousel images={imageArray} variantselectedimage={variantSelectedImage} setvariantselectedimage={setvariantSelectedImage}/>
-            {/* <img src={mockProducts[0].images[0].imageUrl}   className="w-[400px]"/> */}
         </div>
         <div className='p-2 md:pl-10 rounded-md w-[90%] md:w-[60%] flex flex-col gap-2'>
-            {/* <h2>{fetchedProduct.title}</h2>
-            <p>{fetchedProduct.price}</p>
-            <p>{fetchedProduct.description}</p> */}
-
             <h4 className='text-xs text-[var(--mamabear-dark-pink)]'>{productCategory}</h4>
             <h2 className='text-2xl font-bold'>{productName}</h2>
             <div className='flex justify-start items-center'> 
               <Stars rating={mockProducts[0].rating}/>
               <div className='ml-2 mr-2 md:ml-6 md:mr-6 md:block hidden'>(284 reviews)</div>
-              {mockProducts[0].bestseller ? 
+              {isTop5BestsellerFlag ? 
                 (<span className='bg-pink-300 text-[var(--mamabear-dark-pink)] rounded-full md:pl-4 md:pr-4 pl-5 pr-5 pt-2 pb-2 ml-4'>🏆Bestseller</span>) 
                 : null
               }
               </div>
-
             <div className='flex items-end justify-start'>
               <p className='text-[var(--mamabear-dark-pink)] md:text-4xl text-2xl font-bold font-[var(--font-quicksand)]'>Rp {productDiscountPrice}</p>
-              <p className='md:text-xl text-md ml-4 opacity-35'><s>Rp {productBasePrice}</s></p>
+              <p className='md:text-xl text-md ml-4 opacity-35'><s>Rp {theprice}</s></p>
               <div className='ml-4 pl-6 pr-6 pt-2 pb-2 font-bold rounded-full text-sm md:text-xl bg-[var(--mamabear-dark-pink)] text-[var(--mamabear-light-pink)]'>
                 Save {(((productBasePrice - productDiscountPrice) / productBasePrice) * 100).toFixed(0)}%
               </div>
@@ -107,7 +102,7 @@ export default function ProductCard({
                 ) :
                 (
                   <span className="flex items-center gap-1">
-                    <img className="w-[20px]" src="/cross.svg" alt="check" />
+                    <img className="w-[20px]" src="/cross.svg" alt="cross" />
                     Not Available
                   </span>
                 )
@@ -120,6 +115,7 @@ export default function ProductCard({
                 productVariantData.map((item,index) =>{
                     function variantselected(item:ProductVariant){
                       setSelected(item.value);
+                      setThePrice(Number(item.discountPrice ?? item.basePrice));
                       setvariantSelectedImage(item.imageUrl ?? "/Logo Mamabear.png");
                     }
                   return(

@@ -29,6 +29,7 @@ export interface Product {
   weight: number;
   sku: string;
   stock: number;
+  soldCount: number;
   mainImage: string;
   status: ProductStatus;
   createdAt: Date;
@@ -54,6 +55,8 @@ export interface ProductVariant {
   id: string;
   productId: string;
   name: string;
+  basePrice: number;
+  discountPrice: number;
   value: string;
   imageUrl: string;
   priceAdjustment: number;
