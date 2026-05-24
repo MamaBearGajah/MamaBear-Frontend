@@ -24,23 +24,29 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor: handle 401 + auto refresh
+// Response interceptor: handle 401 + auto refresh (browser only)
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const original = error.config;
-    if (error.response?.status === 401 && !original._retry) {
+    if (
+      typeof window !== "undefined" &&
+      error.response?.status === 401 &&
+      !original._retry
+    ) {
       original._retry = true;
       try {
         await tokenStore.refreshFn?.();
-        return apiClient(original);
+        if (tokenStore.accessToken) {
+          return apiClient(original);
+        }
       } catch {
         tokenStore.logoutFn?.();
         window.location.href = "/login";
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export function authHeaders(accessToken?: string) {

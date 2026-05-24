@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Heart, ShoppingCart } from "lucide-react";
 import StarRating from "./StarRating";
 import { cn, effectivePrice, formatPrice } from "@/lib/utils";
+import { resolveProductImageUrl } from "@/lib/images/resolve-product-image";
 import type { ProductBadgeType, ProductListItem } from "@/types";
 
 const BADGE_LABELS: Record<ProductBadgeType, string> = {
@@ -31,7 +32,7 @@ export default function ShopProductCard({
           100,
       )
     : null;
-  const imageUrl = product.images?.[0]?.imageUrl;
+  const imageUrl = resolveProductImageUrl(product.images?.[0]?.imageUrl);
   const rating = product.avgRating ?? 0;
   const isLowStock = product.stock > 0 && product.stock <= 20;
   const tags = product.flavorTags ?? [];
@@ -55,19 +56,13 @@ export default function ShopProductCard({
         )}
       >
         <Link href={`/products/${product.slug}`} className="block h-full w-full">
-          {imageUrl ? (
-            <Image
-              src={imageUrl}
-              alt={product.name}
-              fill
-              sizes="(max-width: 768px) 50vw, 25vw"
-              className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-              No image
-            </div>
-          )}
+          <Image
+            src={imageUrl}
+            alt={product.name}
+            fill
+            sizes="(max-width: 768px) 50vw, 25vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          />
         </Link>
 
         <div

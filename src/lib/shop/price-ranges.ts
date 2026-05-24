@@ -1,31 +1,36 @@
 export interface ShopPriceRange {
   id: string;
   label: string;
-  minPrice?: number;
-  maxPrice?: number;
+  minPrice: number;
+  maxPrice: number;
 }
 
+/** Quick-select price buckets (synced with URL minPrice / maxPrice). */
 export const SHOP_PRICE_RANGES: ShopPriceRange[] = [
-  { id: "under-70", label: "Under Rp 70.000", maxPrice: 70_000 },
   {
-    id: "70-100",
-    label: "Rp 70.000 - Rp 100.000",
-    minPrice: 70_000,
+    id: "25-50",
+    label: "Rp 25.000 – Rp 50.000",
+    minPrice: 25_000,
+    maxPrice: 50_000,
+  },
+  {
+    id: "50-75",
+    label: "Rp 50.000 – Rp 75.000",
+    minPrice: 50_000,
+    maxPrice: 75_000,
+  },
+  {
+    id: "75-100",
+    label: "Rp 75.000 – Rp 100.000",
+    minPrice: 75_000,
     maxPrice: 100_000,
   },
   {
-    id: "100-150",
-    label: "Rp 100.000 - Rp 150.000",
+    id: "100-125",
+    label: "Rp 100.000 – Rp 125.000",
     minPrice: 100_000,
-    maxPrice: 150_000,
+    maxPrice: 125_000,
   },
-  {
-    id: "150-200",
-    label: "Rp 150.000 - Rp 200.000",
-    minPrice: 150_000,
-    maxPrice: 200_000,
-  },
-  { id: "above-200", label: "Above Rp 200.000", minPrice: 200_000 },
 ];
 
 export function getActivePriceRangeId(
@@ -34,18 +39,9 @@ export function getActivePriceRangeId(
 ): string | undefined {
   if (minPrice == null && maxPrice == null) return undefined;
 
-  return SHOP_PRICE_RANGES.find((range) => {
-    const expectedMin = range.minPrice;
-    const expectedMax = range.maxPrice;
-
-    if (expectedMin == null && expectedMax != null) {
-      return maxPrice === expectedMax && (minPrice == null || minPrice === 0);
-    }
-    if (expectedMax == null && expectedMin != null) {
-      return minPrice === expectedMin && maxPrice == null;
-    }
-    return minPrice === expectedMin && maxPrice === expectedMax;
-  })?.id;
+  return SHOP_PRICE_RANGES.find(
+    (range) => minPrice === range.minPrice && maxPrice === range.maxPrice,
+  )?.id;
 }
 
 export function priceRangeToParams(rangeId: string): {
@@ -57,8 +53,8 @@ export function priceRangeToParams(rangeId: string): {
     return { minPrice: null, maxPrice: null };
   }
   return {
-    minPrice: range.minPrice != null ? String(range.minPrice) : null,
-    maxPrice: range.maxPrice != null ? String(range.maxPrice) : null,
+    minPrice: String(range.minPrice),
+    maxPrice: String(range.maxPrice),
   };
 }
 

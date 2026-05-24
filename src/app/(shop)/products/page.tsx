@@ -8,15 +8,14 @@ import ShopProductGrid from "@/components/product/ShopProductGrid";
 import Pagination from "@/components/shared/Pagination";
 import { getCategoryList } from "@/lib/api/categories";
 import { getProductList } from "@/lib/api/products";
+import { getShopAccessToken } from "@/lib/auth/shop-access-token";
+import { computeCategoryCounts } from "@/lib/shop/category-counts";
 import {
   DEFAULT_PRICE_BOUNDS,
   parseShopListParamsFromRecord,
   toStorefrontProductListParams,
 } from "@/lib/shop/product-list-params";
-import {
-  filterStorefrontProducts,
-  getStorefrontCategoryCounts,
-} from "@/lib/shop/storefront-products";
+import { filterStorefrontProducts } from "@/lib/shop/storefront-products";
 import type { PaginationMeta } from "@/types";
 
 export const metadata: Metadata = {
@@ -32,14 +31,16 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const params = await searchParams;
   const filters = parseShopListParamsFromRecord(params);
   const listParams = toStorefrontProductListParams(filters);
+  const accessToken = await getShopAccessToken();
 
-  const [productsRes, categoriesRes] = await Promise.all([
-    getProductList(listParams),
-    getCategoryList(),
+  const [productsRes, categoriesRes, allProductsRes] = await Promise.all([
+    getProductList(listParams, accessToken),
+    getCategoryList(accessToken),
+    getProductList({ page: 1, limit: 100 }, accessToken),
   ]);
 
   const products = filterStorefrontProducts(productsRes.data);
-  const categoryCounts = getStorefrontCategoryCounts();
+  const categoryCounts = computeCategoryCounts(allProductsRes.data);
 
   const meta: PaginationMeta = productsRes.meta ?? {
     page: filters.page,

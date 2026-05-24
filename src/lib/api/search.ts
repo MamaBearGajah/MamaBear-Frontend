@@ -6,16 +6,15 @@ import type {
 } from "@/types";
 import { apiClient, authHeaders } from "./client";
 import { filterStorefrontProducts } from "@/lib/shop/storefront-products";
+import { resolveProductImageUrl } from "@/lib/images/resolve-product-image";
 import { isMockProductsEnabled, getMockProductsStore } from "./mock-data";
 import { fetchMockProductList } from "./mock-products";
+import { getProductList } from "./products";
+import { normalizeApiResponse } from "./normalize-api-response";
 
 /** Guide §13 + API contract §7 — minimum chars before suggestions request */
 export const SEARCH_SUGGESTIONS_MIN_LENGTH = 2;
 
-/**
- * Contract §7 returns string[] ("Product A", …).
- * Some backends may return objects — normalize to SearchSuggestion for UI.
- */
 export function normalizeSearchSuggestions(raw: unknown): SearchSuggestion[] {
   if (!Array.isArray(raw)) return [];
 
@@ -45,23 +44,13 @@ export function normalizeSearchSuggestions(raw: unknown): SearchSuggestion[] {
     .filter((item): item is SearchSuggestion => item != null);
 }
 
-/** Search endpoint params per API contract §7 (+ shared list filters) */
-function toSearchApiParams(params: ProductListParams) {
-  const apiParams: Record<string, string | number | boolean> = {
-    q: params.q?.trim() ?? "",
-    page: params.page ?? 1,
-    limit: params.limit ?? 20,
-    sortBy: params.sortBy ?? "createdAt",
-    sortOrder: params.sortOrder ?? "desc",
-  };
-
-  if (params.categoryId) apiParams.categoryId = params.categoryId;
-  if (params.minPrice != null) apiParams.minPrice = params.minPrice;
-  if (params.maxPrice != null) apiParams.maxPrice = params.maxPrice;
-  if (params.inStock === true) apiParams.inStock = true;
-  if (params.status) apiParams.status = params.status;
-
-  return apiParams;
+function productsToSuggestions(items: ProductListItem[]): SearchSuggestion[] {
+  return items.slice(0, 8).map((p) => ({
+    id: p.id,
+    name: p.name,
+    slug: p.slug,
+    imageUrl: resolveProductImageUrl(p.images?.[0]?.imageUrl),
+  }));
 }
 
 export async function getSearchSuggestions(
@@ -91,15 +80,23 @@ export async function getSearchSuggestions(
     return { success: true, data };
   }
 
-  const { data } = await apiClient.get<ApiResponse<unknown>>(
-    "/search/suggestions",
-    { params: { q: trimmed }, headers: authHeaders(accessToken) },
-  );
-
-  return {
-    ...data,
-    data: normalizeSearchSuggestions(data.data),
-  };
+  try {
+    const { data } = await apiClient.get("/search/suggestions", {
+      params: { q: trimmed },
+      headers: authHeaders(accessToken),
+    });
+    const normalized = normalizeApiResponse<unknown>(data);
+    return {
+      success: normalized.success,
+      data: normalizeSearchSuggestions(normalized.data),
+    };
+  } catch {
+    const res = await getProductList(
+      { q: trimmed, limit: 8, page: 1 },
+      accessToken,
+    );
+    return { success: true, data: productsToSuggestions(res.data) };
+  }
 }
 
 export async function getSearchResults(
@@ -124,9 +121,19 @@ export async function getSearchResults(
     };
   }
 
-  const { data } = await apiClient.get<ApiResponse<ProductListItem[]>>(
-    "/search",
-    { params: toSearchApiParams({ ...params, q }), headers: authHeaders(accessToken) },
-  );
-  return data;
+  try {
+    const { data } = await apiClient.get("/search", {
+      params: {
+        q,
+        page: params.page ?? 1,
+        limit: params.limit ?? 20,
+        sortBy: params.sortBy ?? "createdAt",
+        sortOrder: params.sortOrder ?? "desc",
+      },
+      headers: authHeaders(accessToken),
+    });
+    return normalizeApiResponse<ProductListItem[]>(data);
+  } catch {
+    return getProductList({ ...params, q }, accessToken);
+  }
 }
