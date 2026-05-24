@@ -22,11 +22,10 @@ import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller } from "react-hook-form";
 import AuthBanner from "@/components/AuthBanner";
-import { authApi } from "@/lib/api/auth";
-import axios from "axios";
 import AuthErrorMessage from "@/components/AuthErrorMessage";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 
 export default function Login() {
   const { login } = useAuth();
@@ -74,7 +73,6 @@ export default function Login() {
     try {
       setIsLoading(true);
       setError(null);
-      await authApi.login(loginData);
       await login(loginData);
       router.push("/");
     } catch (e: unknown) {

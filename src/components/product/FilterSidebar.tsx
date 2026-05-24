@@ -8,6 +8,7 @@ import { DEFAULT_PRICE_BOUNDS } from "@/lib/shop/product-list-params";
 import type { Category, ShopPriceBounds } from "@/types";
 import CategoryTreeFilter from "./CategoryTreeFilter";
 import FilterSidebarSearch from "./FilterSidebarSearch";
+import PriceRangePresets from "./PriceRangePresets";
 import PriceRangeSlider from "./PriceRangeSlider";
 
 export type ShopFilterBasePath = "/products" | "/search";
@@ -80,7 +81,12 @@ export default function FilterSidebar({
 
         <section className="mt-6">
           <h3 className="text-sm font-semibold text-brown">Price Range</h3>
-          <div className="mt-3">
+          <div className="mt-3 space-y-4">
+            <PriceRangePresets
+              minPrice={filters.minPrice}
+              maxPrice={filters.maxPrice}
+              onSelect={handlePriceChange}
+            />
             <PriceRangeSlider
               bounds={priceBounds}
               minPrice={filters.minPrice}

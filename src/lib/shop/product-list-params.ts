@@ -1,5 +1,4 @@
 import type { ProductListParams, ShopFiltersState } from "@/types";
-import { STOREFRONT_PRODUCT_STATUS } from "./storefront-products";
 
 /** API contract §5.1 / guide — default 20 items per page */
 export const SHOP_DEFAULT_LIMIT = 20;
@@ -82,7 +81,9 @@ export function toProductListParams(
   };
 
   if (filters.q) params.q = filters.q;
-  if (filters.categoryId) params.categoryId = filters.categoryId;
+  if (filters.categoryId && filters.categoryId !== "cat-root") {
+    params.categoryId = filters.categoryId;
+  }
   if (filters.minPrice != null) params.minPrice = filters.minPrice;
   if (filters.maxPrice != null) params.maxPrice = filters.maxPrice;
   if (filters.inStock === true) params.inStock = true;
@@ -90,14 +91,11 @@ export function toProductListParams(
   return params;
 }
 
-/** GET /products on storefront — active products only */
+/** Storefront list params — active filter applied client-side (BE rejects status param). */
 export function toStorefrontProductListParams(
   filters: ShopFiltersState,
 ): ProductListParams {
-  return {
-    ...toProductListParams(filters),
-    status: STOREFRONT_PRODUCT_STATUS,
-  };
+  return toProductListParams(filters);
 }
 
 /** GET /search on storefront — q + filters + active products only */

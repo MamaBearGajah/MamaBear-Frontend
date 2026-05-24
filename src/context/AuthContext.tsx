@@ -1,4 +1,3 @@
-// src/context/AuthContext.tsx
 "use client";
 import {
   createContext,
@@ -9,6 +8,8 @@ import {
 } from "react";
 import { authApi } from "@/lib/api/auth";
 import { tokenStore } from "@/lib/api/client";
+import { mapLoginUser } from "@/lib/auth/map-login-user";
+import { setServerSession } from "@/lib/auth/set-session";
 import type { User, LoginPayload } from "@/types/index";
 
 type AuthState = {
@@ -48,29 +49,47 @@ type AuthContextType = {
   login: (data: LoginPayload) => Promise<void>;
   logout: () => void;
   refreshAccessToken: () => Promise<void>;
-  //   isInitializing: boolean;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+function readStoredAccessToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("mamabear_at");
+}
+
+function readStoredRefreshToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("mamabear_rt");
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, {
     user: null,
-    accessToken: null,
-    refreshToken:
-      typeof window !== "undefined"
-        ? localStorage.getItem("mamabear_rt")
-        : null,
-    isAuthenticated: false,
+    accessToken: readStoredAccessToken(),
+    refreshToken: readStoredRefreshToken(),
+    isAuthenticated: Boolean(readStoredAccessToken()),
   });
 
   const login = useCallback(async (data: LoginPayload) => {
     const res = await authApi.login(data);
-    const { accessToken, refreshToken, user } = res.data.data;
+    const payload = res.data.data as {
+      accessToken: string;
+      refreshToken?: string;
+      user: { id: string; name: string; email: string; role: string };
+    };
+
+    const accessToken = payload.accessToken;
+    const refreshToken = payload.refreshToken ?? "";
+    const user = mapLoginUser(payload.user);
+
     localStorage.setItem("mamabear_at", accessToken);
-    localStorage.setItem("mamabear_rt", refreshToken);
+    if (refreshToken) localStorage.setItem("mamabear_rt", refreshToken);
+
+    await setServerSession({ user, accessToken });
+
     dispatch({ type: "LOGIN", payload: { user, accessToken, refreshToken } });
-  }, []); // dispatch is stable, no deps needed
+  }, []);
 
   const logout = useCallback(() => {
     authApi.logout().catch(() => {});
@@ -79,17 +98,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: "LOGOUT" });
   }, []);
 
-  // 👇 useCallback so the reference is stable
   const refreshAccessToken = useCallback(async () => {
     if (!state.refreshToken) throw new Error("No refresh token");
     const res = await authApi.refreshToken(state.refreshToken);
+    const accessToken = res.data.data.accessToken;
+    localStorage.setItem("mamabear_at", accessToken);
     dispatch({
       type: "REFRESH",
-      payload: { accessToken: res.data.data.accessToken },
+      payload: { accessToken },
     });
-  }, [state.refreshToken]); // only re-created when refreshToken changes
+  }, [state.refreshToken]);
 
-  // ✅ Now safe to include in deps — reference is stable
   useEffect(() => {
     tokenStore.accessToken = state.accessToken;
     tokenStore.refreshFn = refreshAccessToken;

@@ -19,6 +19,17 @@ import {
   updateMockProduct,
 } from "./mock-data";
 import { fetchMockProductList } from "./mock-products";
+import { mapProductListItems } from "./map-product-list-item";
+import { normalizeApiResponse } from "./normalize-api-response";
+
+/** BE rejects unknown query params (e.g. status). Strip before request. */
+function toApiProductParams(params: ProductListParams): ProductListParams {
+  const { status: _status, ...apiParams } = params;
+  if (apiParams.categoryId === "cat-root") {
+    delete apiParams.categoryId;
+  }
+  return apiParams;
+}
 
 const BASE_URL = "http://localhost:3000/api"; //Change to deployed BASE_URL later
 
@@ -126,14 +137,16 @@ export async function getProductList(
     return fetchMockProductList(params);
   }
 
-  const { data } = await apiClient.get<ApiResponse<ProductListItem[]>>(
-    "/products",
-    {
-      params,
-      headers: authHeaders(accessToken),
-    }
-  );
-  return data;
+  const { data } = await apiClient.get("/products", {
+    params: toApiProductParams(params),
+    headers: authHeaders(accessToken),
+  });
+
+  const normalized = normalizeApiResponse<ProductListItem[]>(data);
+  return {
+    ...normalized,
+    data: mapProductListItems(normalized.data as unknown[]),
+  };
 }
 
 export async function getProductById(

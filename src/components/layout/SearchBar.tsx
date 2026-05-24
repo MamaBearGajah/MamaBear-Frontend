@@ -13,10 +13,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/useDebounce";
-import {
-  getSearchSuggestions,
-  SEARCH_SUGGESTIONS_MIN_LENGTH,
-} from "@/lib/api/search";
+import { SEARCH_SUGGESTIONS_MIN_LENGTH } from "@/lib/api/search";
+import { resolveProductImageUrl } from "@/lib/images/resolve-product-image";
 import { cn } from "@/lib/utils";
 import type { SearchSuggestion } from "@/types";
 
@@ -83,10 +81,11 @@ export default function SearchBar() {
     let cancelled = false;
     setLoading(true);
 
-    getSearchSuggestions(trimmed)
-      .then((res) => {
+    fetch(`/api/shop/suggestions?q=${encodeURIComponent(trimmed)}`)
+      .then((res) => res.json())
+      .then((res: { data?: SearchSuggestion[] }) => {
         if (!cancelled) {
-          setSuggestions(res.data);
+          setSuggestions(res.data ?? []);
           setHighlightedIndex(-1);
         }
       })
@@ -245,20 +244,13 @@ export default function SearchBar() {
                         : "hover:bg-light-pink/50",
                     )}
                   >
-                    {item.imageUrl ? (
-                      <Image
-                        src={item.imageUrl}
-                        alt=""
-                        width={40}
-                        height={40}
-                        className="size-10 shrink-0 rounded-md object-cover"
-                      />
-                    ) : (
-                      <span
-                        className="size-10 shrink-0 rounded-md bg-muted"
-                        aria-hidden
-                      />
-                    )}
+                    <Image
+                      src={resolveProductImageUrl(item.imageUrl)}
+                      alt=""
+                      width={40}
+                      height={40}
+                      className="size-10 shrink-0 rounded-md object-cover"
+                    />
                     <span className="line-clamp-2">{item.name}</span>
                   </button>
                 </li>
