@@ -24,6 +24,7 @@ import { useRouter } from "next/navigation";
 import { authApi } from "../../../lib/api/auth";
 import axios from "axios";
 import AuthErrorMessage from "@/components/AuthErrorMessage";
+import { toast } from "sonner";
 
 export default function ForgotPassword() {
   const [loading, setLoading] = useState(false);
@@ -63,11 +64,14 @@ export default function ForgotPassword() {
       setError(null);
       await authApi.forgotPassword(data.email);
       setSuccess(true);
+      toast.success("Reset link sent successfully");
     } catch (e: unknown) {
       if (axios.isAxiosError(e)) {
         setError(errorMessage(e.response?.status ?? 500));
+        toast.error(errorMessage(e.response?.status ?? 500));
       } else {
         setError("An unexpected error occurred");
+        toast.error("An unexpected error occurred");
       }
     } finally {
       setLoading(false);
