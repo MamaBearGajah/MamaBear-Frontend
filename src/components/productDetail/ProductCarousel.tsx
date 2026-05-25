@@ -16,25 +16,21 @@ interface ProductCarouselProps {
   variantselectedimage?: string | null;
   // Add the setter function prop here
   setvariantselectedimage: (value: string | null) => void;
+  NotVariantPrice: () => void;
 }
 
-
-export default function ProductCarousel({images, variantselectedimage, setvariantselectedimage}:ProductCarouselProps) {
+export default function ProductCarousel({images, variantselectedimage, setvariantselectedimage, NotVariantPrice}:ProductCarouselProps) {
   const [selectedImage, setSelectedImage] = useState(images[0])
-  //  let varselectedimage=variantselectedimage;
   useEffect(() =>{
-      // varselectedimage = variantselectedimage
       setSelectedImage(variantselectedimage ?? images[0])
-
-    
     },[variantselectedimage]
-
   )
 
-  console.log("variantselectedimage",variantselectedimage , selectedImage);
+  // console.log("variantselectedimage",variantselectedimage , selectedImage);
   function resetvariantimage(image:string){
     setvariantselectedimage(null);
     setSelectedImage(image)
+    NotVariantPrice();
   }
 
   return (

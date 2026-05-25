@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { getProductId } from "../../../server";
 import { mockProducts } from "../../lib/MockProducts";
-import ProductCarousel from "../ProductCarousel";
+import ProductCarousel from "./ProductCarousel";
 import AddToCartQuantity from "./AddToCartQuantity";
 import { Product } from "@/types";
 import Stars from "./Stars";
@@ -11,7 +11,6 @@ import StructuredSnippet from "./StructuredSnippet";
 import { ProductVariant } from "@/types";
 import ShareThisProduct from "./ShareThisProduct";
 import KeyBenefit from "./KeyBenefit";
-import { fetchProductVariantId } from "../../../services";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -44,7 +43,9 @@ export default function ProductCard({
   const productDiscountPrice = product.discountPrice;
   const productVariantData = productVariant;
   // console.log("ProductVariant", productVariant)
-
+  function NotVariantPrice(){
+    setThePrice(Number(product.discountPrice));
+  }
   return (
     <div>
         <Breadcrumb>
@@ -73,7 +74,7 @@ export default function ProductCard({
     <div className="bg-white md:flex md:items-start rounded transition-transform duration-200">
 
         <div className='md:w-[35%] border'>
-            <ProductCarousel images={imageArray} variantselectedimage={variantSelectedImage} setvariantselectedimage={setvariantSelectedImage}/>
+            <ProductCarousel images={imageArray} variantselectedimage={variantSelectedImage} setvariantselectedimage={setvariantSelectedImage} NotVariantPrice={NotVariantPrice}/>
         </div>
         <div className='p-2 md:pl-10 rounded-md w-[90%] md:w-[60%] flex flex-col gap-2'>
             <h4 className='text-xs text-[var(--mamabear-dark-pink)]'>{productCategory}</h4>
