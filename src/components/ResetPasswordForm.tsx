@@ -25,6 +25,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { authApi } from "@/lib/api/auth";
 import axios from "axios";
 import AuthErrorMessage from "@/components/AuthErrorMessage";
+import { toast } from "sonner";
 
 export default function ResetPasswordForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -82,10 +83,15 @@ export default function ResetPasswordForm() {
       setIsLoading(true);
       await authApi.resetPassword(token, password);
       setSuccess(true);
+      toast.success("Password reset successfully");
     } catch (e: unknown) {
       if (axios.isAxiosError(e)) {
         setError(errorMessage(e.response?.status || 500));
-      } else setError("An unexpected error occurred");
+        toast.error(errorMessage(e.response?.status || 500));
+      } else {
+        setError("An unexpected error occurred");
+        toast.error("An unexpected error occurred");
+      }
     } finally {
       setIsLoading(false);
     }
