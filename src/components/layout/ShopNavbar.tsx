@@ -7,6 +7,7 @@ import { Suspense, useState } from "react";
 import { Heart, Settings, ShoppingCart, User, Menu, X } from "lucide-react";
 import SearchBar from "./SearchBar";
 import { cn } from "@/lib/utils";
+import { useAuth } from "../../context/AuthContext";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -48,7 +49,7 @@ function NavLink({
 
 function NavbarContent() {
   const pathname = usePathname();
-
+  const { state, logout } = useAuth();
   return (
     <div className="border-border/60 border-b bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/90">
       <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center gap-3 px-[2cm] py-3 md:gap-4 md:py-3.5">
@@ -94,13 +95,24 @@ function NavbarContent() {
           >
             <ShoppingCart className="size-5" strokeWidth={1.75} />
           </Link>
-          <Link
-            href="/login"
-            className="bg-dark-pink hover:bg-dark-pink/90 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium text-white transition-colors"
-          >
-            <User className="size-4" />
-            <span className="hidden sm:inline">Login</span>
-          </Link>
+          {state.isAuthenticated ? (
+            <Link
+              href="/"
+              onClick={logout}
+              className="bg-dark-pink hover:bg-dark-pink/90 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium text-white transition-colors"
+            >
+              <User className="size-4" />
+              <span className="hidden sm:inline">Logout</span>
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="bg-dark-pink hover:bg-dark-pink/90 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium text-white transition-colors"
+            >
+              <User className="size-4" />
+              <span className="hidden sm:inline">Login</span>
+            </Link>
+          )}
           <Link
             href="/admin"
             className="border-brown/30 text-brown hover:bg-light-pink/40 inline-flex items-center gap-1.5 rounded-full border bg-white px-4 py-2 text-sm font-medium transition-colors"
@@ -131,6 +143,7 @@ export default function ShopNavbar() {
 
 function MobileHeaderInline() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { state, logout } = useAuth();
 
   return (
     <div className="relative w-full md:hidden">
@@ -193,14 +206,24 @@ function MobileHeaderInline() {
             <div className="my-2 h-px bg-[#D5557E]/30" />
 
             <div className="flex gap-2">
-              <Link
-                href="/login"
-                onClick={() => setMenuOpen(false)}
-                className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#D5557E] px-4 text-sm font-semibold text-white transition hover:opacity-90"
-              >
-                <User className="size-4" />
-                <span>Login</span>
-              </Link>
+              {state.isAuthenticated ? (
+                <Link
+                  href="/"
+                  onClick={logout}
+                  className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#D5557E] px-4 text-sm font-semibold text-white transition hover:opacity-90"
+                >
+                  <User className="size-4" />
+                  <span>Logout</span>
+                </Link>
+              ) : (
+                <Link
+                  href="/login"
+                  className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#D5557E] px-4 text-sm font-semibold text-white transition hover:opacity-90"
+                >
+                  <User className="size-4" />
+                  <span>Login</span>
+                </Link>
+              )}
               <Link
                 href="/admin"
                 onClick={() => setMenuOpen(false)}
