@@ -34,6 +34,8 @@ export interface Product {
   status: ProductStatus;
   createdAt: Date;
   updatedAt: Date;
+  avgRating?: number;
+  reviewCount?: number;
   images: ProductImage[];
   category: ProductCategory;
 }
@@ -183,6 +185,7 @@ export interface Category {
   name: string;
   slug: string;
   description?: string;
+  imageUrl?: string;
   isActive: boolean;
 }
 
@@ -217,6 +220,13 @@ export interface ProductListParams {
   status?: ProductStatus;
   sortBy?: ProductSortBy;
   sortOrder?: SortOrder;
+}
+
+export interface CategoryListParams{
+  isActive?: boolean;
+  page?: number;
+  limit?: number;
+  parentId?: string;
 }
 
 export interface SearchSuggestion {

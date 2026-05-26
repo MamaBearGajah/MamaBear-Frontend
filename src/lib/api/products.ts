@@ -34,47 +34,114 @@ function toApiProductParams(params: ProductListParams): ProductListParams {
 
 const BASE_URL = "http://localhost:3000/api"; //Change to deployed BASE_URL later
 
-export const fetchProducts = async (): Promise<Product> => {
-  try {
-    const response = await axios.get(`${BASE_URL}/products`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    throw new Error("Failed to fetch products");
+// export const fetchProducts = async (): Promise<Product> => {
+//   try {
+//     const response = await axios.get(`${BASE_URL}/products`);
+//     return response.data;
+//   } catch (error) {
+//     console.error("Error fetching products:", error);
+//     throw new Error("Failed to fetch products");
+//   }
+// };
+
+// export const fetchProductSlug2 = async (slug: string): Promise<Product> => {
+//   try {
+//     const response = await axios.get(`${BASE_URL}/products/slug/${slug}`);
+//     return response.data.data;
+//   } catch (error) {
+//     console.error("Error fetching product:", error);
+//     throw new Error("Failed to fetch product");
+//   }
+// };
+
+// export const fetchProductId = async (id: string): Promise<Product> => {
+//   try {
+//     const response = await axios.get(`${BASE_URL}/Products/${id}`);
+//     return response.data;
+//   } catch (error) {
+//     console.error("Error fetching product:", error);
+//     throw new Error("Failed to fetch product");
+//   }
+// };
+
+
+// export const fetchProductVariantId2 = async (id:string): Promise<ProductVariant[]> => {
+//   try{
+//     const response = await axios.get(`${BASE_URL}/Products/{productId}/variants/${id}/variants`)
+//     return response.data.data;
+//   }catch(error){
+//     console.error("Error fetching product variant:", error);
+//     throw new Error("Failed to fetch product variant");
+
+//   }
+// }
+
+//For Product Detail Page to fetch all products and compute if current product is top 5 bestseller
+export async function getAllProducts(
+  // id: string,
+  accessToken?: string,
+  params: ProductListParams = {},
+): Promise<Product[]> {
+  if (isMockProductsEnabled()) {
+    const product =getMockAllProducts();
+    if (!product) {
+      const err = new Error("Product not found") as Error & { code?: string };
+      err.code = "NOT_FOUND";
+      throw err;
+    }
+    return product;
   }
-};
-
-export const fetchProductSlug2 = async (slug: string): Promise<Product> => {
-  try {
-    const response = await axios.get(`${BASE_URL}/products/slug/${slug}`);
-    return response.data.data;
-  } catch (error) {
-    console.error("Error fetching product:", error);
-    throw new Error("Failed to fetch product");
-  }
-};
-
-export const fetchProductId = async (id: string): Promise<Product> => {
-  try {
-    const response = await axios.get(`${BASE_URL}/Products/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching product:", error);
-    throw new Error("Failed to fetch product");
-  }
-};
-
-
-export const fetchProductVariantId2 = async (id:string): Promise<ProductVariant[]> => {
-  try{
-    const response = await axios.get(`${BASE_URL}/Products/{productId}/variants/${id}/variants`)
-    return response.data.data;
-  }catch(error){
-    console.error("Error fetching product variant:", error);
-    throw new Error("Failed to fetch product variant");
-
-  }
+  const { data } = await apiClient.get<ApiResponse<Product>>(
+    `/Products`,
+    {    headers: authHeaders(accessToken), 
+          params
+    },
+  );
+  return data.data.data;
 }
+
+// For Product Detail Page to fetch product by slug
+export async function getProductBySlug2(
+  slug: string,
+  accessToken?: string,
+): Promise<Product> {
+  if (isMockProductsEnabled()) {
+    const product = getMockProductBySlug2("modern-coffee-table");
+    if (!product) {
+      const err = new Error("Product not found") as Error & { code?: string };
+      err.code = "NOT_FOUND";
+      throw err;
+    }
+    return product;
+  }
+  const { data } = await apiClient.get<ApiResponse<Product>>(
+    `/products/slug/${slug}`,
+    { headers: authHeaders(accessToken) },
+  );
+  return data.data;
+}
+
+// For Product Detail Page to fetch product variant by product id
+export async function getProductVariantById(
+  productId: string,
+  accessToken?: string,
+): Promise<Product> {
+  if (isMockProductsEnabled()) {
+    const product = getMockProductVariantById("p2");
+    if (!product) {
+      const err = new Error("Product not found") as Error & { code?: string };
+      err.code = "NOT_FOUND";
+      throw err;
+    }
+    return product;
+  }
+  const { data } = await apiClient.get<ApiResponse<Product>>(
+    `/Products/${productId}/variants`,
+    { headers: authHeaders(accessToken) },
+  );
+  return data.data;
+}
+
 
 /** API contract §5.2 — GET /products/slug/{slug} */
 export async function getProductBySlug(
@@ -97,75 +164,6 @@ export async function getProductBySlug(
   return data.data;
 }
 
-export async function getAllProducts(
-  // id: string,
-  accessToken?: string,
-  params: ProductListParams = {},
-): Promise<Product[]> {
-  if (isMockProductsEnabled()) {
-
-    const product =getMockAllProducts();
-    if (!product) {
-      const err = new Error("Product not found") as Error & { code?: string };
-      err.code = "NOT_FOUND";
-      throw err;
-    }
-    return product;
-  }
-
-  const { data } = await apiClient.get<ApiResponse<Product>>(
-    `/Products`,
-    {    headers: authHeaders(accessToken), 
-          params
-    },
-  );
-  return data.data.data;
-}
-
-export async function getProductBySlug2(
-  slug: string,
-  accessToken?: string,
-): Promise<Product> {
-  if (isMockProductsEnabled()) {
-
-    const product = getMockProductBySlug2("modern-coffee-table");
-    if (!product) {
-      const err = new Error("Product not found") as Error & { code?: string };
-      err.code = "NOT_FOUND";
-      throw err;
-    }
-    return product;
-  }
-
-  const { data } = await apiClient.get<ApiResponse<Product>>(
-    `/products/slug/${slug}`,
-    { headers: authHeaders(accessToken) },
-  );
-  return data.data;
-}
-
-
-export async function getProductVariantById(
-  productId: string,
-  accessToken?: string,
-): Promise<Product> {
-  if (isMockProductsEnabled()) {
-
-    const product = getMockProductVariantById("p2");
-    if (!product) {
-      const err = new Error("Product not found") as Error & { code?: string };
-      err.code = "NOT_FOUND";
-      throw err;
-    }
-    return product;
-  }
-
-  const { data } = await apiClient.get<ApiResponse<Product>>(
-    `/Products/${productId}/variants`,
-    { headers: authHeaders(accessToken) },
-  );
-  return data.data;
-}
 
 
 

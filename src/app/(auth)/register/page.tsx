@@ -33,6 +33,7 @@ import { authApi } from "@/lib/api/auth";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import AuthErrorMessage from "@/components/AuthErrorMessage";
+import { toast } from "sonner";
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
@@ -90,20 +91,24 @@ export default function Register() {
       name: data.name,
       email: data.email,
       password: data.password,
-      phone: data.phone || "",
+      phone: data.phone?.trim() === "" ? null : data.phone,
     };
-    console.log(registerData);
     try {
       setError(null);
       setIsLoading(true);
       await authApi.register(registerData);
+      toast.success("Account created successfully", {
+        description: "Please check your email to verify your account",
+      });
       router.push(`/login`);
     } catch (e: unknown) {
       if (axios.isAxiosError(e)) {
         setError(errorMessage(e.response?.status ?? 500));
+        toast.error("Account creation failed");
         console.log(e.response?.status);
       } else {
         setError("An unexpected error occurred");
+        toast.error("Account creation failed");
       }
     } finally {
       setIsLoading(false);
@@ -269,7 +274,7 @@ export default function Register() {
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-4">
                         <Checkbox
                           id="terms"
                           checked={field.value}
@@ -277,17 +282,11 @@ export default function Register() {
                         />
                         <span className="text-sm text-black">
                           I agree to Mamabear&apos;s
-                          <Link
-                            href="/auth/terms"
-                            className="px-1 text-pink-500"
-                          >
+                          <Link href="/terms" className="px-1 text-pink-500">
                             Terms of Service
                           </Link>
                           and
-                          <Link
-                            href="/auth/privacy"
-                            className="px-1 text-pink-500"
-                          >
+                          <Link href="/policy" className="px-1 text-pink-500">
                             Privacy Policy
                           </Link>
                         </span>
