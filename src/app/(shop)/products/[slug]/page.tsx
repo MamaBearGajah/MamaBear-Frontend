@@ -7,6 +7,7 @@ import { fetchProductVariantId2 } from "../../../../lib/api/products";
 import { ProductVariant } from "@/types";
 import FilterSection from "@/components/FilterSection";
 import { fetchProductSlug } from "../../../../../services";
+// import {getList} from "@/lib/api/reviews";
 import AddToCartMobile from "@/components/cart/AddToCartMobile";
 import {isTop5Bestseller} from "@/lib/utils";
 import { getProductBySlug2, getAllProducts } from "@/lib/api/products";
