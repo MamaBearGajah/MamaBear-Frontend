@@ -26,6 +26,8 @@ import AuthErrorMessage from "@/components/AuthErrorMessage";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { toast } from "sonner";
+import { authApi } from "../../../lib/api/auth";
 
 export default function Login() {
   const { login } = useAuth();
@@ -74,13 +76,40 @@ export default function Login() {
       setIsLoading(true);
       setError(null);
       await login(loginData);
+      toast.success("Login berhasil");
       router.push("/");
     } catch (e: unknown) {
       if (axios.isAxiosError(e)) {
         setError(errorMessage(e.response?.status ?? 500));
-        console.log(e.response?.status);
+        toast.error(errorMessage(e.response?.status ?? 500));
       } else {
-        setError("An unexpected error occurred");
+        // Surface the real error instead of swallowing it
+        const message = e instanceof Error ? e.message : String(e);
+        console.error("Login non-axios error:", e);
+        setError(message || "An unexpected error occurred");
+        toast.error(message || "An unexpected error occurred");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendVerificationEmail = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      await authApi.resendVerification(form.getValues("email"));
+      toast.success("Email verification sent successfully");
+    } catch (e: unknown) {
+      if (axios.isAxiosError(e)) {
+        setError(errorMessage(e.response?.status ?? 500));
+        toast.error(errorMessage(e.response?.status ?? 500));
+      } else {
+        // Surface the real error instead of swallowing it
+        const message = e instanceof Error ? e.message : String(e);
+        console.error("Login non-axios error:", e);
+        setError(message || "An unexpected error occurred");
+        toast.error(message || "An unexpected error occurred");
       }
     } finally {
       setIsLoading(false);
@@ -97,6 +126,14 @@ export default function Login() {
           <h1 className="mb-1 text-2xl font-black">Welcome back, Mama! 👋</h1>
           <p className="mb-6 text-sm">Sign in to your Mamabear account</p>
           {error && <AuthErrorMessage error={error} />}
+          {error === "Email belum diverifikasi" && (
+            <span
+              onClick={handleResendVerificationEmail}
+              className="mb-2 block cursor-pointer text-sm text-[#6C4735] hover:underline"
+            >
+              Send email verification to your email
+            </span>
+          )}
           {/* FORM */}
           <form
             onSubmit={form.handleSubmit(handleSubmit)}

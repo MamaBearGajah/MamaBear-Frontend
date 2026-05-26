@@ -1,6 +1,100 @@
-import {Product} from "../types";
+import {Category, Product} from "../types";
 
 const INITIAL_MOCK_PRODUCTS: Product[] = [];
+
+export const mockCategories: Category[] = [
+  {
+    id: "cat-root",
+    parentId: null,
+    name: "Semua Produk",
+    slug: "semua-produk",
+    description: "Lihat semua produk MamaBear",
+    imageUrl: "https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=400&fit=crop",
+    isActive: true,
+  },
+  {
+    id: "cat-1",
+    parentId: "cat-root",
+    name: "ASI Booster Tea",
+    slug: "asi-booster-tea",
+    description: "Lihat semua produk MamaBear",
+    imageUrl: "https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=400&fit=crop",
+    isActive: true,
+  },
+  {
+    id: "cat-2",
+    parentId: "cat-root",
+    name: "ASI Booster Capsules",
+    slug: "asi-booster-capsules",
+    description: "Lihat semua produk MamaBear",
+    imageUrl: "https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=400&fit=crop",
+    isActive: true,
+  },
+  {
+    id: "cat-3",
+    parentId: "cat-root",
+    name: "Kookie Bites",
+    slug: "kookie-bites",
+    description: "Lihat semua produk MamaBear",
+    imageUrl: "https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=400&fit=crop",
+    isActive: true,
+  },
+  {
+    id: "cat-4",
+    parentId: "cat-root",
+    name: "Chocomalt",
+    slug: "chocomalt",
+    description: "Lihat semua produk MamaBear",
+    imageUrl: "https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=400&fit=crop",
+    isActive: true,
+  },
+  {
+    id: "cat-5",
+    parentId: "cat-root",
+    name: "Sprinkles Cereal",
+    slug: "sprinkles-cereal",
+    description: "Lihat semua produk MamaBear",
+    imageUrl: "https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=400&fit=crop",
+    isActive: true,
+  },
+  {
+    id: "cat-6",
+    parentId: "cat-root",
+    name: "Superfood Pancake Mix",
+    slug: "superfood-pancake-mix",
+    description: "Lihat semua produk MamaBear",
+    imageUrl: "https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=400&fit=crop",
+    isActive: true,
+  },
+  {
+    id: "cat-7",
+    parentId: "cat-root",
+    name: "Protein Bites",
+    slug: "protein-bites",
+    description: "Lihat semua produk MamaBear",
+    imageUrl: "https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=400&fit=crop",
+    isActive: true,
+  },
+  {
+    id: "cat-8",
+    parentId: "cat-root",
+    name: "Pregnancy Support",
+    slug: "pregnancy-support",
+    description: "Lihat semua produk MamaBear",
+    imageUrl: "https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=400&fit=crop",
+    isActive: true,
+  },
+  {
+    id: "cat-9",
+    parentId: "cat-root",
+    name: "Postpartum Recovery",
+    slug: "postpartum-recovery",
+    description: "Lihat semua produk MamaBear",
+    imageUrl: "https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=400&fit=crop",
+    isActive: true,
+  },
+];
+
 
 export const mockProducts = [
   {
@@ -338,6 +432,11 @@ export function getMockProductVariantById(id: string): Product | null {
   );
 
   return item.variants ?? null;
+}
+
+
+export function getMockCategories(): Category[] {
+  return mockCategories;
 }
 // export function resetMockProductsStore() {
 //   mockProductsStore = [...INITIAL_MOCK_PRODUCTS];
