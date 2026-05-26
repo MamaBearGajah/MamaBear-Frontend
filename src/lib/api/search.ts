@@ -4,7 +4,7 @@ import type {
   ProductListParams,
   SearchSuggestion,
 } from "@/types";
-import { apiClient, authHeaders } from "./client";
+import { apiClient } from "./client";
 import { filterStorefrontProducts } from "@/lib/shop/storefront-products";
 import { resolveProductImageUrl } from "@/lib/images/resolve-product-image";
 import { isMockProductsEnabled, getMockProductsStore } from "./mock-data";
@@ -35,8 +35,7 @@ export function normalizeSearchSuggestions(raw: unknown): SearchSuggestion[] {
           id: String(row.id ?? `suggestion-${index}`),
           name,
           slug: String(row.slug ?? ""),
-          imageUrl:
-            typeof row.imageUrl === "string" ? row.imageUrl : undefined,
+          imageUrl: typeof row.imageUrl === "string" ? row.imageUrl : undefined,
         };
       }
       return null;
@@ -55,7 +54,7 @@ function productsToSuggestions(items: ProductListItem[]): SearchSuggestion[] {
 
 export async function getSearchSuggestions(
   q: string,
-  accessToken?: string,
+  accessToken?: string
 ): Promise<ApiResponse<SearchSuggestion[]>> {
   const trimmed = q.trim();
   if (trimmed.length < SEARCH_SUGGESTIONS_MIN_LENGTH) {
@@ -68,7 +67,7 @@ export async function getSearchSuggestions(
       .filter(
         (p) =>
           p.name.toLowerCase().includes(needle) ||
-          p.slug.toLowerCase().includes(needle),
+          p.slug.toLowerCase().includes(needle)
       )
       .slice(0, 8)
       .map((p) => ({
@@ -83,7 +82,6 @@ export async function getSearchSuggestions(
   try {
     const { data } = await apiClient.get("/search/suggestions", {
       params: { q: trimmed },
-      headers: authHeaders(accessToken),
     });
     const normalized = normalizeApiResponse<unknown>(data);
     return {
@@ -91,17 +89,14 @@ export async function getSearchSuggestions(
       data: normalizeSearchSuggestions(normalized.data),
     };
   } catch {
-    const res = await getProductList(
-      { q: trimmed, limit: 8, page: 1 },
-      accessToken,
-    );
+    const res = await getProductList({ q: trimmed, limit: 8, page: 1 });
     return { success: true, data: productsToSuggestions(res.data) };
   }
 }
 
 export async function getSearchResults(
   params: ProductListParams = {},
-  accessToken?: string,
+  accessToken?: string
 ): Promise<ApiResponse<ProductListItem[]>> {
   if (isMockProductsEnabled()) {
     return fetchMockProductList(params);
@@ -130,10 +125,9 @@ export async function getSearchResults(
         sortBy: params.sortBy ?? "createdAt",
         sortOrder: params.sortOrder ?? "desc",
       },
-      headers: authHeaders(accessToken),
     });
     return normalizeApiResponse<ProductListItem[]>(data);
   } catch {
-    return getProductList({ ...params, q }, accessToken);
+    return getProductList({ ...params, q });
   }
 }
