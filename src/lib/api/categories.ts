@@ -5,7 +5,7 @@ import { ALL_PRODUCTS_CATEGORY, flattenCategories } from "@/lib/categories/flatt
 import { normalizeApiResponse } from "./normalize-api-response";
 
 export async function getCategoryList(
-  accessToken?: string | null,
+  // accessToken?: string | null,
   params: CategoryListParams = {},
 ): Promise<ApiResponse<Category[]>> {
   if (isMockProductsEnabled()) {
@@ -13,7 +13,7 @@ export async function getCategoryList(
   }
 
   const { data } = await apiClient.get<ApiResponse<Category[]>>("/categories", {
-    headers: authHeaders(accessToken),
+    // headers: authHeaders(accessToken),
     params,
   });
 
