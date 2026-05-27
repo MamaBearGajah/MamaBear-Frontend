@@ -25,23 +25,28 @@ export default async function ProductDetailPage({
         return 
         <div>Product Not Found</div>
     }
+
+    //fetch all data using old API no mockproduct
     // const fetchedAllData = await fetchProducts();
     // const fetchedAllDataData = await fetchedAllData.data.data;
-    const fetchedAllData = await getAllProducts();
-    const fetchedAllDataData = await fetchedAllData;
-    const slicedData = fetchedAllDataData?.slice(0,3);
-    // console.log("slicedData", slicedData)
-    // console.log("fetchedAllDataData", fetchedAllDataData)
-    // const fetchedDataData = await fetchProductSlug2(slug);
-    const fetchedDataData = await getProductBySlug2(slug);
-    // console.log("fetchedDataData", fetchedDataData)
 
-  
+    //fetch all data using new API with mockproduct
+    const fetchedAllDataData = await getAllProducts();
+    const slicedData = fetchedAllDataData?.slice(0,3);
+
+    //fetch one data by slug using old API no mockproduct
+    // const fetchedDataData = await fetchProductSlug2(slug);
+
+    //fetch one data by slug using new API with mockproduct
+    const fetchedDataData = await getProductBySlug2(slug);
     const productId = fetchedDataData.id;
+
+    //fetch product variant by product id using old API no mockproduct
     // const productVariant = await fetchProductVariantId2(productId)
+
+    //fetch product variant by product id using new API with mockproduct
     const productVariant = await getProductVariantById(productId);
 
-    // console.log("productVariant", productVariant)
 
     const isTop5BestsellerFlag = isTop5Bestseller(fetchedAllDataData, productId);
     
