@@ -79,7 +79,7 @@ const BASE_URL = "http://localhost:3000/api"; //Change to deployed BASE_URL late
 //For Product Detail Page to fetch all products and compute if current product is top 5 bestseller
 export async function getAllProducts(
   // id: string,
-  accessToken?: string,
+  // accessToken?: string,
   params: ProductListParams = {},
 ): Promise<Product[]> {
   if (isMockProductsEnabled()) {
@@ -93,7 +93,8 @@ export async function getAllProducts(
   }
   const { data } = await apiClient.get<ApiResponse<Product>>(
     `/Products`,
-    {    headers: authHeaders(accessToken), 
+    {    
+      // headers: authHeaders(accessToken), 
           params
     },
   );
@@ -103,7 +104,7 @@ export async function getAllProducts(
 // For Product Detail Page to fetch product by slug
 export async function getProductBySlug2(
   slug: string,
-  accessToken?: string,
+  // accessToken?: string,
 ): Promise<Product> {
   if (isMockProductsEnabled()) {
     const product = getMockProductBySlug2("modern-coffee-table");
@@ -116,7 +117,7 @@ export async function getProductBySlug2(
   }
   const { data } = await apiClient.get<ApiResponse<Product>>(
     `/products/slug/${slug}`,
-    { headers: authHeaders(accessToken) },
+    // { headers: authHeaders(accessToken) },
   );
   return data.data;
 }
@@ -124,7 +125,7 @@ export async function getProductBySlug2(
 // For Product Detail Page to fetch product variant by product id
 export async function getProductVariantById(
   productId: string,
-  accessToken?: string,
+  // accessToken?: string,
 ): Promise<Product> {
   if (isMockProductsEnabled()) {
     const product = getMockProductVariantById("p2");
@@ -137,7 +138,9 @@ export async function getProductVariantById(
   }
   const { data } = await apiClient.get<ApiResponse<Product>>(
     `/Products/${productId}/variants`,
-    { headers: authHeaders(accessToken) },
+    {
+      //  headers: authHeaders(accessToken) 
+    },
   );
   return data.data;
 }
