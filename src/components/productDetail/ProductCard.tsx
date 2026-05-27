@@ -112,29 +112,60 @@ export default function ProductCard({
             <p className='mt-2 mb-2 text-sm text-gray-500'>{productDescription}</p>
             <p><span className='text-[var(--mamabear-dark-pink)] font-bold'>{productVariantData[0].name}</span></p>
             <div className='mt-3 mb-2'>
-              {
-                productVariantData.map((item,index) =>{
-                    function variantselected(item:ProductVariant){
-                      setSelected(item.value);
-                      setThePrice(Number(item.discountPrice ?? item.basePrice));
-                      setvariantSelectedImage(item.imageUrl ?? "/Logo Mamabear.png");
-                    }
-                  return(
-                    <span 
-                    key={item.value} 
-                    onClick={() =>variantselected(item)} 
-                    className={
-                      `rounded-full md:pl-8 md:pr-8 px-2 py-2 md:pb-5 md:pt-5 mb-3 mt-3 border-2 whitespace-nowrap 
-                          ${selected===item.value ? "bg-[var(--mamabear-dark-pink)] text-white" : "bg-white text-black"}
-                          cursor-pointer
-                          hover:shadow-lg
-                          transition duration-300
-                      `}>
-                        {item.value}
-                    </span>
-                  )
-                })
+          {
+            productVariantData.map((item) => {
+              const isDisabled =
+                item.stock === 0 || item.isActive === 0;
+
+              function variantSelected(item: ProductVariant) {
+                if (isDisabled) return;
+
+                setSelected(item.value);
+                setThePrice(
+                  Number(item.discountPrice ?? item.basePrice)
+                );
+                setvariantSelectedImage(
+                  item.imageUrl ?? "/Logo Mamabear.png"
+                );
               }
+
+              return (
+                <button
+                  key={item.value}
+                  onClick={() => variantSelected(item)}
+                  disabled={isDisabled}
+                  className={`
+                    rounded-full
+                    md:px-8 px-4
+                    py-2 md:py-4
+                    mb-3 mt-3
+                    border-2
+                    whitespace-nowrap
+                    transition-all duration-300
+
+                    ${
+                      selected === item.value
+                        ? "bg-[var(--mamabear-dark-pink)] text-white border-[var(--mamabear-dark-pink)]"
+                        : "bg-white text-black border-gray-300"
+                    }
+
+                    ${
+                      isDisabled
+                        ? "opacity-40 line-through cursor-not-allowed"
+                        : "cursor-pointer hover:shadow-lg hover:scale-105"
+                    }
+                  `}
+                >
+                  {item.value}
+
+                  {item.stock === 0 && (
+                    <span className="ml-2 text-xs">
+                      (Out of Stock)
+                    </span>
+                  )}
+                </button>
+              );
+            })}
               <br></br><br></br>
               <KeyBenefit weight={productWeight}/>
             </div>
