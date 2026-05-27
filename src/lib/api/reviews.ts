@@ -1,4 +1,4 @@
-import apiClient from "./client";
+import {apiClient} from '@/lib/api/client';
 
 export const reviewsApi = {
   getList: (productId: string, params?: ReviewParams) =>     apiClient.get(`/products/${productId}/reviews`, { params }),

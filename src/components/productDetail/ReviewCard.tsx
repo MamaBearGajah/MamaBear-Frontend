@@ -1,11 +1,27 @@
 "use client"
-import {useState, React} from 'react';
+import {useState, React, useEffect} from 'react';
 import { mockProducts } from '../../lib/MockProducts';
 import { Product } from '../../../types';
 import USPCard from './USPCard';
 import YouMightAlsoLove from '../YouMightAlsoLove';
+import {reviewsApi}  from '../../lib/api/reviews';
 
 export default function ReviewCard({navValue, productId, product}:{navValue:string, productId:number, product: Product}) {
+    const [reviews, setReviews] = useState([]);
+    useEffect(() => {
+        async function fetchReviews() {
+            try {
+                const response = await reviewsApi.getList(productId.toString());
+                setReviews(response.data);
+            } catch (error) {
+                console.error("Error fetching reviews:", error);
+            }
+        }
+        fetchReviews();
+    }, [productId]);
+
+    console.log("reviews", reviews)
+
   switch (navValue){
     case "Description":
         return(
@@ -40,9 +56,17 @@ export default function ReviewCard({navValue, productId, product}:{navValue:stri
         return(
         <div className='flex flex-col justify-start items-start md:w-[60%] md:h-[60%]'>
       
-            This is the Review
-            {/* <USPCard/>
-            <YouMightAlsoLove/> */}
+            {reviews.length > 0 ? (
+                reviews.map((review) => (
+                    <div key={review.id} className="border-b border-gray-200 py-4 w-full">  
+                        <p className="font-semibold">{review.user.name}</p>
+                        <p className="text-sm text-gray-600">{review.comment}</p>
+                        <p className="text-sm text-gray-600">Rating: {review.rating} / 5</p>
+                    </div>  
+                ))
+            ) : (
+                <p>No reviews yet.</p>
+            )}
         </div>)
         
       default:
