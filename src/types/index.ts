@@ -83,14 +83,21 @@ export interface ProductImage {
 
 export interface Review {
   id: number;
-  title: string;
-  reviewerName: string;
-  productId: number;
+  productId: string;
+  userId: string;
+  orderId: string;
   rating: number;
-  numUpvotes: number;
-  description: string;
-  attachmentUrl: string;
+  title: string;
+  review: string;
+  isVerifiedPurchase: boolean;
+  helpfulCount: number;
+  reviewerName: string;
+  user:{
+    id: string;
+    name: string;
+  }
   createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export type ProductBadgeType = "best-seller" | "fan-favorite" | "new";
