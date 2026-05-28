@@ -10,7 +10,7 @@ import ProductDetailNav from "./ProductDetailNav"
 import USPCard from './USPCard';
 import YouMightAlsoLove from './YouMightAlsoLove';
 
-export default function ReviewSection({ productId, product, slicedData }: { productId: number, product: Product, slicedData: Product[] }) {
+export default function ReviewSection({ productId, product, slicedData }: { productId: string, product: Product, slicedData: Product[] }) {
     const [navValue, setnavValue] = useState("Description")
     return(
         <div className='h-full md:h-full w-full flex flex-col justify-start items-start'>

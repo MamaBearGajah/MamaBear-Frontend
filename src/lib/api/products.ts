@@ -100,7 +100,6 @@ export async function getAllProducts(
          
     },
   );
-  console.log(data.data);
   return data.data.data;
 }
 
@@ -118,11 +117,11 @@ export async function getProductBySlug2(
     }
     return product;
   }
-  const { data } = await apiClient.get<ApiResponse<Product>>(
+  const data  = await apiClient.get<ApiResponse<Product>>(
     `/products/slug/${slug}`,
     // { headers: authHeaders(accessToken) },
   );
-  return data.data;
+  return data.data.data ;
 }
 
 // export const getProductBySlug2 = async (slug: string): Promise<Product> => {
