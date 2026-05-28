@@ -20,6 +20,46 @@ export default function ReviewCard({navValue, productId, product}:{navValue:stri
         fetchReviews();
     }, [productId]);
 
+    
+
+// async function submitReview() {
+//   try {
+
+//     await reviewsApi.create(productId, {
+//       rating,
+//       comment,
+//     });
+
+//     alert("Review submitted");
+
+//   } catch (error: any) {
+
+//     const status = error.response?.status;
+
+//     if (status === 403) {
+//       alert("You must purchase this product first");
+//     }
+
+//     else if (status === 409) {
+//       alert("You already reviewed this product");
+//     }
+
+//     else if (status === 400) {
+//       alert("Please fill rating and comment");
+//     }
+
+//     else {
+//       alert("Something went wrong");
+//     }
+//   }
+// }
+
+
+
+
+
+
+
     function addHelpfulVote(reviewId: string, isHelpful: boolean) {
         reviewsApi.voteHelpful(productId, reviewId, isHelpful)
         .then(response => {
