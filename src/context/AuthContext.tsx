@@ -5,20 +5,35 @@ import {
   useReducer,
   useEffect,
   useCallback,
+  useMemo,
 } from "react";
 import { authApi } from "@/lib/api/auth"; // Make sure your axios instance has withCredentials: true
 import type { User, LoginPayload } from "@/types/index";
 
+// =========================
+// TYPES
+// =========================
+
 type AuthState = {
   user: User | null;
   isAuthenticated: boolean;
-  isLoading: boolean; // Added to handle the initial flash before /me finishes
+  isLoading: boolean;
 };
 
 type AuthAction =
   | { type: "LOGIN"; payload: { user: User } }
   | { type: "LOGOUT" }
   | { type: "INITIALIZE"; payload: { user: User | null } };
+
+type AuthContextType = {
+  state: AuthState;
+  login: (data: LoginPayload) => Promise<void>;
+  logout: () => Promise<void>;
+};
+
+// =========================
+// REDUCER
+// =========================
 
 function authReducer(state: AuthState, action: AuthAction): AuthState {
   switch (action.type) {
@@ -41,13 +56,15 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
   }
 }
 
-type AuthContextType = {
-  state: AuthState;
-  login: (data: LoginPayload) => Promise<void>;
-  logout: () => Promise<void>;
-};
+// =========================
+// CONTEXT
+// =========================
 
 const AuthContext = createContext<AuthContextType | null>(null);
+
+// =========================
+// PROVIDER
+// =========================
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, {
@@ -56,52 +73,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isLoading: true, // Start loading as true while we check the /me endpoint
   });
 
-  // 1. Check session on initial load
+  // -------------------------------------------------------
+  // 1. CHECK SESSION on mount
+  //    Sends the HttpOnly cookie automatically — axios must
+  //    have withCredentials: true on the instance.
+  // -------------------------------------------------------
   useEffect(() => {
     async function loadUser() {
       try {
-        // This request will automatically send the HttpOnly access token cookie
         const res = await authApi.getMe();
-        console.log("User loaded:", res.data);
-        dispatch({ type: "INITIALIZE", payload: { user: res.data.data } });
-      } catch (error) {
-        // If it fails (401), the user isn't logged in.
-        // Axios interceptor will handle token refresh if needed!
+        dispatch({ type: "INITIALIZE", payload: { user: res.data } });
+      } catch {
+        // 401 → not logged in (interceptor handles token refresh if configured)
         dispatch({ type: "INITIALIZE", payload: { user: null } });
       }
     }
     loadUser();
   }, []);
 
-  // 2. Login Flow
+  // -------------------------------------------------------
+  // 2. LOGIN
+  //    Cart migration is handled by CartContext watching
+  //    user?.id, so nothing cart-related belongs here.
+  // -------------------------------------------------------
   const login = useCallback(async (data: LoginPayload) => {
     const res = await authApi.login(data);
-
-    // The backend set the cookies, we just care about the user data now
-    const user = res.data.data;
-
+    // FIX: unwrap to the actual user object your API returns
+    const user: User = res.data.data.data;
+    // FIX: payload must match { user: User }
     dispatch({ type: "LOGIN", payload: { user } });
   }, []);
 
-  // 3. Logout Flow
+  // -------------------------------------------------------
+  // 3. LOGOUT
+  //    Cart reset is handled by CartContext watching user?.id.
+  // -------------------------------------------------------
   const logout = useCallback(async () => {
     try {
-      // Tell the backend to clear the HttpOnly cookies
       await authApi.logout();
     } catch (e) {
-      console.error(e);
+      console.error("Logout API error:", e);
     } finally {
       dispatch({ type: "LOGOUT" });
-      // Optional: Redirect to login page
-      // window.location.href = '/login';
     }
   }, []);
 
-  return (
-    <AuthContext.Provider value={{ state, login, logout }}>
-      {children}
-    </AuthContext.Provider>
+  // -------------------------------------------------------
+  // 4. MEMOIZED VALUE — prevents all consumers re-rendering
+  //    on unrelated state changes.
+  // -------------------------------------------------------
+  const value = useMemo(
+    () => ({ state, login, logout }),
+    [state, login, logout]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export const useAuth = () => {
