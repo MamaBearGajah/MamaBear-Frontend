@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, {
   createContext,
@@ -7,9 +7,10 @@ import React, {
   useMemo,
   useReducer,
   ReactNode,
-} from 'react';
+} from "react";
 
-import { CartItem } from '@/types';
+import { CartItem } from "@/types";
+import { useAuth } from "./AuthContext";
 
 // =========================
 // TYPES
@@ -24,57 +25,53 @@ type CartState = {
 
 type CartAction =
   | {
-      type: 'SET_CART';
+      type: "SET_CART";
       payload: {
         items: CartItem[];
       };
     }
   | {
-      type: 'ADD_ITEM';
+      type: "ADD_ITEM";
       payload: CartItem;
     }
   | {
-      type: 'REMOVE_ITEM';
+      type: "REMOVE_ITEM";
       payload: string; // productId
     }
   | {
-      type: 'UPDATE_QUANTITY';
+      type: "UPDATE_QUANTITY";
       payload: {
         productId: string;
         quantity: number;
       };
     }
   | {
-      type: 'SET_GUEST_ID';
-      payload: string;
+      type: "SET_GUEST_ID";
+      payload: string | null;
     }
   | {
-      type: 'SET_LOADING';
+      type: "SET_LOADING";
       payload: boolean;
     }
   | {
-      type: 'CLEAR_CART';
+      type: "CLEAR_CART";
     };
 
 type CartContextType = {
   state: CartState;
-
   itemCount: number;
-
   addItem: (item: CartItem) => void;
-
   removeItem: (productId: string) => void;
-
   updateQuantity: (productId: string, quantity: number) => void;
-
   clearCart: () => void;
-
   setGuestCartId: (id: string) => void;
 };
 
 // =========================
 // HELPERS
 // =========================
+
+const CART_STORAGE_KEY = "cart";
 
 function calculateSubtotal(items: CartItem[]) {
   return items.reduce((sum, item) => {
@@ -83,13 +80,41 @@ function calculateSubtotal(items: CartItem[]) {
   }, 0);
 }
 
+function loadCartFromStorage(): Pick<CartState, "items" | "guestCartId"> {
+  try {
+    const raw = localStorage.getItem(CART_STORAGE_KEY);
+    if (!raw) return { items: [], guestCartId: null };
+
+    const parsed = JSON.parse(raw);
+    return {
+      items: Array.isArray(parsed.items) ? parsed.items : [],
+      guestCartId: parsed.guestCartId ?? null,
+    };
+  } catch {
+    // Corrupted data — wipe it and start fresh
+    localStorage.removeItem(CART_STORAGE_KEY);
+    return { items: [], guestCartId: null };
+  }
+}
+
+function saveCartToStorage(items: CartItem[], guestCartId: string | null) {
+  try {
+    localStorage.setItem(
+      CART_STORAGE_KEY,
+      JSON.stringify({ items, guestCartId })
+    );
+  } catch {
+    // Storage quota exceeded or private browsing — fail silently
+  }
+}
+
 // =========================
 // REDUCER
 // =========================
 
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
-    case 'SET_CART': {
+    case "SET_CART": {
       return {
         ...state,
         items: action.payload.items,
@@ -97,7 +122,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       };
     }
 
-    case 'ADD_ITEM': {
+    case "ADD_ITEM": {
       const existingItem = state.items.find(
         (item) => item.productId === action.payload.productId
       );
@@ -124,7 +149,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       };
     }
 
-    case 'REMOVE_ITEM': {
+    case "REMOVE_ITEM": {
       const updatedItems = state.items.filter(
         (item) => item.productId !== action.payload
       );
@@ -136,7 +161,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       };
     }
 
-    case 'UPDATE_QUANTITY': {
+    case "UPDATE_QUANTITY": {
       const updatedItems = state.items.map((item) =>
         item.productId === action.payload.productId
           ? {
@@ -153,21 +178,21 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       };
     }
 
-    case 'SET_GUEST_ID': {
+    case "SET_GUEST_ID": {
       return {
         ...state,
         guestCartId: action.payload,
       };
     }
 
-    case 'SET_LOADING': {
+    case "SET_LOADING": {
       return {
         ...state,
         loading: action.payload,
       };
     }
 
-    case 'CLEAR_CART': {
+    case "CLEAR_CART": {
       return {
         items: [],
         subtotal: 0,
@@ -185,7 +210,9 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 // CONTEXT
 // =========================
 
-export const CartContext = createContext<CartContextType | undefined>(undefined);
+export const CartContext = createContext<CartContextType | undefined>(
+  undefined
+);
 
 // =========================
 // PROVIDER
@@ -205,37 +232,65 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // LOCAL STORAGE PERSIST
   // =========================
 
+  // -------------------------------------------------------
+  // 1. RESTORE from localStorage on mount
+  // -------------------------------------------------------
   useEffect(() => {
-    const storedCart = localStorage.getItem('cart');
+    const { items, guestCartId } = loadCartFromStorage();
 
-    if (storedCart) {
-      const parsed = JSON.parse(storedCart);
+    // Generate a guestCartId if one doesn't exist yet
+    const resolvedGuestId = guestCartId ?? crypto.randomUUID();
 
-      dispatch({
-        type: 'SET_CART',
-        payload: {
-          items: parsed.items || [],
-        },
-      });
-
-      if (parsed.guestCartId) {
-        dispatch({
-          type: 'SET_GUEST_ID',
-          payload: parsed.guestCartId,
-        });
-      }
-    }
+    dispatch({ type: "SET_CART", payload: { items } });
+    dispatch({ type: "SET_GUEST_ID", payload: resolvedGuestId });
   }, []);
 
+  // -------------------------------------------------------
+  // 2. PERSIST to localStorage whenever cart changes
+  // -------------------------------------------------------
   useEffect(() => {
-    localStorage.setItem(
-      'cart',
-      JSON.stringify({
-        items: state.items,
-        guestCartId: state.guestCartId,
-      })
-    );
+    saveCartToStorage(state.items, state.guestCartId);
   }, [state.items, state.guestCartId]);
+
+  // -------------------------------------------------------
+  // 3. GUEST → USER MIGRATION
+  //    Fires when the user logs in (user?.id changes).
+  //    CartProvider is a child of AuthProvider so useAuth() works here.
+  // -------------------------------------------------------
+  // Uncomment once you wire up AuthContext:
+  //
+  const { state: authState } = useAuth();
+
+  useEffect(() => {
+    if (!authState.user) return; // still a guest
+
+    if (state.items.length > 0) {
+      // OPTION A — local only: items already in state, just drop the guestCartId
+      dispatch({ type: "SET_GUEST_ID", payload: null });
+
+      // OPTION B — sync to backend:
+      // (async () => {
+      //   dispatch({ type: 'SET_LOADING', payload: true });
+      //   try {
+      //     const merged = await mergeCartAPI(user.id, state.guestCartId, state.items);
+      //     dispatch({ type: 'SET_CART', payload: { items: merged } });
+      //     dispatch({ type: 'SET_GUEST_ID', payload: null });
+      //   } finally {
+      //     dispatch({ type: 'SET_LOADING', payload: false });
+      //   }
+      // })();
+    } else {
+      // No guest items — optionally fetch the user's saved cart from backend:
+      // const userCart = await fetchUserCart(user.id);
+      // dispatch({ type: 'SET_CART', payload: { items: userCart } });
+    }
+  }, [authState.user?.id]); // only fires when the logged-in identity changes
+
+  // -------------------------------------------------------
+  // 4. MEMOIZED CONTEXT VALUE
+  //    All action functions are defined inline so dispatch
+  //    (which is stable) is the only real dependency.
+  // -------------------------------------------------------
 
   // =========================
   // ACTIONS
@@ -243,14 +298,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem = (item: CartItem) => {
     dispatch({
-      type: 'ADD_ITEM',
+      type: "ADD_ITEM",
       payload: item,
     });
   };
 
   const removeItem = (productId: string) => {
     dispatch({
-      type: 'REMOVE_ITEM',
+      type: "REMOVE_ITEM",
       payload: productId,
     });
   };
@@ -262,7 +317,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
 
     dispatch({
-      type: 'UPDATE_QUANTITY',
+      type: "UPDATE_QUANTITY",
       payload: {
         productId,
         quantity,
@@ -272,15 +327,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = () => {
     dispatch({
-      type: 'CLEAR_CART',
+      type: "CLEAR_CART",
     });
 
-    localStorage.removeItem('cart');
+    localStorage.removeItem(CART_STORAGE_KEY);
   };
 
   const setGuestCartId = (id: string) => {
     dispatch({
-      type: 'SET_GUEST_ID',
+      type: "SET_GUEST_ID",
       payload: id,
     });
   };
@@ -306,10 +361,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     [state, itemCount]
   );
 
-  return (
-    <CartContext.Provider value={value}>
-      {children}
-    </CartContext.Provider>
-  );
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
+// =========================
+// HOOK
+// =========================
+
+export function useCart(): CartContextType {
+  const ctx = useContext(CartContext);
+  if (!ctx) {
+    throw new Error("useCart must be used inside <CartProvider>");
+  }
+  return ctx;
+}
