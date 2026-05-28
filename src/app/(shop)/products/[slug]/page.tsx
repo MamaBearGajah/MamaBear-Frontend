@@ -12,6 +12,7 @@ import { fetchProductSlug } from "../../../../../services";
 import AddToCartMobile from "@/components/cart/AddToCartMobile";
 import {isTop5Bestseller} from "@/lib/utils";
 import { getProductBySlug2, getAllProducts } from "@/lib/api/products";
+import { getProductList } from "@/lib/api/products";
 
 type Props = {
   params: {
@@ -19,56 +20,104 @@ type Props = {
   };
 };
 
-export async function generateMetadata(
-  { params }: Props
-): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  try {
+    // Decode in case of URL encoding issues
+    const slug = decodeURIComponent(params.slug);
+    const product = await getProductBySlug2(slug);
 
-  const product = await getProductBySlug2(params.slug);
+    if (!product) {
+      return { title: "Product Not Found" };
+    }
 
-  if (!product) {
     return {
-      title: "Product Not Found",
+      title: `${product.name} | MamaBear`,
+      description:
+        product.description || `Buy ${product.name} at MamaBear.`,
+
+      openGraph: {
+        title: product.name,
+        description: product.description,
+        images: [
+          {
+            url: product.images?.[0]?.imageUrl || "/default-og-image.jpg",
+            width: 1200,
+            height: 630,
+            alt: product.name,
+          },
+        ],
+        type: "website",
+      },
+
+      twitter: {
+        card: "summary_large_image",
+        title: product.name,
+        description: product.description,
+        images: [product.images?.[0]?.imageUrl || "/default-og-image.jpg"],
+      },
+    };
+  } catch (error) {
+    // ✅ Never throw from generateMetadata — always return a fallback
+    console.error("[generateMetadata] Failed to fetch product metadata:", error);
+    return {
+      title: "MamaBear | Product",
+      description: "Explore our products at MamaBear.",
     };
   }
-
-  return {
-    title: `${product.name} | MamaBear`,
-    
-    description:
-      product.description ||
-      `Buy ${product.name} at MamaBear.`,
-
-    openGraph: {
-      title: product.name,
-      description: product.description,
-
-      images: [
-        {
-          url:
-            product.images?.[0]?.imageUrl ||
-            "/default-og-image.jpg",
-
-          width: 1200,
-          height: 630,
-          alt: product.name,
-        },
-      ],
-
-      type: "website",
-    },
-
-    twitter: {
-      card: "summary_large_image",
-      title: product.name,
-      description: product.description,
-
-      images: [
-        product.images?.[0]?.imageUrl ||
-        "/default-og-image.jpg",
-      ],
-    },
-  };
 }
+
+// export async function generateMetadata({
+//   params,
+// }: {
+//   params: { slug: string };
+// }): Promise<Metadata> {
+
+//   const product = await getProductBySlug2(params.slug);
+
+//   if (!product) {
+//     return {
+//       title: "Product Not Found",
+//     };
+//   }
+
+//   return {
+//     title: `${product.name} | MamaBear`,
+    
+//     description:
+//       product.description ||
+//       `Buy ${product.name} at MamaBear.`,
+
+//     openGraph: {
+//       title: product.name,
+//       description: product.description,
+
+//       images: [
+//         {
+//           url:
+//             product.images?.[0]?.imageUrl ||
+//             "/default-og-image.jpg",
+
+//           width: 1200,
+//           height: 630,
+//           alt: product.name,
+//         },
+//       ],
+
+//       type: "website",
+//     },
+
+//     twitter: {
+//       card: "summary_large_image",
+//       title: product.name,
+//       description: product.description,
+
+//       images: [
+//         product.images?.[0]?.imageUrl ||
+//         "/default-og-image.jpg",
+//       ],
+//     },
+//   };
+// }
 
 
 export default async function ProductDetailPage({
@@ -89,7 +138,7 @@ export default async function ProductDetailPage({
 
     //fetch all data using new API with mockproduct
     const fetchedAllDataData = await getAllProducts();
-    const slicedData = fetchedAllDataData?.slice(0,3);
+    // const slicedData = fetchedAllDataData?.slice(0,3);
 
     //fetch one data by slug using old API no mockproduct
     // const fetchedDataData = await fetchProductSlug2(slug);
@@ -108,12 +157,12 @@ export default async function ProductDetailPage({
     const isTop5BestsellerFlag = isTop5Bestseller(fetchedAllDataData, productId);
     
     return (
-        <div className="mx-auto w-full xl:w-[100%] md:flex md:flex-col justify-center gap-2 px-5 lg:px-20 bg-[var(--background)]">
-            <div className="w-full block md:flex md:justify-center">
+        <div className="mx-auto w-full xl:w-[100%] md:flex md:flex-col justify-center gap-2 px-5 lg:px-20 bg-light-pink/25">
+            <div className="w-full block md:flex md:justify-center bg-light-pink/25">
                 <div className='w-full md:w-[100%] top-2'><ProductSection productId={productId} product={fetchedDataData}  productVariant={productVariant} isTop5BestsellerFlag={isTop5BestsellerFlag}/></div>
             </div>
-            <div className="w-full">
-                <ReviewSection productId={productId} product={fetchedDataData} slicedData={slicedData}/>
+            <div className="w-full bg-light-pink/25">
+                <ReviewSection productId={Number(productId)} product={fetchedDataData} slicedData={[]}/>
             </div>
             <div className="block lg:hidden">
                 <AddToCartMobile productId={productId} product={fetchedDataData} />
@@ -121,3 +170,4 @@ export default async function ProductDetailPage({
         </div>
     );
 }
+``

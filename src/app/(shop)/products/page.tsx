@@ -31,12 +31,12 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const params = await searchParams;
   const filters = parseShopListParamsFromRecord(params);
   const listParams = toStorefrontProductListParams(filters);
-  const accessToken = await getShopAccessToken();
+  // const accessToken = await getShopAccessToken();
 
   const [productsRes, categoriesRes, allProductsRes] = await Promise.all([
-    getProductList(listParams, accessToken),
-    getCategoryList(accessToken),
-    getProductList({ page: 1, limit: 100 }, accessToken),
+    getProductList(listParams),
+    getCategoryList(),
+    getProductList({ page: 1, limit: 100 }),
   ]);
 
   const products = filterStorefrontProducts(productsRes.data);
