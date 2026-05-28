@@ -10,69 +10,19 @@ import FloatingChatButton from "@/components/FloatingChatButton";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 // import { fetchProducts } from "../../services/index";
-import { MOCK_CATEGORIES } from "@/components/CategoryShowcase";
-
-async function tryFetch(url: string) {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
-}
-
-/*
-// Backend fetch for categories is temporarily disabled while BE is not ready.
-// Uncomment and use the function below when backend endpoint is available.
-async function fetchCategories(): Promise<Category[]> {
-  const BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
-  const candidates = [
-    `${BASE}/categories`,
-    `${BASE}/categories/list`,
-    `${BASE}/product-categories`,
-    `${BASE}/products/categories`,
-  ];
-
-  for (const url of candidates) {
-    const data = await tryFetch(url);
-    if (!data) continue;
-
-    if (Array.isArray(data)) {
-      if (data.length === 0) return [];
-      // array of strings -> convert to minimal Category
-      if (typeof data[0] === "string") {
-        return (data as string[]).map((s) => ({ name: s, image: null, count: 0 }));
-      }
-
-      if (data[0] && typeof data[0] === "object") {
-        // map common field names to our Category shape
-        return (data as any[]).map((c) => {
-          const name = c.name ?? c.title ?? c.label ?? c.category ?? String(c.id ?? "");
-          const image = c.image ?? c.imageUrl ?? c.thumbnail ?? null;
-          const count = c.count ?? c.productCount ?? c.productsCount ?? c.total ?? 0;
-          return { id: c.id ?? undefined, name, image, count } as Category;
-        });
-      }
-    }
-  }
-
-  console.warn("No categories endpoint returned usable data");
-  return [];
-}
-*/
 
 export default async function Home() {
-  // use mock categories until backend is ready; when BE is ready, restore fetchCategories()
-  const categories = MOCK_CATEGORIES;
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-50 font-sans dark:bg-black">
+    <div
+      className="flex min-h-screen flex-col bg-zinc-50 font-sans dark:bg-black"
+      style={{ backgroundColor: "#FEF2F5" }}
+    >
       <Header />
-      <main className="flex w-full flex-1 flex-col bg-white dark:bg-black">
+      <main className="flex w-full flex-1 flex-col bg-[#FEF2F5] dark:bg-black">
         <HomeBanner />
         {/* MOBILE-ONLY: page gutters live here; desktop keeps 3cm gutters */}
         <section className="px-4 sm:px-[3cm]">
-          <CategorySection categories={categories} />
+          <CategorySection />
         </section>
         <section className="px-4 sm:px-[3cm]">
           <FeaturedCardsSection />

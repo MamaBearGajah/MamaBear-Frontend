@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type FAQItem = {
   id: number;
@@ -20,62 +20,69 @@ export default function FAQSection({
   alt = "FAQ image",
   faqs = [],
 }: FAQSectionProps) {
+  const [isMounted, setIsMounted] = useState(false);
   const [openId, setOpenId] = useState<number | null>(
     faqs.length ? faqs[0].id : null
   );
 
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const defaultFaqs: FAQItem[] = [
     {
       id: 1,
-      question: "Apakah produk Mamabear aman untuk ibu menyusui?",
+      question: "Are Mamabear products safe for breastfeeding moms?",
       answer:
-        "Semua produk kami diformulasikan untuk ibu menyusui dan disertai informasi komposisi yang jelas.",
+        "Yes, all our products are BPOM and Halal certified, made with 100% natural ingredients specifically chosen to be safe for nursing mothers and babies.",
     },
     {
       id: 2,
-      question: "Produk mana yang cocok untuk pemula?",
+      question: "Which product should I start with?",
       answer:
-        "Pilih varian terlaris atau hubungi layanan konsultasi untuk rekomendasi personal.",
+        "If you're unsure, start with our guided recommendations or chat with a lactation consultant for personalized help based on your specific needs.",
     },
     {
       id: 3,
-      question: "Apakah bisa konsultasi sebelum membeli?",
+      question: "Can I consult before buying?",
       answer:
-        "Bisa — tersedia layanan konsultasi online untuk membantu memilih produk yang cocok.",
+        "Absolutely! You can chat with our certified lactation consultant first at no cost, so you feel more confident before choosing a product.",
     },
     {
       id: 4,
-      question: "Berapa lama estimasi pengiriman?",
+      question: "How fast is the delivery?",
       answer:
-        "Standar 1-3 hari kerja di area kota besar, dapat berbeda tergantung kurir.",
+        "Orders are shipped across Indonesia, with same-day dispatch available for selected orders placed before the daily cutoff time.",
     },
     {
       id: 5,
-      question: "Apakah tersedia paket bundle hemat?",
+      question: "Are there any bundle deals available?",
       answer:
-        "Ya, kami menyediakan bundle di halaman produk dengan diskon tertentu.",
+        "Yes! We offer curated starter bundles that are perfect for new moms. Bundles save you up to 20% compared to buying products individually.",
     },
     {
       id: 6,
-      question: "Bagaimana jika produk yang diterima bermasalah?",
+      question: "What is your return policy?",
       answer:
-        "Silakan hubungi customer service untuk proses retur atau penggantian sesuai kebijakan.",
+        "We offer a 7-day satisfaction guarantee. If you're not happy with your purchase for any reason, contact our support team and we'll make it right.",
     },
   ];
 
   const items = faqs.length ? faqs : defaultFaqs;
 
+  if (!isMounted) {
+    return null;
+  }
+
   return (
-    <section className="w-full bg-white pt-6 pb-8 md:pt-8 md:pb-12">
+    <section className="w-full bg-[#FEF2F5] pt-6 pb-8 md:pt-8 md:pb-12">
       {/* Desktop: complex layout (keep unchanged) */}
       <div className="hidden w-full px-0 md:block">
-        <div className="relative grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start">
+        <div className="relative grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-start">
           <div className="relative flex h-[520px] items-center justify-center">
-            <div className="absolute top-[23px] left-[-0px] h-[520px] w-[552px] rounded-[24px] bg-[#FCEFF2]" />
-
             <div className="relative flex h-[520px] w-full items-center justify-center px-6">
               <div
-                className="absolute top-[23px] left-[85px] h-[520px] w-[384px] overflow-hidden rounded-[24px]"
+                className="absolute top-[23px] left-[52px] h-[520px] w-[470px] overflow-hidden rounded-[24px]"
                 style={{
                   boxShadow:
                     "0px 8px 10px -6px rgba(0,0,0,0.1), 0px 20px 25px -5px rgba(0,0,0,0.1)",
@@ -97,7 +104,7 @@ export default function FAQSection({
 
               {/* Consultation overlay above both card and placeholder */}
               <div
-                className="absolute top-[447px] left-[25px] z-40 h-[72px] w-[212.46875px] rounded-[16px] bg-white px-5"
+                className="absolute top-[447px] left-0 z-40 h-[72px] w-[236px] rounded-[16px] bg-white px-5"
                 style={{
                   boxShadow:
                     "0px 4px 6px -4px rgba(0,0,0,0.1), 0px 10px 15px -3px rgba(0,0,0,0.1)",
@@ -130,9 +137,9 @@ export default function FAQSection({
             </div>
           </div>
 
-          <div className="relative w-full lg:absolute lg:top-[-85px] lg:right-[0px] lg:h-[628px] lg:w-[552px]">
+          <div className="relative w-full lg:w-[552px]">
             <div className="w-full">
-              <div className="h-[49px] w-full lg:absolute lg:top-[90px] lg:left-0 lg:w-[614px]">
+              <div className="h-[49px] w-full lg:top-[90px] lg:left-0 lg:w-[614px]">
                 <h3
                   style={{
                     fontFamily: "Quicksand, sans-serif",
@@ -154,13 +161,13 @@ export default function FAQSection({
               </div>
             </div>
             <div
-              className="mt-6 overflow-hidden lg:absolute lg:top-[160px] lg:left-0 lg:mt-0 lg:flex lg:h-[468px] lg:w-[552px] lg:flex-col lg:gap-3"
+              className="mt-10 overflow-visible lg:mt-6 lg:flex lg:w-[552px] lg:flex-col lg:gap-3"
               suppressHydrationWarning
             >
               {items.map((it) => (
                 <div
                   key={it.id}
-                  className="rounded-[12px] border border-[#F0C7D5] bg-white p-4"
+                  className={`rounded-[12px] border bg-white p-4 ${openId === it.id ? "border-[#D5557E]" : "border-[#F0C7D5]"}`}
                 >
                   <button
                     className="flex w-full items-center justify-between text-left"
@@ -168,7 +175,9 @@ export default function FAQSection({
                     aria-expanded={openId === it.id}
                   >
                     <div className="flex items-center gap-4">
-                      <div className="flex aspect-square h-8 min-h-8 w-8 min-w-8 flex-none items-center justify-center rounded-full bg-[#F7C4D2] text-sm font-semibold text-[#D5557E]">
+                      <div
+                        className={`flex aspect-square h-8 min-h-8 w-8 min-w-8 flex-none items-center justify-center rounded-full text-sm font-semibold ${openId === it.id ? "bg-[#D5557E] text-white" : "bg-[#F7C4D2] text-[#D5557E]"}`}
+                      >
                         {String(it.id).padStart(2, "0")}
                       </div>
                       <span className="text-[15px] font-semibold text-[#6C4735]">
@@ -208,7 +217,7 @@ export default function FAQSection({
 
       {/* MOBILE-ONLY: compact FAQ layout with horizontal padding */}
       <div className="w-full px-0 md:hidden">
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* MOBILE-ONLY: show only the FAQ image (no pink background card) */}
           {/* MOBILE-ONLY: full-bleed FAQ image with bottom pink gradient and consultation box */}
           {imageSrc && (

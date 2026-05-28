@@ -52,12 +52,10 @@ export const fetchProductId = async (id: string): Promise<Product> => {
   }
 };
 
-
-
 /** API contract §5.2 — GET /products/slug/{slug} */
 export async function getProductBySlug(
   slug: string,
-  accessToken?: string,
+  accessToken?: string
 ): Promise<Product> {
   if (isMockProductsEnabled()) {
     const product = getMockProductBySlug(slug);
@@ -71,7 +69,7 @@ export async function getProductBySlug(
 
   const { data } = await apiClient.get<ApiResponse<Product>>(
     `/products/slug/${slug}`,
-    { headers: authHeaders(accessToken) },
+    { headers: authHeaders(accessToken) }
   );
   return data.data;
 }
@@ -80,7 +78,6 @@ export async function getProductBySlug(
 export async function fetchProductSlug(slug: string): Promise<Product> {
   return getProductBySlug(slug);
 }
-
 
 export async function getProductList(
   params: ProductListParams = {},
@@ -227,17 +224,17 @@ export const fetchProductVariantId = async (
   }
 };
 
-
-export const fetchProductVariantId2 = async (id:string): Promise<ProductVariant[]> => {
-  try{
-    const response = await axios.get(`${BASE_URL}/Products/${id}/variants`)
+export const fetchProductVariantId2 = async (
+  id: string
+): Promise<ProductVariant[]> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/Products/${id}/variants`);
     return response.data.data;
-  }catch(error){
+  } catch (error) {
     console.error("Error fetching product variant:", error);
     throw new Error("Failed to fetch product variant");
-
   }
-}
+};
 
 export const CreateProductVariant = async (
   id: string,
