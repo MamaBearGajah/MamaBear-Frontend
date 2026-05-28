@@ -38,6 +38,15 @@ export default function ProductCarousel({images, variantselectedimage, setvarian
       
       {/* Big Image */}
       <div className="border rounded-xl overflow-hidden mb-4 ">
+
+        {/* <div className="relative w-full h-64"> 
+          <Image
+            src={image}
+            alt="product"
+            fill
+            className="object-cover"
+          />
+        </div> */}
         <img
           src={selectedImage}
           alt="Selected"
