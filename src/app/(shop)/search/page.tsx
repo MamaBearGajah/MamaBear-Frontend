@@ -18,7 +18,7 @@ import {
   filterStorefrontProducts,
   getSearchCategoryCounts,
 } from "@/lib/shop/storefront-products";
-import type { PaginationMeta } from "@/types";
+import type { PaginationMeta, ProductListItem } from "@/types";
 
 export const metadata: Metadata = {
   title: "Search | MamaBear",
@@ -36,7 +36,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
   if (!q) {
     return (
-      <main className="min-h-[60vh] bg-light-pink/25 py-6 md:py-10">
+      <main className="bg-light-pink/25 min-h-[60vh] py-6 md:py-10">
         <div className="container-main space-y-6">
           <Suspense fallback={null}>
             <SearchPageHeader totalItems={0} categories={[]} />
@@ -54,7 +54,19 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     getCategoryList(),
   ]);
 
-  const products = filterStorefrontProducts(productsRes.data);
+  const normalizedProducts = (productsRes.data || []).map((p) => ({
+    ...p,
+    basePrice: Number((p as any).basePrice ?? 0),
+    discountPrice: (p as any).discountPrice
+      ? Number((p as any).discountPrice)
+      : undefined,
+    avgRating: (p as any).avgRating ? Number((p as any).avgRating) : undefined,
+    ratingCount: (p as any).reviewCount
+      ? Number((p as any).reviewCount)
+      : undefined,
+  })) as ProductListItem[];
+
+  const products = filterStorefrontProducts(normalizedProducts);
   const categoryCounts = getSearchCategoryCounts(filters);
 
   const meta: PaginationMeta = productsRes.meta ?? {
@@ -65,7 +77,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   };
 
   return (
-    <main className="min-h-[60vh] bg-light-pink/25 py-6 md:py-10">
+    <main className="bg-light-pink/25 min-h-[60vh] py-6 md:py-10">
       <div className="container-main space-y-4">
         <Suspense fallback={null}>
           <SearchPageHeader
