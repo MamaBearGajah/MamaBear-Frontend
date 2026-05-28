@@ -1,5 +1,6 @@
 import ProductSection from "@/components/productDetail/ProductSection";
 import ReviewSection from "@/components/productDetail/ReviewSection";
+import { Metadata } from "next";
 import {fetchProductSlug2, getProductVariantById} from "../../../../lib/api/products"
 import { fetchProducts } from "../../../../lib/api/products";
 import { fetchProductVariantId } from "../../../../lib/api/products";
@@ -12,6 +13,62 @@ import AddToCartMobile from "@/components/cart/AddToCartMobile";
 import {isTop5Bestseller} from "@/lib/utils";
 import { getProductBySlug2, getAllProducts } from "@/lib/api/products";
 
+type Props = {
+  params: {
+    slug: string;
+  };
+};
+
+export async function generateMetadata(
+  { params }: Props
+): Promise<Metadata> {
+
+  const product = await getProductBySlug2(params.slug);
+
+  if (!product) {
+    return {
+      title: "Product Not Found",
+    };
+  }
+
+  return {
+    title: `${product.name} | MamaBear`,
+    
+    description:
+      product.description ||
+      `Buy ${product.name} at MamaBear.`,
+
+    openGraph: {
+      title: product.name,
+      description: product.description,
+
+      images: [
+        {
+          url:
+            product.images?.[0]?.imageUrl ||
+            "/default-og-image.jpg",
+
+          width: 1200,
+          height: 630,
+          alt: product.name,
+        },
+      ],
+
+      type: "website",
+    },
+
+    twitter: {
+      card: "summary_large_image",
+      title: product.name,
+      description: product.description,
+
+      images: [
+        product.images?.[0]?.imageUrl ||
+        "/default-og-image.jpg",
+      ],
+    },
+  };
+}
 
 
 export default async function ProductDetailPage({
