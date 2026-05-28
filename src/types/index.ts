@@ -82,16 +82,15 @@ export interface ProductImage {
 }
 
 export interface Review {
-  id: number;
+  id: string;
   productId: string;
   userId: string;
   orderId: string;
   rating: number;
-  title: string;
   review: string;
   isVerifiedPurchase: boolean;
   helpfulCount: number;
-  reviewerName: string;
+  // reviewerName: string;
   user:{
     id: string;
     name: string;

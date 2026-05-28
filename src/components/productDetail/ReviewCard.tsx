@@ -1,18 +1,20 @@
 "use client"
 import {useState, useEffect} from 'react';
 import { mockProducts } from '../../lib/MockProducts';
-import { Product } from '@/types';
-import {reviewsApi}  from '../../lib/api/reviews';
+import { Product, Review } from '@/types';
+import {reviewsApi, getAllReviews}  from '../../lib/api/reviews';
 
 export default function ReviewCard({navValue, productId, product}:{navValue:string, productId:string, product: Product}) {
-    const [reviews, setReviews] = useState();
-      const [isOpen, setIsOpen] = useState(false);
+        const [reviews, setReviews] = useState<Review[]>([]);
+        const [isOpen, setIsOpen] = useState(false);
+        // const response = getAllReviews(productId);
     useEffect(() => {
         async function fetchReviews() {
             try {
-                const response = await reviewsApi.getList(productId);
-                setReviews(response.data.data);
-                console.log("response", response);
+                // const response = await reviewsApi.getList(productId);
+                 const response = await getAllReviews(productId);
+                setReviews(response);
+                console.log("reviews", response);
             } catch (error) {
                 console.error("Error fetching reviews:", error);
             }
@@ -161,12 +163,14 @@ export default function ReviewCard({navValue, productId, product}:{navValue:stri
                 </div>
                 </div>
             )}
+  
             {reviews.length > 0 ? (
                 reviews.map((review) => (
                     <div key={review.id} className="border-b border-gray-200 py-4 w-full">  
                         <p className="font-semibold">{review.user.name}</p>
-                        <p className="text-sm text-gray-600">{review.comment}</p>
+                        <p className="text-sm text-gray-600">{review.review}</p>
                         <p className="text-sm text-gray-600">Rating: {review.rating} / 5</p>
+                        <p className="text-sm text-gray-600">Helpful: {review.helpfulCount} / 5</p>
 
                         <button onClick={() => addHelpfulVote(review.id, true)} className="text-sm text-blue-500 mr-2">Helpful {review.helpfulCount}</button>
                     </div>  

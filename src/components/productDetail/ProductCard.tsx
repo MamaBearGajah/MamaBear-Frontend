@@ -33,7 +33,6 @@ export default function ProductCard({
   const [theprice, setThePrice] = useState<number>(Number(product.basePrice));
   // const imageArray = mockProducts[0].images.map((item) => item.imageUrl)
   const imageArray = product.images.map((item) => item.imageUrl)
-  console.log("imageArray", imageArray);
   const fetchedProduct = product;
   const productName = product.name;
   const productCategory = product?.category?.name ?? "No Category";

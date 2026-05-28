@@ -162,7 +162,7 @@ export default async function ProductDetailPage({
                 <div className='w-full md:w-[100%] top-2'><ProductSection productId={productId} product={fetchedDataData}  productVariant={productVariant} isTop5BestsellerFlag={isTop5BestsellerFlag}/></div>
             </div>
             <div className="w-full bg-light-pink/25">
-                <ReviewSection productId={Number(productId)} product={fetchedDataData} slicedData={[]}/>
+                <ReviewSection productId={productId} product={fetchedDataData} slicedData={[]}/>
             </div>
             <div className="block lg:hidden">
                 <AddToCartMobile productId={productId} product={fetchedDataData} />
