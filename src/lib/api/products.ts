@@ -188,7 +188,6 @@ export async function fetchProductSlug(slug: string): Promise<Product> {
   return getProductBySlug(slug);
 }
 
-
 export async function getProductList(
   params: ProductListParams = {},
   // accessToken?: string

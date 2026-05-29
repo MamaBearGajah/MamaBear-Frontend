@@ -8,15 +8,16 @@ import ShopProductGrid from "@/components/product/ShopProductGrid";
 import Pagination from "@/components/shared/Pagination";
 import { getCategoryList } from "@/lib/api/categories";
 import { getProductList } from "@/lib/api/products";
-import { getShopAccessToken } from "@/lib/auth/shop-access-token";
 import { computeCategoryCounts } from "@/lib/shop/category-counts";
 import {
   DEFAULT_PRICE_BOUNDS,
   parseShopListParamsFromRecord,
   toStorefrontProductListParams,
 } from "@/lib/shop/product-list-params";
+import { isMockProductsEnabled } from "@/lib/api/mock-data";
 import { filterStorefrontProducts } from "@/lib/shop/storefront-products";
 import type { PaginationMeta } from "@/types";
+
 
 export const metadata: Metadata = {
   title: "All Products | MamaBear",
@@ -28,9 +29,11 @@ interface ProductsPageProps {
 }
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+  
   const params = await searchParams;
   const filters = parseShopListParamsFromRecord(params);
   const listParams = toStorefrontProductListParams(filters);
+
   // const accessToken = await getShopAccessToken();
 
   const [productsRes, categoriesRes, allProductsRes] = await Promise.all([
