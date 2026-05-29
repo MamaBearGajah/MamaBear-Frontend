@@ -150,7 +150,7 @@ export async function getProductVariantById(
     return product;
   }
   const { data } = await apiClient.get<ApiResponse<Product>>(
-    `/Products/${productId}/variants`,
+    `/products/${productId}/variants`,
     {
       //  headers: authHeaders(accessToken) 
     },
