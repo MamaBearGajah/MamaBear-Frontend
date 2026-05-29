@@ -5,6 +5,9 @@ import StarRating from "./StarRating";
 import { cn, effectivePrice, formatPrice } from "@/lib/utils";
 import { resolveProductImageUrl } from "@/lib/images/resolve-product-image";
 import type { ProductBadgeType, ProductListItem } from "@/types";
+import {useCart} from "@/hooks/useCart";
+import { nanoid } from 'nanoid';
+import { CartItem } from "@/types";
 
 const BADGE_LABELS: Record<ProductBadgeType, string> = {
   "best-seller": "Best Seller",
@@ -23,6 +26,7 @@ export default function ShopProductCard({
   categoryName,
   layout = "grid",
 }: ShopProductCardProps) {
+  const { addItem, updateQuantity } = useCart();
   const price = effectivePrice(product);
   const hasDiscount =
     product.discountPrice != null && product.discountPrice < product.basePrice;
@@ -106,6 +110,20 @@ export default function ShopProductCard({
         {inStock && (
           <Link
             href={`/cart?add=${product.id}`}
+             onClick={() => {
+                      addItem({
+                        id: nanoid(),
+                        productId: product.id,
+                        name: product.name,
+                        basePrice: Number(product.basePrice),
+                        discountPrice: product.discountPrice
+                          ? Number(product.discountPrice)
+                          : undefined,
+                        image: product.images ? product.images[0].imageUrl : '/Logo Mamabear.png',
+                        quantity: 1,
+                      } as CartItem);
+                      alert("Item added to cart!");
+                    }}
             className={cn(
               "absolute inset-x-3 bottom-3 z-20 flex items-center justify-center gap-2 rounded-full bg-dark-pink py-2.5 text-sm font-semibold text-white shadow-md",
               "translate-y-full opacity-0 transition-all duration-300 ease-out",

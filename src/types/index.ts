@@ -30,7 +30,6 @@ export interface Product {
   sku: string;
   stock: number;
   soldCount: number;
-  mainImage: string;
   status: ProductStatus;
   createdAt: Date;
   updatedAt: Date;
@@ -39,6 +38,8 @@ export interface Product {
   images: ProductImage[];
   category: ProductCategory;
 }
+
+
 
 export interface ProductCategory {
   id: string;

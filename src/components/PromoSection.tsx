@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { MessageCircle } from "lucide-react";
 
 type PromoCard = {
   badge: string;
@@ -42,8 +43,11 @@ function MobilePromoCard({ card }: { card: PromoCard }) {
             href={card.ctaHref}
             className="inline-flex w-max items-center rounded-full bg-[#E35F8A] px-4 py-2 text-[12px] font-semibold text-white transition hover:opacity-90"
           >
+            <MessageCircle
+              className="mr-2 h-4 w-4 shrink-0"
+              strokeWidth={2.2}
+            />
             {card.ctaLabel}
-            <span className="ml-2">→</span>
           </Link>
         </div>
       </article>
@@ -62,7 +66,26 @@ function MobilePromoCard({ card }: { card: PromoCard }) {
               {card.title}
             </h3>
             <p className="mt-2 max-w-[176px] text-[10px] leading-[15px] text-white/90">
-              {card.description}
+              {(() => {
+                const txt = card.description;
+                const code = "MAMABEAR15";
+
+                if (txt.includes(code)) {
+                  const parts = txt.split(code);
+
+                  return (
+                    <>
+                      {parts[0]}
+                      <span className="mx-1 inline-block rounded-full bg-[#F7B7C9]/80 px-2 py-0.5 align-middle text-[10px] font-bold text-white uppercase">
+                        {code}
+                      </span>
+                      {parts[1]}
+                    </>
+                  );
+                }
+
+                return txt;
+              })()}
             </p>
           </div>
 
@@ -93,16 +116,16 @@ const promoCards: PromoCard[] = [
     badge: "First Order Special",
     title: "Baru Pertama Kali Belanja? Dapatkan Diskon 15%",
     description: "Gunakan Kode MAMABEAR15 untuk pembelian pertama Mama.",
-    ctaLabel: "Pakai Promo",
-    ctaHref: "/product",
+    ctaLabel: "Shop Now",
+    ctaHref: "/products",
     tone: "left",
   },
   {
     badge: "FREE SERVICE",
-    title: "Bingung Pilih Produk? Konsultasikan kepada Kami",
+    title: "Talk to a Lactation Consultant 🐻",
     description:
-      "Tim konsultan kami siap membantu Mama menemukan pilihan yang sesuai dengan kebutuhan menyusui.",
-    ctaLabel: "Konsultasi Gratis",
+      "Certified experts ready to help with any breastfeeding challenge, issues & more.",
+    ctaLabel: "Book Free Session",
     ctaHref: "/consultation",
     tone: "right",
   },
@@ -110,7 +133,7 @@ const promoCards: PromoCard[] = [
 
 export default function PromoSection() {
   return (
-    <section className="w-full bg-white pt-8 pb-6 md:pt-5 md:pb-0">
+    <section className="w-full bg-[#FEF2F5] pt-8 pb-6 md:pt-5 md:pb-0">
       {/* Desktop layout: keep original grid */}
       <div className="hidden w-full px-0 md:block">
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[18.5cm_minmax(0,1fr)]">
@@ -151,7 +174,7 @@ export default function PromoSection() {
                     className="inline-flex items-center rounded-full bg-[#6C4735] px-5 py-2 text-[12px] font-semibold text-white transition hover:opacity-90"
                   >
                     {promoCards[0].ctaLabel}
-                    <span className="ml-2">→</span>
+                    <span className="ml-2 text-[12px] font-normal">➜</span>
                   </Link>
                 </div>
               </div>
@@ -191,8 +214,11 @@ export default function PromoSection() {
                   href={promoCards[1].ctaHref}
                   className="inline-flex w-max items-center rounded-full bg-[#E35F8A] px-4 py-2 text-[12px] font-semibold text-white transition hover:opacity-90"
                 >
+                  <MessageCircle
+                    className="mr-2 h-4 w-4 shrink-0"
+                    strokeWidth={2.2}
+                  />
                   {promoCards[1].ctaLabel}
-                  <span className="ml-2">→</span>
                 </Link>
               </div>
 
