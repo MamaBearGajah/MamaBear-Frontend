@@ -559,7 +559,7 @@ export const mockReviews:Review[] = [
       }
     ]
 
-export function isMockProductsEnabled(): boolean {
+export function   ProductsEnabled(): boolean {
   if (
     process.env.MOCK_PRODUCTS === "false" ||
     process.env.NEXT_PUBLIC_MOCK_PRODUCTS === "false"

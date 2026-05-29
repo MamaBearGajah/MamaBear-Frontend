@@ -116,7 +116,7 @@ export default function ProductCard({
           {
             productVariantData.map((item) => {
               const isDisabled =
-                item.stock === 0 || item.isActive === 0;
+                item.stock === 0 || item.isActive === false;
 
               function variantSelected(item: ProductVariant) {
                 if (isDisabled) return;

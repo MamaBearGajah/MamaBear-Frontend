@@ -57,16 +57,31 @@ export interface ProductVariant {
   id: string;
   productId: string;
   name: string;
+  value: string;
   basePrice: number;
   discountPrice: number;
-  value: string;
-  imageUrl: string;
   priceAdjustment: number;
   stock: number;
+  imageUrl: string;
   sku?: string | null;
   isActive: boolean;
   createdAt: string | Date;
   updatedAt: string | Date;
+  product?: ProductVariantOption;
+}
+
+export interface ProductVariantOption {
+  id: string;
+  name: string;
+  value: string;
+  stock: number;
+  category: ProductCategoryOption;
+}
+
+export interface ProductCategoryOption{
+  id: string;
+  name: string;
+  slug: string;
 }
 
 export interface ProductImage {
