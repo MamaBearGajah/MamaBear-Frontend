@@ -190,7 +190,6 @@ export async function fetchProductSlug(slug: string): Promise<Product> {
 
 export async function getProductList(
   params: ProductListParams = {},
-  // accessToken?: string
 ): Promise<ApiResponse<ProductListItem[]>> {
   if (isMockProductsEnabled()) {
     return fetchMockProductList(params);
@@ -198,7 +197,6 @@ export async function getProductList(
 
   const { data } = await apiClient.get("/products", {
     params: toApiProductParams(params),
-    // headers: authHeaders(accessToken),
   });
 
   const normalized = normalizeApiResponse<ProductListItem[]>(data);
