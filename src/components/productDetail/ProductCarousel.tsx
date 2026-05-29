@@ -34,10 +34,10 @@ export default function ProductCarousel({images, variantselectedimage, setvarian
   }
 
   return (
-    <div className="w-full max-w-md border">
+    <div className="w-full max-w-md">
       
       {/* Big Image */}
-      <div className="border rounded-xl overflow-hidden mb-4 ">
+      <div className=" rounded-xl overflow-hidden mb-4 ">
 
         {/* <div className="relative w-full h-64"> 
           <Image

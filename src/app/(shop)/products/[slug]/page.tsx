@@ -5,7 +5,7 @@ import {fetchProductSlug2, getProductVariantById} from "../../../../lib/api/prod
 import { fetchProducts } from "../../../../lib/api/products";
 import { fetchProductVariantId } from "../../../../lib/api/products";
 import { fetchProductVariantId2 } from "../../../../lib/api/products";
-import { ProductVariant } from "@/types";
+import { Product, ProductVariant } from "@/types";
 import FilterSection from "@/components/FilterSection";
 import { fetchProductSlug } from "../../../../../services";
 // import {getList} from "@/lib/api/reviews";
@@ -139,6 +139,9 @@ export default async function ProductDetailPage({
     //fetch all data using new API with mockproduct
     const fetchedAllDataData = await getAllProducts();
     // const slicedData = fetchedAllDataData?.slice(0,3);
+    const slicedData = fetchedAllDataData
+      .sort((a:Product, b:Product) => parseFloat(b.avgRating ?? "0") - parseFloat(a.avgRating ?? "0"))
+      .slice(0, 3);
 
     //fetch one data by slug using old API no mockproduct
     // const fetchedDataData = await fetchProductSlug2(slug);
@@ -158,11 +161,11 @@ export default async function ProductDetailPage({
     
     return (
         <div className="mx-auto w-full xl:w-[100%] md:flex md:flex-col justify-center gap-2 px-5 lg:px-20 bg-light-pink/25">
-            <div className="w-full block md:flex md:justify-center bg-light-pink/25">
+            <div className="w-full block md:flex md:justify-center items-start">
                 <div className='w-full md:w-[100%] top-2'><ProductSection productId={productId} product={fetchedDataData}  productVariant={productVariant} isTop5BestsellerFlag={isTop5BestsellerFlag}/></div>
             </div>
-            <div className="w-full bg-light-pink/25">
-                <ReviewSection productId={productId} product={fetchedDataData} slicedData={[]}/>
+            <div className="w-full">
+                <ReviewSection productId={productId} product={fetchedDataData} slicedData={slicedData}/>
             </div>
             <div className="block lg:hidden">
                 <AddToCartMobile productId={productId} product={fetchedDataData} />
