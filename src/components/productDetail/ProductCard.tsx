@@ -72,13 +72,13 @@ export default function ProductCard({
           <hr></hr>
           <br></br>
 
-    <div className="md:flex md:items-start rounded transition-transform duration-200">
+    <div className="bg-light-pink/25 md:flex md:items-start rounded transition-transform duration-200">
 
         <div className='md:w-[35%]'>
             <ProductCarousel images={imageArray} variantselectedimage={variantSelectedImage} setvariantselectedimage={setvariantSelectedImage} NotVariantPrice={NotVariantPrice}/>
         </div>
         <div className='p-2 md:pl-10 rounded-md w-[90%] md:w-[60%] flex flex-col gap-2'>
-            <h4 className='text-xs text-[var(--mamabear-dark-pink)]'>{productCategory}</h4>
+            <h4 className='text-xs text-dark-pink'>{productCategory}</h4>
             <h2 className='text-2xl font-bold'>{productName}</h2>
             <div className='flex justify-start items-center'> 
               <Stars rating={mockProducts[0].rating}/>
