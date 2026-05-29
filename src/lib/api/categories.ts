@@ -58,9 +58,19 @@ export async function getCategoryListNoFlatten(
   }
 
   const { data } = await apiClient.get<ApiResponse<Category[]>>("/categories", {
-
     params,
   });
 
-  return data
+  const normalized = normalizeApiResponse<Category[]>(data);
+
+  if (!Array.isArray(normalized.data)) {
+    console.warn("[getCategoryListNoFlatten] Unexpected response shape:", normalized.data);
+    return { success: false, data: [], meta: normalized.meta };
+  }
+
+  return {
+    success: normalized.success,
+    data: normalized.data,
+    meta: normalized.meta,
+  };
 }
