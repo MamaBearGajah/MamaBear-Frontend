@@ -74,10 +74,10 @@ export default async function Home() {
         <BackToTop/>
         <HomeBanner />
         {/* MOBILE-ONLY: page gutters live here; desktop keeps 3cm gutters */}
-        <section className="px-4 sm:px-[3cm]">
+        <section className="px-4 sm:px-[15%]">
           <CategorySection />
         </section>
-        <section className="px-4 sm:px-[3cm]">
+        <section className="px-4 sm:px-[15%]">
           <FeaturedCardsSection />
         </section>
         {/* Backend top-products fetch is temporarily disabled.
@@ -85,19 +85,19 @@ export default async function Home() {
           const products = await fetchProducts();
           <TopProducts products={products} />
         */}
-        <section className="px-0 sm:px-[5cm]">
+        <section className="px-0 sm:px-[15%]">
           <TopProducts />
         </section>
-        <section className="px-4 sm:px-[5cm]">
+        <section className="px-4 sm:px-[15%]">
           <PromoSection />
         </section>
-        <section className="px-4 sm:px-[5cm]">
+        <section className="px-4 sm:px-[15%]">
           <Testimonial />
         </section>
-        <section className="px-4 sm:px-[5cm]">
+        <section className="px-4 sm:px-[15%]">
           <FAQSection />
         </section>
-        <section className="px-4 sm:px-[5cm]">
+        <section className="px-4 sm:px-[15%]">
           <SubscribeSection />
         </section>
         <FloatingChatButton href="#" />
