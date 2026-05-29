@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Image from "next/image";
 
 type FeaturedCard = {
@@ -14,7 +15,7 @@ const featuredCards: FeaturedCard[] = [
     title: "Almon Mix untuk Mama Menyusui",
     description:
       "Minuman almond kaya nutrisi dengan 7 varian rasa favorit untuk temani hari menyusui Mama.",
-    ctaLabel: "Coba Almon Mix",
+    ctaLabel: "Shop Now",
     imageUrl: "/Image%20HomePage/featured1.png",
   },
   {
@@ -22,14 +23,26 @@ const featuredCards: FeaturedCard[] = [
     title: "Pilihan Terpercaya Mama & Kids",
     description:
       "Mamabear dipercaya untuk menemani kebutuhan nutrisi Mama selama menyusui.",
-    ctaLabel: "Kenapa Mamabear?",
+    ctaLabel: "Why Mamabear?",
     imageUrl: "/Image%20HomePage/featured2.jpeg",
   },
 ];
 
 export default function FeaturedCardsSection() {
+  // TODO: when the backend is available, fetch the categories and resolve the Almon Mix category id.
+  // const almonMixCategoryLink = await fetch('/get/categories')
+  //   .then((res) => res.ok ? res.json() : [])
+  //   .then((categories) =>
+  //     categories.find((category: any) => category.name === 'Almon Mix')
+  //   )
+  //   .then((category) =>
+  //     category ? `/products?categoryId=${category.id}` : '/products?categoryId=almon-mix'
+  //   );
+  const almonMixCategoryLink = "/products?categoryId=almon-mix";
+  const aboutPageLink = "/about";
+
   return (
-    <section className="w-full bg-white py-6 md:py-8">
+    <section className="w-full bg-[#FEF2F5] py-6 md:py-8">
       <div className="hidden w-full px-0 md:block">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {featuredCards.map((card) => (
@@ -48,13 +61,17 @@ export default function FeaturedCardsSection() {
                   <p className="mt-3 max-w-full text-[13px] leading-[20px] text-white/95 md:max-w-[330px]">
                     {card.description}
                   </p>
-                  <button
-                    type="button"
+                  <Link
+                    href={
+                      card.ctaLabel === "Shop Now"
+                        ? almonMixCategoryLink
+                        : aboutPageLink
+                    }
                     className="mt-5 inline-flex items-center rounded-full bg-[#6C4735] px-4 py-2 text-[13px] font-semibold text-white"
                   >
                     {card.ctaLabel}
-                    <span className="ml-2">&gt;</span>
-                  </button>
+                    <span className="ml-2 text-[13px] font-normal">➜</span>
+                  </Link>
                 </div>
 
                 <div className="relative h-[200px] w-full self-end justify-self-end overflow-hidden rounded-[18px] border border-white bg-gradient-to-b from-[#FACBD8] to-white/75 md:h-[220px] md:max-w-[232px]">
@@ -95,13 +112,17 @@ export default function FeaturedCardsSection() {
                   <p className="mt-2 max-w-[155px] text-[10px] leading-[15px] text-white/95">
                     {card.description}
                   </p>
-                  <button
-                    type="button"
+                  <Link
+                    href={
+                      card.ctaLabel === "Shop Now"
+                        ? almonMixCategoryLink
+                        : aboutPageLink
+                    }
                     className="mt-3 inline-flex items-center rounded-full bg-[#6C4735] px-3 py-1.5 text-[11px] font-semibold text-white"
                   >
                     {card.ctaLabel}
-                    <span className="ml-2">&gt;</span>
-                  </button>
+                    <span className="ml-2 text-[11px] font-normal">➜</span>
+                  </Link>
                 </div>
 
                 <div className="relative h-[128px] w-[128px] shrink-0 overflow-hidden rounded-[16px] border border-white bg-gradient-to-b from-[#FACBD8] to-white/75">

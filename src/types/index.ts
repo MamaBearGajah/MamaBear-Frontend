@@ -24,21 +24,23 @@ export interface Product {
   name: string;
   slug: string;
   description: string;
-  basePrice: string;
-  discountPrice: string;
+  basePrice: number;
+  discountPrice: number;
   weight: number;
   sku: string;
   stock: number;
   soldCount: number;
-  mainImage: string;
   status: ProductStatus;
   createdAt: Date;
   updatedAt: Date;
   avgRating?: number;
   reviewCount?: number;
+  deletedAt: Date|string;
   images: ProductImage[];
   category: ProductCategory;
 }
+
+
 
 export interface ProductCategory {
   id: string;
@@ -87,6 +89,7 @@ export interface ProductCategoryOption{
 export interface ProductImage {
   id: string;
   productId: string;
+  publicId: string;
   imageUrl: string;
   altText: string;
   sortOrder: number;
@@ -94,6 +97,16 @@ export interface ProductImage {
   imageType?: "main" | "nutrition" | "ingredients" | "usage" | "other";
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ProductYouMightLove{
+  name: string,
+  avgRating: number,
+  discountPrice: number,
+  image: string,
+  stock: number,
+  createdAt: Date | string,
+  slug: string
 }
 
 export interface Review {
