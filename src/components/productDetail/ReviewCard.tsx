@@ -154,7 +154,7 @@ export default function ReviewCard({navValue, productId, product}:{navValue:stri
                                     <CardTitle>{review.user.name}</CardTitle>
                                     {review.isVerifiedPurchase ? (<div className='p-2 ml-3 bg-[var(--mamabear-light-pink)] flex justify-start items-center rounded-full'><img className='w-[20px]' src='/check.svg'/>Verified Purchase</div>):null}
                                     </div>
-                                    <p className="text-sm text-gray-600"><Stars rating={review.rating}/></p>
+                                    <div className="text-sm text-gray-600"><Stars rating={review.rating}/></div>
                                     <p className="text-sm text-gray-600">{getDaysAgo(review.createdAt)}</p>
                                 </div>
                         <button
