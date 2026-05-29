@@ -3,6 +3,7 @@
 import Link from "next/link";
 import React, { useState } from "react";
 import { useCart } from "@/hooks/useCart";
+import CartItem from "@/components/cart/CartItem";
 import {
   Minus,
   Plus,
@@ -225,7 +226,7 @@ const CartPage = () => {
                           </h2>
 
                           <div className="flex items-center gap-2 mt-1">
-                            {item.discountPrice && (
+                            {item.discountPrice && item.basePrice && (
                               <span
                                 className="text-sm line-through"
                                 style={{ color: "#B9998D" }}
@@ -234,12 +235,14 @@ const CartPage = () => {
                               </span>
                             )}
 
-                            <span
-                              className="font-bold"
-                              style={{ color: "#D5557E" }}
-                            >
-                              Rp {price.toLocaleString()}
-                            </span>
+                            {price && (
+                              <span
+                                className="font-bold"
+                                style={{ color: "#D5557E" }}
+                              >
+                                Rp {price.toLocaleString()}
+                              </span>
+                            )}
                           </div>
                         </div>
 
