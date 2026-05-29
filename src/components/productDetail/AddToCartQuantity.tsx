@@ -1,6 +1,6 @@
 "use client"
 
-import {useState, useEffect, React} from 'react';
+import {useState} from 'react';
 import {useCart} from '@/hooks/useCart';
 import { CartItem } from '@/types';
 import {Product} from '@/types/index';
@@ -8,7 +8,7 @@ import {Product} from '@/types/index';
 
 export default function AddToCartQuantity({price,product}:{price:number, product: Product}){
     const [Quantity, setQuantity] = useState(1);
-    const { addItem, state, updateQuantity, itemCount, setGuestCartId, clearCart} = useCart();
+    const { addItem } = useCart();
 
     function AddToFavourite(){
         console.log("add to favourite")
