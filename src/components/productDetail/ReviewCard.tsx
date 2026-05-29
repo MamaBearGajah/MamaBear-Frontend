@@ -3,63 +3,47 @@ import {useState, useEffect} from 'react';
 import { mockProducts } from '../../lib/MockProducts';
 import { Product, Review } from '@/types';
 import {reviewsApi, getAllReviews}  from '../../lib/api/reviews';
+import Stars from '@/components/productDetail/Stars'
+import getDaysAgo from './GetDaysAgo';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter, CardAction } from '../ui/card';
 
 export default function ReviewCard({navValue, productId, product}:{navValue:string, productId:string, product: Product}) {
         const [reviews, setReviews] = useState<Review[]>([]);
         const [isOpen, setIsOpen] = useState(false);
-        // const response = getAllReviews(productId);
-    useEffect(() => {
+        const limit = 5;
+        const [page, setPage] = useState(1);
+        const [meta, setMeta] = useState({
+            page: 1,
+            limit: 5,
+            totalItems: 0,
+            totalPages: 0,
+        });
+        useEffect(() => {
         async function fetchReviews() {
             try {
-                // const response = await reviewsApi.getList(productId);
-                 const response = await getAllReviews(productId);
-                setReviews(response);
-                console.log("reviews", response);
+            const response = await getAllReviews(productId, page, limit);
+
+            setReviews(response.data);
+            setMeta(response.meta);
             } catch (error) {
-                console.error("Error fetching reviews:", error);
+            console.error("Error fetching reviews:", error);
             }
         }
-        fetchReviews();
-    }, [productId]);
 
-    
+        if (productId) fetchReviews();
+        }, [productId, page]);
 
-// async function submitReview() {
-//   try {
+        const nextPage = () => {
+        if (page < meta.totalPages) {
+            setPage((p) => p + 1);
+        }
+        };
 
-//     await reviewsApi.create(productId, {
-//       rating,
-//       comment,
-//     });
-
-//     alert("Review submitted");
-
-//   } catch (error: any) {
-
-//     const status = error.response?.status;
-
-//     if (status === 403) {
-//       alert("You must purchase this product first");
-//     }
-
-//     else if (status === 409) {
-//       alert("You already reviewed this product");
-//     }
-
-//     else if (status === 400) {
-//       alert("Please fill rating and comment");
-//     }
-
-//     else {
-//       alert("Something went wrong");
-//     }
-//   }
-// }
-
-
-
-
-
+        const prevPage = () => {
+        if (page > 1) {
+            setPage((p) => p - 1);
+        }
+        };
 
 
     function addHelpfulVote(reviewId: string, isHelpful: boolean) {
@@ -75,22 +59,18 @@ export default function ReviewCard({navValue, productId, product}:{navValue:stri
   switch (navValue){
     case "Description":
         return(
-        <div className='flex flex-col justify-start items-start mt-2 md:w-[60%] md:h-[400px]'>
+        <div className='flex flex-col justify-start items-start mt-2 md:w-[60%] md:h-[60%]'>
             <p className="text-left font-bold">{product.name}</p>
             <br></br>
             <p className=' text-gray-400'>{product.description}</p>
-            {/* <USPCard/>
-            <YouMightAlsoLove/> */}
         </div>)
        
 
     case "Ingredients":
         return(
-        <div className='flex flex-col justify-start items-start md:w-[60%] md:h-[400px]'>
+        <div className='flex flex-col justify-start items-start md:w-[60%] md:h-[60%]'>
             
         {mockProducts[1].ingredients}
-        {/* <USPCard/>
-        <YouMightAlsoLove/> */}
         </div>)
         
     case "How To Use":
@@ -98,14 +78,12 @@ export default function ReviewCard({navValue, productId, product}:{navValue:stri
         <div className='flex flex-col justify-start items-start md:w-[60%] md:h-[60%]'>
             
             This is the How To Use
-            {/* <USPCard/>
-            <YouMightAlsoLove/> */}
         </div>)
         
       case "Review":
         return(
         <div className='flex flex-col justify-start items-start md:w-[60%] md:h-[60%]'>
-            <button onClick={() => setIsOpen(true)} className="px-4 py-2 bg-pink-500 text-white rounded">Add Review</button>
+            <button onClick={() => setIsOpen(true)} className="px-4 py-2 bg-pink-500 text-white rounded cursor-pointer">Add Review</button>
 
                {isOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -166,18 +144,80 @@ export default function ReviewCard({navValue, productId, product}:{navValue:stri
   
             {reviews.length > 0 ? (
                 reviews.map((review) => (
-                    <div key={review.id} className="border-b border-gray-200 py-4 w-full">  
-                        <p className="font-semibold">{review.user.name}</p>
-                        <p className="text-sm text-gray-600">{review.review}</p>
-                        <p className="text-sm text-gray-600">Rating: {review.rating} / 5</p>
-                        <p className="text-sm text-gray-600">Helpful: {review.helpfulCount} / 5</p>
+                    <div key={review.id} className="border-b py-4 w-full">
+                        <Card className='border rounded-lg flex flex-col justify-start items-start p-5'>
+                            <div className='flex justify-start items-center gap-3 w-full'>
+                                <img src='/Logo Mamabear.png' className='w-[40px]'></img>
 
-                        <button onClick={() => addHelpfulVote(review.id, true)} className="text-sm text-blue-500 mr-2">Helpful {review.helpfulCount}</button>
+                                <div className='w-[90%]'>
+                                    <div className='flex justify-start items-center'>
+                                    <CardTitle>{review.user.name}</CardTitle>
+                                    {review.isVerifiedPurchase ? (<div className='p-2 ml-3 bg-[var(--mamabear-light-pink)] flex justify-start items-center rounded-full'><img className='w-[20px]' src='/check.svg'/>Verified Purchase</div>):null}
+                                    </div>
+                                    <p className="text-sm text-gray-600"><Stars rating={review.rating}/></p>
+                                    <p className="text-sm text-gray-600">{getDaysAgo(review.createdAt)}</p>
+                                </div>
+                        <button
+                        onClick={() => addHelpfulVote(review.id, true)}
+                        className="
+                            flex items-center gap-2
+                            px-4 py-2
+                            rounded-full
+                            bg-[var(--mamabear-dark-pink)]
+                            text-white
+                            text-sm font-medium
+                            transition-all duration-200
+                            hover:bg-[var(--mamabear-light-pink)]
+                            hover:text-black
+                            active:scale-95
+                            shadow-sm hover:shadow-md
+                        "
+                        >
+                        <img src="/thumb.svg" className="w-4 h-4" />
+
+                        <span>{review.helpfulCount}</span>
+                        </button>
+  
+                            </div>
+                            <div className='flex flex-col justify-start items-start'>
+                                <CardDescription>{review.review}</CardDescription>
+                            </div>
+
+
+                        </Card>
+                        {/* <p className="font-semibold">{review.user.name}</p> */}
+                        {/* <p className="text-sm text-gray-600">{review.review}</p> */}
+                        {/* <p className="text-sm text-gray-600">Rating: {review.rating} / 5</p>
+                        <p className="text-sm text-gray-600">Helpful: {review.helpfulCount} / 5</p> */}
+
+
+
                     </div>  
                 ))
             ) : (
                 <p>No reviews yet.</p>
             )}
+                        <div className="flex gap-2 mt-4 items-center">
+                            <button
+                                onClick={prevPage}
+                                disabled={page === 1}
+                                className="px-3 py-1 border rounded disabled:opacity-50"
+                            >
+                                Prev
+                            </button>
+
+                            <span className="text-sm">
+                                Page {meta.page} of {meta.totalPages}
+                            </span>
+
+                            <button
+                                onClick={nextPage}
+                                disabled={page === meta.totalPages}
+                                className="px-3 py-1 border rounded disabled:opacity-50"
+                            >
+                                Next
+                            </button>
+                        </div>
         </div>)
         
       default:

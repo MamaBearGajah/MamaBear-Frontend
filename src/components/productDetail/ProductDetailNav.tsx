@@ -26,7 +26,7 @@ export default function ProductDetailNav({setParentNavValue}: Props){
     }
     return(
     <div>
-        <div className='hidden md:flex md:justify-start md:items-center gap-10 w-full'>
+        <div className='hidden md:flex md:justify-start md:items-center gap-10 pb-5 font-bold w-full'>
                 <p onClick={() => handleClick("Description")} className={`cursor-pointer ${active==="Description" ? "underline text-[var(--mamabear-dark-pink)]" : null}`}>
                     Description
                 </p>
@@ -43,8 +43,6 @@ export default function ProductDetailNav({setParentNavValue}: Props){
                     Review
                 </p>
         </div>
-
-
 
         <div className='block md:hidden gap-10 w-full'>
 

@@ -162,7 +162,7 @@ export async function getProductVariantById(
 /** API contract §5.2 — GET /products/slug/{slug} */
 export async function getProductBySlug(
   slug: string,
-  accessToken?: string,
+  // accessToken?: string,
 ): Promise<Product> {
   if (isMockProductsEnabled()) {
     const product = getMockProductBySlug(slug);
@@ -175,7 +175,7 @@ export async function getProductBySlug(
   }
   const { data } = await apiClient.get<ApiResponse<Product>>(
     `/products/slug/${slug}`,
-    { headers: authHeaders(accessToken) },
+    // { headers: authHeaders(accessToken) },
   );
   return data.data;
 }
