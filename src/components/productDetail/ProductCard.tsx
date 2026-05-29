@@ -72,9 +72,9 @@ export default function ProductCard({
           <hr></hr>
           <br></br>
 
-    <div className="bg-white md:flex md:items-start rounded transition-transform duration-200">
+    <div className="md:flex md:items-start rounded transition-transform duration-200">
 
-        <div className='md:w-[35%] border'>
+        <div className='md:w-[35%]'>
             <ProductCarousel images={imageArray} variantselectedimage={variantSelectedImage} setvariantselectedimage={setvariantSelectedImage} NotVariantPrice={NotVariantPrice}/>
         </div>
         <div className='p-2 md:pl-10 rounded-md w-[90%] md:w-[60%] flex flex-col gap-2'>
