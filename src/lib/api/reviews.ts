@@ -1,10 +1,8 @@
 import {apiClient} from '@/lib/api/client';
 import {ApiResponse, Product, Review} from '@/types';
-import {
-
-  isMockProductsEnabled,
-} from "./mock-data";
+import {isMockProductsEnabled,} from "./mock-data";
 import { getMockAllReviews } from "@/lib/MockProducts";
+
 
 export const reviewsApi = {
   getList: (productId: string) =>
@@ -19,8 +17,18 @@ export const reviewsApi = {
 
 export async function getAllReviews(
   id: string,
-  // accessToken?: string,
-): Promise<Review[]> {
+  page: number,
+  limit: number
+): Promise<
+{
+  data: Review[];
+  meta: {
+    page: number;
+    limit: number;
+    totalItems: number;
+    totalPages: number;
+  };
+}> {
   if (isMockProductsEnabled()) {
     const reviews = getMockAllReviews();
     if (!reviews) {
@@ -30,12 +38,10 @@ export async function getAllReviews(
     }
     return reviews;
   }
-  const { data } = await apiClient.get<ApiResponse<Review[]>>(
+  const { data } = await apiClient.get(
     `/products/${id}/reviews`,
-    {    
-      // headers: authHeaders(accessToken), 
-         
-    },
+    { params: { page, limit } }
   );
-  return data.data.data;
+
+  return data.data;
 }

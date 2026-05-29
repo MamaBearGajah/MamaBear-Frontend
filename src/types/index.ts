@@ -116,6 +116,9 @@ export interface Review {
 
 export type ProductBadgeType = "best-seller" | "fan-favorite" | "new";
 
+// export interface ReviewParams {
+
+// }
 export interface ProductListItem {
   id: string;
   name: string;
