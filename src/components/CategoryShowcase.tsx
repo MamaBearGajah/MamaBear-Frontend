@@ -36,7 +36,7 @@ const FALLBACK_SHOWCASE_CATEGORIES: Category[] = [
   },
   {
     id: 3,
-    name: "Breastmilk Storage Bag",
+    name: "Breast milk Storage Bag",
     image: "/Image%20HomePage/breastmilk.jpg",
     count: 4,
   },
@@ -183,18 +183,18 @@ export default async function CategorySection({
   }
 
   console.log("fetchedcategories", fetchedCategories)
-  // const categories =
-  //   fetchedCategories.length > 0
-  //     ? fetchedCategories
-  //     : propCategories && propCategories.length > 0
-  //       ? propCategories
-  //       : [];
-
-
-      const categories =
+  const categories =
     fetchedCategories.length > 0
       ? fetchedCategories
-      : null;
+      : propCategories && propCategories.length > 0
+        ? propCategories
+        : [];
+
+
+    //   const categories =
+    // fetchedCategories.length > 0
+    //   ? fetchedCategories
+    //   : null;
 
   // gradient variants per card (deterministic for SSR)
   const gradientClasses = [

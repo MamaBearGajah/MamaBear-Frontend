@@ -141,7 +141,7 @@ export default async function ProductDetailPage({
     // const slicedData = fetchedAllDataData?.slice(0,3);
     const slicedData = fetchedAllDataData
       .sort((a:Product, b:Product) => parseFloat(b.avgRating ?? "0") - parseFloat(a.avgRating ?? "0"))
-      .slice(0, 3);
+      .slice(0, 5);
 
     //fetch one data by slug using old API no mockproduct
     // const fetchedDataData = await fetchProductSlug2(slug);
