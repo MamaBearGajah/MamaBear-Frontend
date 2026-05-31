@@ -7,7 +7,7 @@ import {
   ProductListItem,
   ProductListParams,
   ProductPayload,
-  ApiResponse,
+  ApiResponse
 } from "@/types";
 // import { apiClient, authHeaders } from "./client";
 import { apiClient } from "./client";
@@ -149,7 +149,7 @@ export async function getProductVariantById(
     }
     return product;
   }
-  const { data } = await apiClient.get<ApiResponse<Product>>(
+  const { data } = await apiClient.get<ApiResponse<ProductVariant>>(
     `/products/${productId}/variants`,
     {
       //  headers: authHeaders(accessToken) 

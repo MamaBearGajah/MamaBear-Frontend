@@ -73,7 +73,6 @@ export interface ProductVariant {
 export interface ProductVariantOption {
   id: string;
   name: string;
-  value: string;
   stock: number;
   category: ProductCategoryOption;
 }
@@ -159,6 +158,9 @@ export interface CartItem {
   id: string;
   productId: string;
   variantId?: string;
+  variantName?: string;
+  variantValue?: string;
+  variantLabel?: string;
   quantity: number;
   name: string;
   basePrice: number;
@@ -166,6 +168,37 @@ export interface CartItem {
   image: string;
 }
 
+export interface CartItemVariant {
+  id: string;
+  productId: string;
+  name: string;
+  value: string;
+  variantId?: string;
+  quantity: number;
+  priceAdjustment: string;
+  basePrice: string;
+  isActive: boolean;
+  discountPrice?: string;
+  imageUrl: string;
+  stock:number;
+  sku:string;
+  createdAt: Date|string;
+  product: CartItemVariantProduct;
+}
+
+
+export interface CartItemVariantProduct{
+  id:string;
+  name:string;
+  stock:number;
+  category: CartItemVariantCategory;
+}
+
+export interface CartItemVariantCategory{
+  id:string;
+  name:string;
+  slug:string;
+}
 export interface OrderItem {
   id: string;
   productId: string;

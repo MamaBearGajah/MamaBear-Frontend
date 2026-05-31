@@ -20,6 +20,11 @@ export function formatPrice(amount: number): string {
   }).format(amount);
 }
 
+export function safeFormatPrice(amount: number | string | null | undefined): string {
+  const value = Number(amount ?? 0);
+  return formatPrice(Number.isFinite(value) ? value : 0);
+}
+
 /** Generate URL-safe slug from product name (guide §12.3) */
 export function toSlug(name: string): string {
   return name
