@@ -64,19 +64,20 @@ async function fetchCategories(): Promise<Category[]> {
 */
 
 export default async function Home() {
-  // use mock categories until backend is ready; when BE is ready, restore fetchCategories()
-  const categories = MOCK_CATEGORIES;
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-50 font-sans dark:bg-black">
+    <div
+      className="flex min-h-screen flex-col bg-zinc-50 font-sans dark:bg-black"
+      style={{ backgroundColor: "#FEF2F5" }}
+    >
       <Header />
-      <main className="flex w-full flex-1 flex-col bg-white dark:bg-black">
+      <main className="flex w-full flex-1 flex-col bg-[#FEF2F5] dark:bg-black">
         <BackToTop/>
         <HomeBanner />
         {/* MOBILE-ONLY: page gutters live here; desktop keeps 3cm gutters */}
-        <section className="px-4 sm:px-[3cm]">
-          <CategorySection categories={categories} />
+        <section className="px-4 sm:px-[15%]">
+          <CategorySection />
         </section>
-        <section className="px-4 sm:px-[3cm]">
+        <section className="px-4 sm:px-[15%]">
           <FeaturedCardsSection />
         </section>
         {/* Backend top-products fetch is temporarily disabled.
@@ -84,19 +85,19 @@ export default async function Home() {
           const products = await fetchProducts();
           <TopProducts products={products} />
         */}
-        <section className="px-0 sm:px-[3cm]">
+        <section className="px-0 sm:px-[15%]">
           <TopProducts />
         </section>
-        <section className="px-4 sm:px-[3cm]">
+        <section className="px-4 sm:px-[15%]">
           <PromoSection />
         </section>
-        <section className="px-4 sm:px-[3cm]">
+        <section className="px-4 sm:px-[15%]">
           <Testimonial />
         </section>
-        <section className="px-4 sm:px-[3cm]">
+        <section className="px-4 sm:px-[15%]">
           <FAQSection />
         </section>
-        <section className="px-4 sm:px-[3cm]">
+        <section className="px-4 sm:px-[15%]">
           <SubscribeSection />
         </section>
         <FloatingChatButton href="#" />

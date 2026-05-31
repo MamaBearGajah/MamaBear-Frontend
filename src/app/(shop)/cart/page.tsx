@@ -4,6 +4,7 @@ import Link from "next/link";
 import React, { useState } from "react";
 import { useCart } from "@/hooks/useCart";
 import { safeFormatPrice } from "@/lib/utils";
+import CartItem from "@/components/cart/CartItem";
 import {
   Minus,
   Plus,
@@ -231,7 +232,7 @@ const CartPage = () => {
                           ) : null}
 
                           <div className="flex items-center gap-2 mt-1">
-                            {item.discountPrice && (
+                            {item.discountPrice && item.basePrice && (
                               <span
                                 className="text-sm line-through"
                                 style={{ color: "#B9998D" }}
@@ -440,6 +441,6 @@ const CartPage = () => {
       </div>
     </div>
   );
-};
+}
 
 export default CartPage;
