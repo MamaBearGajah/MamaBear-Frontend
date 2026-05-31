@@ -141,7 +141,7 @@ export default async function ProductDetailPage({
     // const slicedData = fetchedAllDataData?.slice(0,3);
     const slicedData = fetchedAllDataData
       .sort((a:Product, b:Product) => parseFloat(b.avgRating ?? "0") - parseFloat(a.avgRating ?? "0"))
-      .slice(0, 3);
+      .slice(0, 5);
 
     //fetch one data by slug using old API no mockproduct
     // const fetchedDataData = await fetchProductSlug2(slug);
@@ -149,6 +149,14 @@ export default async function ProductDetailPage({
     //fetch one data by slug using new API with mockproduct
     const fetchedDataData = await getProductBySlug2(slug);
     const productId = fetchedDataData.id;
+
+
+    const pickedItem = fetchedAllDataData.find(item => item.id === productId);
+
+    const remainingItems = fetchedAllDataData.filter(item => item.id !== productId);
+
+    const bestRemainingItems = remainingItems.sort((a:Product, b:Product) => parseFloat(b.avgRating ?? "0") - parseFloat(a.avgRating ?? "0"))
+      .slice(0, 5);
 
     //fetch product variant by product id using old API no mockproduct
     // const productVariant = await fetchProductVariantId2(productId)
@@ -165,7 +173,7 @@ export default async function ProductDetailPage({
                 <div className='w-full md:w-[100%] top-2'><ProductSection productId={productId} product={fetchedDataData}  productVariant={productVariant} isTop5BestsellerFlag={isTop5BestsellerFlag}/></div>
             </div>
             <div className="w-full">
-                <ReviewSection productId={productId} product={fetchedDataData} slicedData={slicedData}/>
+                <ReviewSection productId={productId} product={fetchedDataData} slicedData={bestRemainingItems}/>
             </div>
             <div className="block lg:hidden">
                 <AddToCartMobile productId={productId} product={fetchedDataData} />

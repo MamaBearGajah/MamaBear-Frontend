@@ -1,4 +1,4 @@
-import { apiClient, authHeaders } from "./client";
+import { apiClient} from "./client";
 import { isMockProductsEnabled } from "./mock-data";
 
 export interface ExportProductsResponse {
@@ -6,7 +6,7 @@ export interface ExportProductsResponse {
 }
 
 export async function exportProducts(
-  accessToken?: string,
+  // accessToken?: string,
 ): Promise<ExportProductsResponse> {
   if (isMockProductsEnabled()) {
     throw new Error("Export tidak tersedia dalam mode mock.");
@@ -16,7 +16,7 @@ export async function exportProducts(
     success: boolean;
     data: ExportProductsResponse;
   }>("/admin/products/export", {
-    headers: authHeaders(accessToken),
+    // headers: authHeaders(accessToken),
   });
   return data.data;
 }
