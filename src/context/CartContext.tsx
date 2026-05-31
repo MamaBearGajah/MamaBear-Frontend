@@ -351,12 +351,13 @@ type CartAction =
     }
   | {
       type: "REMOVE_ITEM";
-      payload: string; // productId
+      payload: { productId: string; variantId?: string };
     }
   | {
       type: "UPDATE_QUANTITY";
       payload: {
         productId: string;
+        variantId?: string;
         quantity: number;
       };
     }
@@ -376,8 +377,8 @@ type CartContextType = {
   state: CartState;
   itemCount: number;
   addItem: (item: CartItem) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  removeItem: (productId: string, variantId?: string) => void;
+  updateQuantity: (productId: string, variantId: string | undefined, quantity: number) => void;
   clearCart: () => void;
   setGuestCartId: (id: string) => void;
 };
@@ -438,15 +439,19 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     }
 
     case "ADD_ITEM": {
+      // Treat productId+variantId as the unique key for cart items
       const existingItem = state.items.find(
-        (item) => item.productId === action.payload.productId
+        (item) =>
+          item.productId === action.payload.productId &&
+          (item.variantId ?? null) === (action.payload.variantId ?? null)
       );
 
       let updatedItems: CartItem[];
 
       if (existingItem) {
         updatedItems = state.items.map((item) =>
-          item.productId === action.payload.productId
+          item.productId === action.payload.productId &&
+          (item.variantId ?? null) === (action.payload.variantId ?? null)
             ? {
                 ...item,
                 quantity: item.quantity + action.payload.quantity,
@@ -465,8 +470,10 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     }
 
     case "REMOVE_ITEM": {
+      const { productId, variantId } = action.payload;
       const updatedItems = state.items.filter(
-        (item) => item.productId !== action.payload
+        (item) =>
+          !(item.productId === productId && (item.variantId ?? null) === (variantId ?? null))
       );
 
       return {
@@ -477,11 +484,12 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     }
 
     case "UPDATE_QUANTITY": {
+      const { productId, variantId, quantity } = action.payload;
       const updatedItems = state.items.map((item) =>
-        item.productId === action.payload.productId
+        item.productId === productId && (item.variantId ?? null) === (variantId ?? null)
           ? {
               ...item,
-              quantity: action.payload.quantity,
+              quantity,
             }
           : item
       );
@@ -618,16 +626,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const removeItem = (productId: string) => {
+  const removeItem = (productId: string, variantId?: string) => {
     dispatch({
       type: "REMOVE_ITEM",
-      payload: productId,
+      payload: { productId, variantId },
     });
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (productId: string, variantId: string | undefined, quantity: number) => {
     if (quantity <= 0) {
-      removeItem(productId);
+      removeItem(productId, variantId);
       return;
     }
 
@@ -635,6 +643,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       type: "UPDATE_QUANTITY",
       payload: {
         productId,
+        variantId,
         quantity,
       },
     });

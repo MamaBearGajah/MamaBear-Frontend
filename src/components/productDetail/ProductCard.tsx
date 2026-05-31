@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getProductId } from "../../../server";
 import { mockProducts } from "../../lib/MockProducts";
 import ProductCarousel from "./ProductCarousel";
@@ -28,9 +28,67 @@ export default function ProductCard({
   productVariant: ProductVariant[];
   isTop5BestsellerFlag: boolean;
 })  {
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [variantSelectedImage, setvariantSelectedImage] = useState<string | null>(null);
   const [theprice, setThePrice] = useState<number>(Number(product.basePrice));
+  const productVariantData = productVariant;
+
+  useEffect(() => {
+    if (!productVariantData || productVariantData.length === 0) {
+      return;
+    }
+
+    const saveVariant = (variant: ProductVariant) => {
+      try {
+        localStorage.setItem(
+          `selectedVariant:${productId}`,
+          JSON.stringify({
+            id: variant.id,
+            name: variant.name,
+            value: variant.value,
+          })
+        );
+      } catch {
+        // ignore localStorage failures
+      }
+    };
+
+    const stored = localStorage.getItem(`selectedVariant:${productId}`);
+    let initialVariant: ProductVariant | null = null;
+
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed?.id) {
+          initialVariant = productVariantData.find((variant) => variant.id === parsed.id) ?? null;
+        }
+      } catch {
+        // malformed JSON
+      }
+    }
+
+    if (!initialVariant) {
+      initialVariant = productVariantData[0];
+    }
+
+    if (initialVariant) {
+      setSelectedVariant(initialVariant);
+      setThePrice(Number(initialVariant.discountPrice ?? initialVariant.basePrice));
+      setvariantSelectedImage(initialVariant.imageUrl ?? "/Logo Mamabear.png");
+      saveVariant(initialVariant);
+
+      window.dispatchEvent(
+        new CustomEvent("mamabear-selected-variant", {
+          detail: {
+            id: initialVariant.id,
+            name: initialVariant.name,
+            value: initialVariant.value,
+          },
+        })
+      );
+    }
+  }, [productId, productVariantData]);
+
   // const imageArray = mockProducts[0].images.map((item) => item.imageUrl)
   const imageArray = product.images.map((item) => item.imageUrl)
   const fetchedProduct = product;
@@ -42,7 +100,6 @@ export default function ProductCard({
   const productWeight = product.weight;
   const productBasePrice = product.basePrice;
   const productDiscountPrice = product.discountPrice;
-  const productVariantData = productVariant;
   // console.log("ProductVariant", productVariant)
   function NotVariantPrice(){
     setThePrice(Number(product.discountPrice));
@@ -120,14 +177,32 @@ export default function ProductCard({
 
               function variantSelected(item: ProductVariant) {
                 if (isDisabled) return;
-
-                setSelected(item.value);
+                setSelectedVariant(item);
                 setThePrice(
                   Number(item.discountPrice ?? item.basePrice)
                 );
                 setvariantSelectedImage(
                   item.imageUrl ?? "/Logo Mamabear.png"
                 );
+                try {
+                  localStorage.setItem(
+                    `selectedVariant:${productId}`,
+                    JSON.stringify({
+                      id: item.id,
+                      name: item.name,
+                      value: item.value,
+                    })
+                  );
+                  window.dispatchEvent(
+                    new CustomEvent("mamabear-selected-variant", {
+                      detail: {
+                        id: item.id,
+                        name: item.name,
+                        value: item.value,
+                      },
+                    })
+                  );
+                } catch {}
               }
 
               return (
@@ -145,7 +220,7 @@ export default function ProductCard({
                     transition-all duration-300
 
                     ${
-                      selected === item.value
+                      selectedVariant?.id === item.id
                         ? "bg-[var(--mamabear-dark-pink)] text-white border-[var(--mamabear-dark-pink)]"
                         : "bg-white text-black border-gray-300"
                     }
@@ -171,7 +246,9 @@ export default function ProductCard({
               <KeyBenefit weight={productWeight}/>
             </div>
 
-            <AddToCartQuantity price={Number(productDiscountPrice)} product={fetchedProduct}/>
+            {/* <AddToCartQuantity price={Number(productDiscountPrice)} product={fetchedProduct}/> */}
+            
+            <AddToCartQuantity price={theprice} product={fetchedProduct} variant={selectedVariant}/>
             <div>
               <StructuredSnippet/>
             </div>

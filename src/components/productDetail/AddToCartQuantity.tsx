@@ -4,9 +4,9 @@ import {useState, useEffect, React} from 'react';
 import {useCart} from '@/hooks/useCart';
 import { CartItem } from '@/types';
 import {Product} from '@/types/index';
+import { ProductVariant } from '@/types';
 
-
-export default function AddToCartQuantity({price,product}:{price:number, product: Product}){
+export default function AddToCartQuantity({price, product, variant}:{price:number, product: Product, variant: ProductVariant | null}){
     const [Quantity, setQuantity] = useState(1);
     const { addItem, state, updateQuantity, itemCount, setGuestCartId, clearCart} = useCart();
 
@@ -15,15 +15,23 @@ export default function AddToCartQuantity({price,product}:{price:number, product
     }
 
     const handleAddToCart = () => {
-        const newItem: CartItem = {
-            id: `temp-id-${Date.now()}`,
-            productId: product.id,
-            quantity: Quantity,
-            name: product.name,
-            basePrice: Number(product.basePrice),
-            discountPrice: product.discountPrice ? Number(product.discountPrice) : undefined,
-            image: product.images[0].imageUrl,
-        };
+            if(!variant){
+                alert('please select a variant!')
+                return;
+            }
+            const newItem: CartItem = {
+                id: `temp-id-${Date.now()}`,
+                productId: product.id,
+                variantId: variant.id,
+                variantName: variant.name,
+                variantValue: variant.value,
+                variantLabel: variant.name && variant.value ? `${variant.name}: ${variant.value}` : variant.name ?? variant.value,
+                quantity: Quantity,
+                name: product.name,
+                basePrice: Number(variant.basePrice ?? product.basePrice),
+                discountPrice: variant.discountPrice ? Number(variant.discountPrice) : product.discountPrice ? Number(product.discountPrice) : undefined,
+                image: variant.imageUrl ?? (product.images?.[0]?.imageUrl ?? '/Logo Mamabear.png'),
+            };
         addItem(newItem);
     }
     return(
