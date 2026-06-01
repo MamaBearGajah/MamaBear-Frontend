@@ -3,13 +3,15 @@
 import React, { useState } from "react";
 import { useCart } from "@/hooks/useCart";
 import Link from "next/link";
-import { CreditCard, Wallet, ArrowLeft, CheckCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle } from "lucide-react";
+import PaymentSelector, { PaymentMethod } from "@/components/checkout/PaymentSelector";
 
 const PaymentPage = () => {
   const { state, clearCart } = useCart();
   const { items, subtotal } = state;
 
-  const [method, setMethod] = useState("card");
+  const [method, setMethod] = useState<PaymentMethod>("gopay");
+  const [gateway, setGateway] = useState<"xendit" | "midtrans">("xendit");
   const [loading, setLoading] = useState(false);
   const [paid, setPaid] = useState(false);
 
@@ -21,7 +23,17 @@ const PaymentPage = () => {
     setLoading(true);
 
     try {
-      // simulate payment processing
+      // In a real integration, this is where you would call
+      // your backend endpoint to create a payment session with
+      // Xendit or Midtrans.
+      // Example backend payload:
+      // {
+      //   gateway: gateway,
+      //   paymentMethod: method,
+      //   amount: total,
+      //   items: items,
+      // }
+      
       await new Promise((res) => setTimeout(res, 2000));
 
       setPaid(true);
@@ -89,56 +101,37 @@ const PaymentPage = () => {
 
           <h2 className="font-semibold mb-4">Choose Payment Method</h2>
 
-          <div className="space-y-3">
-            {/* CARD */}
-            <button
-              onClick={() => setMethod("card")}
-              className={`w-full flex items-center gap-3 p-4 border rounded-xl ${
-                method === "card" ? "border-pink-600 bg-pink-50" : ""
-              }`}
-            >
-              <CreditCard />
-              Credit / Debit Card
-            </button>
+          <PaymentSelector selected={method} onSelect={setMethod} />
 
-            {/* E-WALLET */}
-            <button
-              onClick={() => setMethod("ewallet")}
-              className={`w-full flex items-center gap-3 p-4 border rounded-xl ${
-                method === "ewallet" ? "border-pink-600 bg-pink-50" : ""
-              }`}
-            >
-              <Wallet />
-              E-Wallet (GrabPay / PayNow / ShopeePay)
-            </button>
+          <div className="mt-6">
+            <h3 className="font-semibold mb-3">Choose Integration Gateway</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {(["xendit", "midtrans"] as const).map((provider) => (
+                <button
+                  key={provider}
+                  type="button"
+                  onClick={() => setGateway(provider)}
+                  className={`rounded-2xl border p-4 text-left transition-all duration-200 ${
+                    gateway === provider
+                      ? "border-pink-600 bg-pink-50 shadow-sm"
+                      : "border-gray-200 bg-white hover:border-pink-300"
+                  }`}
+                >
+                  <div className="text-base font-semibold">{provider.toUpperCase()}</div>
+                  <div className="text-xs text-slate-500">
+                    {provider === "xendit"
+                      ? "Xendit payment gateway"
+                      : "Midtrans payment gateway"}
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* MOCK CARD INPUT */}
-          {method === "card" && (
-            <div className="mt-6 space-y-3">
-              <input
-                placeholder="Card Number"
-                className="w-full border p-3 rounded-xl"
-              />
-              <div className="flex gap-3">
-                <input
-                  placeholder="MM/YY"
-                  className="w-full border p-3 rounded-xl"
-                />
-                <input
-                  placeholder="CVV"
-                  className="w-full border p-3 rounded-xl"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* E-WALLET MOCK */}
-          {method === "ewallet" && (
-            <div className="mt-6 text-sm text-gray-500">
-              You will be redirected to your selected wallet provider.
-            </div>
-          )}
+          <div className="mt-6 rounded-2xl border border-pink-200 bg-pink-50 p-4 text-sm text-slate-700">
+            <strong>{gateway.toUpperCase()} integration:</strong> use your backend to create a payment session for {method === "va" ? "Virtual Account" : method === "card" ? "Credit / Debit Card" : method.toUpperCase()}.
+            For example, Xendit can create e-wallet charges, card payments, and VA invoices, while Midtrans can generate Snap tokens for GoPay, OVO, DANA, card checkout and bank transfer.
+          </div>
         </div>
 
         {/* RIGHT - SUMMARY */}
@@ -194,7 +187,9 @@ const PaymentPage = () => {
             disabled={loading}
             className="w-full mt-6 bg-pink-600 text-white py-3 rounded-xl font-bold"
           >
-            {loading ? "Processing..." : "Pay Now"}
+            {loading
+              ? "Processing..."
+              : `Continue with ${method.toUpperCase()} via ${gateway.toUpperCase()}`}
           </button>
 
           <p className="text-xs text-gray-400 mt-3 text-center">
