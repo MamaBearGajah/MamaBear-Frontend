@@ -1,19 +1,20 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useCart } from "@/hooks/useCart";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import PaymentSelector, { PaymentMethod } from "@/components/checkout/PaymentSelector";
 
 const PaymentPage = () => {
   const { state, clearCart } = useCart();
+  const router = useRouter();
   const { items, subtotal } = state;
 
   const [method, setMethod] = useState<PaymentMethod>("gopay");
   const [gateway, setGateway] = useState<"xendit" | "midtrans">("xendit");
   const [loading, setLoading] = useState(false);
-  const [paid, setPaid] = useState(false);
 
   const discount = subtotal * 0.15;
   const shipping = subtotal >= 200000 ? 0 : 15000;
@@ -36,9 +37,30 @@ const PaymentPage = () => {
       
       await new Promise((res) => setTimeout(res, 2000));
 
-      setPaid(true);
+      // Create order on server
+      const payload = {
+        date: new Date().toISOString().slice(0, 10),
+        items: items.map((it) => ({ id: it.id, name: it.name, quantity: it.quantity, price: (it.discountPrice ?? it.basePrice) })),
+        total: total,
+        status: "Processing",
+      };
+
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Failed to create order");
+
+      const created = await res.json();
+
       clearCart();
+
+      // Redirect to order confirmation page
+      router.push(`/order?id=${created.id}`);
     } catch (err) {
+      console.error(err);
       alert("Payment failed");
     } finally {
       setLoading(false);
@@ -46,7 +68,7 @@ const PaymentPage = () => {
   };
 
   // EMPTY CART GUARD
-  if (items.length === 0 && !paid) {
+  if (items.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-pink-50">
         <div className="text-center">
@@ -59,45 +81,18 @@ const PaymentPage = () => {
     );
   }
 
-  // SUCCESS SCREEN
-  if (paid) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-pink-50">
-        <div className="bg-white p-10 rounded-2xl text-center shadow-sm">
-          <CheckCircle className="mx-auto text-green-500 mb-4" size={50} />
-
-          <h1 className="text-2xl font-bold mb-2">
-            Payment Successful 🎉
-          </h1>
-
-          <p className="text-gray-500 mb-6">
-            Your order has been confirmed
-          </p>
-
-          <Link
-            href="/products"
-            className="bg-pink-600 text-white px-6 py-3 rounded-xl font-bold"
-          >
-            Continue Shopping
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-pink-50 py-10 px-4">
       {loading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
           <div className="flex transform flex-col items-center gap-3 rounded-lg bg-white/95 px-6 py-8 shadow-lg">
-              <img src='/loading.gif' className='w-[50%]' alt="Loading" />
-            {/* <svg className="h-10 w-10 animate-spin text-pink-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Loading state */}
+            <svg className="h-10 w-10 animate-spin text-pink-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-            </svg> */}
+            </svg>
 
             <div className="text-center">
-
               <div className="text-lg font-semibold text-slate-900">Processing payment</div>
               <div className="text-sm text-slate-500">Please wait while we initiate your payment...</div>
             </div>
