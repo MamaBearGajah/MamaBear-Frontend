@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+﻿import { OrderCard } from "@/components/common/OrderCard";
 
 type OrderItem = {
   id: string;
@@ -84,32 +84,15 @@ export default async function Page() {
 
       <div className="space-y-4">
         {orders.map((order) => (
-          <div key={order.id} className="rounded-2xl border border-pink-100 bg-white p-4 shadow-sm">
-            <div className="flex items-start justify-between">
-              <div className="min-w-0">
-                <div className="flex items-center gap-3">
-                  <div className="text-sm text-slate-500">{order.id}</div>
-                  <div className="text-xs text-slate-400">• Ordered {new Date(order.date).toLocaleDateString()}</div>
-                </div>
-                <div className="mt-3 text-sm text-slate-600">
-                  {order.items.slice(0, 2).map((it) => (
-                    <div key={it.id} className="flex items-center justify-between border-b border-pink-50 py-2">
-                      <div className="text-sm text-slate-800">{it.name} {it.quantity > 1 ? `×${it.quantity}` : ""}</div>
-                      <div className="text-sm text-slate-800">Rp {(it.price * it.quantity).toLocaleString()}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex flex-col items-end gap-3">
-                <div className={`px-3 py-1 text-xs font-semibold rounded-full ${order.status === "Delivered" ? "bg-emerald-50 text-emerald-700" : "bg-yellow-50 text-yellow-700"}`}>
-                  {order.status}
-                </div>
-                <div className="text-sm font-semibold">Rp {order.total.toLocaleString()}</div>
-                <Link href={`/order/${order.id}`} className="rounded-full border border-pink-200 px-3 py-1 text-xs text-pink-600">Reorder</Link>
-              </div>
-            </div>
-          </div>
+          <OrderCard
+            key={order.id}
+            id={order.id}
+            date={order.date}
+            status={order.status}
+            total={order.total}
+            href={`/account/orders/${order.id}`}
+            itemCount={order.items.reduce((sum, item) => sum + item.quantity, 0)}
+          />
         ))}
       </div>
     </main>
