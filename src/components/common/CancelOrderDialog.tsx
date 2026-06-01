@@ -1,23 +1,33 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface CancelOrderDialogProps {
   orderId: string;
-  onConfirm: (orderId: string) => Promise<void>;
 }
 
-export function CancelOrderDialog({ orderId, onConfirm }: CancelOrderDialogProps) {
+export function CancelOrderDialog({ orderId }: CancelOrderDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleCancel = async () => {
     setIsLoading(true);
     try {
-      await onConfirm(orderId);
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "Cancelled" }),
+      });
+
+      if (!res.ok) throw new Error("Failed to cancel");
+
       setIsOpen(false);
+      router.refresh();
     } catch (error) {
       console.error("Failed to cancel order:", error);
+      // could show toast here
     } finally {
       setIsLoading(false);
     }
