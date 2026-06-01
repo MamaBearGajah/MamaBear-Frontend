@@ -88,7 +88,7 @@ async function fetchOrder(id: string): Promise<OrderType> {
   }
 
   const localOrder = await getOrderById(id);
-  return localOrder ?? MOCK_ORDERS.find((order) => order.id === id) ?? MOCK_ORDERS[0];
+  return localOrder ?? MOCK_ORDERS.find((order) => order.id === id) ?? MOCK_ORDERS[3];
 }
 
 function formatCurrency(value: number) {
