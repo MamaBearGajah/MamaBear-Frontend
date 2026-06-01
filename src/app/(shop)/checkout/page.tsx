@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/hooks/useCart";
+import { safeFormatPrice } from "@/lib/utils";
 import { ArrowLeft, CreditCard, Truck } from "lucide-react";
 
 const CheckoutPage = () => {
@@ -144,7 +145,7 @@ const CheckoutPage = () => {
                   </span>
 
                   <span className="font-semibold">
-                    Rp {(price * item.quantity).toLocaleString()}
+                    {safeFormatPrice(price * item.quantity)}
                   </span>
                 </div>
               );
@@ -155,24 +156,24 @@ const CheckoutPage = () => {
           <div className="space-y-2 text-sm border-t pt-4">
             <div className="flex justify-between">
               <span>Subtotal</span>
-              <span>Rp {subtotal.toLocaleString()}</span>
+              <span>{safeFormatPrice(subtotal)}</span>
             </div>
 
             <div className="flex justify-between text-green-600">
               <span>Discount</span>
-              <span>- Rp {discount.toLocaleString()}</span>
+              <span>- {safeFormatPrice(discount)}</span>
             </div>
 
             <div className="flex justify-between">
               <span>Shipping</span>
               <span>
-                {shipping === 0 ? "FREE" : `Rp ${shipping.toLocaleString()}`}
+                {shipping === 0 ? "FREE" : safeFormatPrice(shipping)}
               </span>
             </div>
 
             <div className="flex justify-between font-bold text-lg border-t pt-3">
               <span>Total</span>
-              <span>Rp {total.toLocaleString()}</span>
+              <span>{safeFormatPrice(total)}</span>
             </div>
           </div>
 

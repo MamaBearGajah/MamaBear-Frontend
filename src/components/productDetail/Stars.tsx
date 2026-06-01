@@ -6,12 +6,12 @@ export default function Stars({ rating }: { rating: number }){
                 const starIndex = index + 1;
 
                 return (
-                <span key={index}>
+                <span key={index} className='text-xs'>
                     {starIndex <= rating ? "⭐" : "☆"}
                 </span>
                 );
             })}
-        <div className='ml-3'>{rating}</div>
+        <div className='ml-2 font-bold'>{rating}/5</div>
         
         </div>
     )

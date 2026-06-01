@@ -24,9 +24,9 @@ function BadgePill({
   allowWrap?: boolean;
 }) {
   return (
-    <span className="inline-flex items-start gap-1 rounded-full bg-white px-2 py-0.5 text-[9px] leading-none font-bold shadow-[0_1px_2px_rgba(108,67,53,0.05)] sm:px-2.5 sm:text-[10px]">
+    <span className="inline-flex items-center gap-1 rounded-full bg-[#FACBD8] px-2 py-0.5 text-[9px] leading-none font-bold shadow-[0_1px_2px_rgba(108,67,53,0.05)] sm:px-2.5 sm:text-[10px]">
       <CheckCircle2
-        className="mt-[1px] h-3 w-3 shrink-0 text-[#E35F8A]"
+        className="h-3 w-3 shrink-0 text-[#6C4735]"
         strokeWidth={2.75}
       />
       <span
@@ -43,7 +43,7 @@ type StoryCard = {
   name: string;
   city: string;
   quote: string;
-  rating: string;
+  rating: number;
   tags: string[];
 };
 
@@ -76,8 +76,8 @@ const storyCards: StoryCard[] = [
     name: "Siti Rahma",
     city: "Jakarta",
     quote:
-      "Rasa enak dan bantu banget jaga energi selama menyusui. Pengiriman juga cepat.",
-    rating: "★★★★★",
+      '"ASI Booster Tea Thai Milk Tea rasa enak banget! Seminggu minum udah kerasa bedanya. Baby jadi lebih kenyang dan tidur lebih lama. Thank you Mamabear! 💕"',
+    rating: 5,
     tags: ["ASI Booster Tea - Thai Milk Tea"],
   },
   {
@@ -85,8 +85,8 @@ const storyCards: StoryCard[] = [
     name: "Dewi Anggraeni",
     city: "Surabaya",
     quote:
-      "Aku cocok sama variannya, praktis disiapkan dan bikin ASI terasa lebih lancar.",
-    rating: "★★★★★",
+      '"Kookie Bites jadi snack wajib saya saat nursing session: Enak, nggak bikin gemuk, dan ASI makin banyak. Udah order ke-5 nih" 😍',
+    rating: 5,
     tags: ["Kookie Bites - Chocolate Chip"],
   },
   {
@@ -94,8 +94,8 @@ const storyCards: StoryCard[] = [
     name: "Putri Maharani",
     city: "Bandung",
     quote:
-      "Konsultasinya helpful, jadi lebih yakin pilih produk yang sesuai kebutuhan.",
-    rating: "★★★★★",
+      '"Konsultasi laktasinya helpful banget! Konsultannya sabar dan helpful. Masalah latch yang udah 2 minggu akhirnya selesai dalam 1 sesi!"',
+    rating: 5,
     tags: ["Lactation Consultation"],
   },
   {
@@ -103,8 +103,8 @@ const storyCards: StoryCard[] = [
     name: "Ayu Permata",
     city: "Yogyakarta",
     quote:
-      "Packaging aman dan rasanya konsisten. Sudah repeat order beberapa kali.",
-    rating: "★★★★★",
+      '"Capsules Premium luar biasa! Dalam 3 hari ASI udah melimpah ruah. Bayi nggak perlu sufor lagi. Worth every rupiah! 🥹"',
+    rating: 5,
     tags: ["ASI Booster Capsules - Premium"],
   },
 ];
@@ -138,14 +138,14 @@ const Testimonial = () => {
   // In JSX replace `storyCards` with `fetchedStories ?? storyCards`
 
   return (
-    <section className="w-full bg-white py-8 md:py-10">
+    <section className="w-full bg-[#FEF2F5] pt-6 pb-8 md:py-10">
       <div className="w-full px-0">
         <div className="flex justify-center">
-          <span className="inline-flex rounded-full bg-[#F7C4D2] px-4 py-1 text-[11px] font-semibold tracking-[0.12em] text-[#D5557E] uppercase">
-            💬 Real Stories
+          <span className="inline-flex h-[24px] items-center justify-center rounded-full bg-[#FACBD8] px-3 py-1 font-['Quicksand'] text-[12px] leading-4 font-bold tracking-[0.6px] text-[#D5557E] uppercase">
+            <span>💬 Real Stories</span>
           </span>
         </div>
-        <h2 className="mt-3 text-center text-[34px] leading-[1.08] font-black text-[#6C4735]">
+        <h2 className="mt-3 text-center text-[24px] leading-[1.05] font-black text-[#6C4735] md:text-[34px] md:leading-[1.08]">
           Kenapa Harus Mamabear?
         </h2>
 
@@ -155,7 +155,7 @@ const Testimonial = () => {
             {reasonCards.map((card) => (
               <article
                 key={card.title}
-                className="relative overflow-hidden rounded-[28px] border border-[#F0C7D5] bg-[#FFF2F6] lg:h-[7cm]"
+                className="relative overflow-hidden rounded-[28px] border border-[#F0C7D5] bg-white lg:h-[7cm]"
               >
                 <div className="grid h-full grid-cols-1 gap-0 md:grid-cols-2 md:items-stretch lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] lg:items-stretch">
                   <div
@@ -218,7 +218,9 @@ const Testimonial = () => {
                       )}
                     </div>
 
-                    <div className="relative mt-8 flex flex-nowrap items-center justify-start gap-1.5 overflow-hidden md:mt-10 md:gap-2">
+                    <div
+                      className={`relative mt-8 flex flex-nowrap items-center justify-start gap-1.5 ${card.title.includes("Produk Halal") ? "overflow-visible" : "overflow-hidden"} md:mt-10 md:gap-2`}
+                    >
                       {card.badges.map((badge) => (
                         <BadgePill
                           key={badge.label}
@@ -230,14 +232,14 @@ const Testimonial = () => {
                   </div>
 
                   <div className="relative flex h-full w-full min-w-0 items-stretch">
-                    <div className="relative h-full w-full overflow-hidden bg-gradient-to-b from-[#FACBD8] to-white/75">
+                    <div className="relative h-full w-full overflow-hidden bg-gradient-to-b from-white to-white/75">
                       <Image
                         src={card.imageSrc}
                         alt={card.title}
                         fill
                         className="object-cover"
                       />
-                      <div className="pointer-events-none absolute inset-y-0 left-0 w-[58%] bg-[linear-gradient(90deg,rgba(255,242,246,1)_0%,rgba(255,242,246,0.94)_28%,rgba(255,242,246,0.72)_58%,rgba(255,242,246,0)_100%)]" />
+                      <div className="pointer-events-none absolute inset-y-0 left-0 w-[58%] bg-[linear-gradient(90deg,rgba(255,255,255,1)_0%,rgba(255,255,255,0.94)_28%,rgba(255,255,255,0.72)_58%,rgba(255,255,255,0)_100%)]" />
                     </div>
                   </div>
                 </div>
@@ -252,17 +254,17 @@ const Testimonial = () => {
             {reasonCards.map((card) => (
               <article
                 key={card.title}
-                className="flex flex-row-reverse items-stretch overflow-hidden rounded-[16px] border border-[#F0C7D5] bg-[#FFF2F6]"
+                className="flex flex-row-reverse items-stretch overflow-hidden rounded-[16px] border border-[#F0C7D5] bg-white"
               >
                 <div className="relative w-[40%] min-w-[110px] self-stretch overflow-hidden">
-                  <div className="absolute inset-0 overflow-hidden bg-gradient-to-b from-[#FACBD8] to-white/75">
+                  <div className="absolute inset-0 overflow-hidden bg-gradient-to-b from-white to-white/75">
                     <Image
                       src={card.imageSrc}
                       alt={card.title}
                       fill
                       className="object-cover"
                     />
-                    <div className="pointer-events-none absolute inset-y-0 left-0 w-[70%] bg-[linear-gradient(90deg,rgba(255,242,246,1)_0%,rgba(255,242,246,0.94)_24%,rgba(255,242,246,0.7)_56%,rgba(255,242,246,0)_100%)]" />
+                    <div className="pointer-events-none absolute inset-y-0 left-0 w-[70%] bg-[linear-gradient(90deg,rgba(255,255,255,1)_0%,rgba(255,255,255,0.94)_24%,rgba(255,255,255,0.7)_56%,rgba(255,255,255,0)_100%)]" />
                   </div>
                 </div>
 
@@ -295,33 +297,45 @@ const Testimonial = () => {
         </div>
 
         <div className="mt-12 flex justify-center md:mt-12">
-          <span className="inline-flex rounded-full bg-[#F7C4D2] px-4 py-1 text-[11px] font-semibold tracking-[0.12em] text-[#D5557E] uppercase">
-            💬 Real Stories
+          <span className="inline-flex h-[24px] items-center justify-center rounded-full bg-[#FACBD8] px-3 py-1 font-['Quicksand'] text-[12px] leading-4 font-bold tracking-[0.6px] text-[#D5557E] uppercase">
+            <span>💬 Real Stories</span>
           </span>
         </div>
-        <h2 className="mt-3 text-center text-[34px] leading-[1.08] font-black text-[#6C4735]">
-          Cerita Mama yang Sudah Mencoba
+        <h2 className="mt-3 text-center text-[24px] leading-[1.05] font-black text-[#6C4735] md:text-[34px] md:leading-[1.08]">
+          Mama's Love Mamabear
         </h2>
 
         <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {storyCards.map((story) => (
             <article
               key={story.name}
-              className="rounded-[20px] border border-[#F0C7D5] bg-[#FFF2F6] p-4"
+              className="rounded-[20px] border border-[#F0C7D5] bg-white p-4"
             >
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#D5557E] text-[13px] font-bold text-white">
                   {story.initials}
                 </div>
                 <div className="flex flex-col">
-                  <p className="text-[16px] leading-tight font-semibold text-[#6C4735]">
+                  <p className="text-[14px] leading-tight font-semibold text-[#6C4735]">
                     {story.name}
                   </p>
                   <p className="text-[12px] text-[#9B7A6A]">{story.city}</p>
                 </div>
               </div>
-              <div className="mt-3 text-[13px] text-[#F4A300]">
-                {story.rating}
+              <div className="mt-3 flex items-center gap-0.5" aria-hidden>
+                {Array.from({ length: story.rating }).map((_, i) => (
+                  <svg
+                    key={i}
+                    className="h-2.5 w-2.5 sm:h-3 sm:w-3"
+                    viewBox="0 0 24 24"
+                    fill="#F4A300"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 .587l3.668 7.431L23.5 9.748l-5.75 5.602L19.335 24 12 20.201 4.665 24l1.585-8.65L.5 9.748l7.832-1.73L12 .587z" />
+                  </svg>
+                ))}
+                <span className="sr-only">{story.rating} dari 5 bintang</span>
               </div>
               <p className="mt-2 text-[13px] leading-[20px] text-[#7B6155]">
                 {story.quote}
@@ -330,7 +344,7 @@ const Testimonial = () => {
                 {story.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-full bg-[#F6D6DF] px-3 py-1 text-[11px] font-medium text-[#8A5A4B]"
+                    className="rounded-full bg-[#FACBD8] px-3 py-1 text-[11px] font-bold text-[#D5557E]"
                   >
                     {tag}
                   </span>

@@ -1,11 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import ImageUploader, {
+  type ImageUploaderValue,
+} from "@/components/admin/ImageUploader";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
+import { isAxiosError } from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,15 +24,13 @@ import {
 } from "@/components/ui/select";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import StatusBadge from "@/components/shared/StatusBadge";
-import {
-  createProductAction,
-  deleteProductAndRedirectAction,
-  updateProductAction,
-} from "@/lib/actions/products";
+import { apiClient } from "@/lib/api/client";
+import { deleteProductAndRedirectAction } from "@/lib/actions/products";
 import { cn, toSlug } from "@/lib/utils";
 import {
   productFormDefaults,
   productFormSchema,
+  formValuesToPayload,
   productToFormValues,
   type ProductFormInput,
   type ProductFormValues,
@@ -47,13 +50,35 @@ interface ProductFormProps {
   categories: Category[];
 }
 
-export default function ProductForm({ mode, product, categories }: ProductFormProps) {
+export default function ProductForm({
+  mode,
+  product,
+  categories,
+}: ProductFormProps) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [deletePending, startDeleteTransition] = useTransition();
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
   const slugManuallyEdited = useRef(false);
 
   const isEdit = mode === "edit" && !!product;
+
+  const [imageValue, setImageValue] = useState<ImageUploaderValue | undefined>(
+    () => {
+      if (!product || !product.images || product.images.length === 0)
+        return undefined;
+      const first = product.images[0];
+      return {
+        imageUrl: first.imageUrl ?? "",
+        altText: first.altText ?? product.name ?? "",
+        imageType:
+          (first.imageType as ImageUploaderValue["imageType"]) ?? "main",
+        isFeatured: !!product.images.find((i) => i.isFeatured),
+        sortOrder: first.sortOrder ?? 0,
+      };
+    }
+  );
 
   const {
     register,
@@ -64,12 +89,36 @@ export default function ProductForm({ mode, product, categories }: ProductFormPr
     formState: { errors },
   } = useForm<ProductFormInput, unknown, ProductFormValues>({
     resolver: zodResolver(productFormSchema),
-    defaultValues: product ? productToFormValues(product) : productFormDefaults,
+    defaultValues: product
+      ? productToFormValues(product as never)
+      : productFormDefaults,
   });
 
   const nameValue = watch("name");
   const statusValue = watch("status");
   const categoryIdValue = watch("categoryId");
+
+  const parseFieldErrors = (
+    error: unknown
+  ): Record<string, string> | undefined => {
+    if (!isAxiosError(error)) return undefined;
+    const details = error.response?.data?.error?.details;
+    if (!Array.isArray(details) || !details.length) return undefined;
+    return Object.fromEntries(
+      details.map((detail: { field: string; message: string }) => [
+        detail.field,
+        detail.message,
+      ])
+    );
+  };
+
+  const getErrorMessage = (error: unknown): string => {
+    if (isAxiosError(error)) {
+      return error.response?.data?.error?.message ?? error.message;
+    }
+    if (error instanceof Error) return error.message;
+    return "Terjadi kesalahan";
+  };
 
   useEffect(() => {
     if (isEdit || slugManuallyEdited.current) return;
@@ -79,18 +128,36 @@ export default function ProductForm({ mode, product, categories }: ProductFormPr
   }, [nameValue, isEdit, setValue]);
 
   const onSubmit = (data: ProductFormValues) => {
-    startTransition(async () => {
-      const result = isEdit
-        ? await updateProductAction(product!.id, data)
-        : await createProductAction(data);
+    if (imageUploading) {
+      toast.error("Tunggu upload image selesai dulu.");
+      return;
+    }
 
-      if (result && !result.success) {
-        if (result.fieldErrors) {
-          Object.entries(result.fieldErrors).forEach(([field, message]) => {
+    startTransition(async () => {
+      try {
+        const payload = {
+          ...formValuesToPayload(data),
+          mainImage: imageValue?.imageUrl?.trim() || undefined,
+        };
+
+        if (isEdit) {
+          await apiClient.put(`/products/${product!.id}`, payload);
+        } else {
+          await apiClient.post("/products", payload);
+        }
+
+        toast.success(
+          isEdit ? "Produk berhasil diperbarui" : "Produk berhasil dibuat"
+        );
+        router.push("/admin/products");
+      } catch (error) {
+        const fieldErrors = parseFieldErrors(error);
+        if (fieldErrors) {
+          Object.entries(fieldErrors).forEach(([field, message]) => {
             setError(field as keyof ProductFormInput, { message });
           });
         }
-        toast.error(result.message ?? "Gagal menyimpan produk");
+        toast.error(getErrorMessage(error) ?? "Gagal menyimpan produk");
       }
     });
   };
@@ -111,197 +178,239 @@ export default function ProductForm({ mode, product, categories }: ProductFormPr
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)} className="mx-auto max-w-3xl space-y-8">
-        <section className="space-y-3">
-          <Label>Status</Label>
-          <div className="flex flex-wrap gap-2">
-            {STATUS_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setValue("status", opt.value, { shouldValidate: true })}
-                className={cn(
-                  "rounded-lg border px-4 py-2 text-sm font-medium transition-colors",
-                  statusValue === opt.value
-                    ? "border-[var(--mamabear-dark-pink)] bg-[var(--mamabear-light-pink)] text-foreground"
-                    : "border-border bg-background hover:bg-muted",
-                )}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          <StatusBadge status={statusValue} />
-          {errors.status ? (
-            <p className="text-sm text-destructive">{errors.status.message}</p>
-          ) : null}
-        </section>
-
-        <section className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="name">Nama produk *</Label>
-            <Input
-              id="name"
-              {...register("name")}
-              placeholder="ASI Booster Tea – Hazelnut"
-              className={fieldClass("name")}
-            />
-            {errors.name ? (
-              <p className="text-sm text-destructive">{errors.name.message}</p>
-            ) : null}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="slug">Slug *</Label>
-            <Input
-              id="slug"
-              {...register("slug", {
-                onChange: () => {
-                  slugManuallyEdited.current = true;
-                },
-              })}
-              placeholder="asi-booster-tea-hazelnut"
-              className={fieldClass("slug")}
-            />
-            {errors.slug ? (
-              <p className="text-sm text-destructive">{errors.slug.message}</p>
-            ) : null}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="sku">SKU *</Label>
-            <Input
-              id="sku"
-              {...register("sku")}
-              placeholder="SKU-001"
-              className={fieldClass("sku")}
-            />
-            {errors.sku ? (
-              <p className="text-sm text-destructive">{errors.sku.message}</p>
-            ) : null}
-          </div>
-
-          <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="description">Deskripsi</Label>
-            <Textarea
-              id="description"
-              rows={5}
-              {...register("description")}
-              placeholder="Deskripsi produk…"
-              className={fieldClass("description")}
-            />
-            {errors.description ? (
-              <p className="text-sm text-destructive">{errors.description.message}</p>
-            ) : null}
-          </div>
-        </section>
-
-        <section className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="basePrice">Harga dasar (Rp) *</Label>
-            <Input
-              id="basePrice"
-              type="number"
-              min={0}
-              {...register("basePrice")}
-              className={fieldClass("basePrice")}
-            />
-            {errors.basePrice ? (
-              <p className="text-sm text-destructive">{errors.basePrice.message}</p>
-            ) : null}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="discountPrice">Harga diskon (Rp)</Label>
-            <Input
-              id="discountPrice"
-              type="number"
-              min={0}
-              placeholder="Opsional"
-              {...register("discountPrice")}
-              className={fieldClass("discountPrice")}
-            />
-            {errors.discountPrice ? (
-              <p className="text-sm text-destructive">{errors.discountPrice.message}</p>
-            ) : null}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="weight">Berat (gram) *</Label>
-            <Input
-              id="weight"
-              type="number"
-              min={1}
-              {...register("weight")}
-              className={fieldClass("weight")}
-            />
-            {errors.weight ? (
-              <p className="text-sm text-destructive">{errors.weight.message}</p>
-            ) : null}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="stock">Stok *</Label>
-            <Input
-              id="stock"
-              type="number"
-              min={0}
-              {...register("stock")}
-              className={fieldClass("stock")}
-            />
-            {errors.stock ? (
-              <p className="text-sm text-destructive">{errors.stock.message}</p>
-            ) : null}
-          </div>
-
-          <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="categoryId">Kategori</Label>
-            <Select
-              value={categoryIdValue || "none"}
-              onValueChange={(v) =>
-                setValue("categoryId", v === "none" ? "" : v, { shouldValidate: true })
-              }
-            >
-              <SelectTrigger id="categoryId" className="w-full sm:max-w-xs">
-                <SelectValue placeholder="Pilih kategori" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Tanpa kategori</SelectItem>
-                {categories.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </section>
-
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-6">
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" asChild>
-              <Link href="/admin/products">Batal</Link>
-            </Button>
-            {isEdit ? (
-              <Button
-                type="button"
-                variant="outline"
-                className="text-destructive hover:text-destructive"
-                onClick={() => setDeleteOpen(true)}
-              >
-                <Trash2 className="size-4" />
-                Hapus
-              </Button>
-            ) : null}
-          </div>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="mx-auto max-w-6xl space-y-8"
+      >
+        <div className="flex items-center justify-end gap-3">
+          <Button type="button" variant="outline" asChild>
+            <Link href="/admin/products">Cancel</Link>
+          </Button>
           <Button
             type="submit"
-            disabled={pending}
+            disabled={pending || imageUploading}
             className="bg-[var(--mamabear-dark-pink)] text-white hover:bg-[var(--mamabear-dark-pink)]/90"
           >
-            {pending ? "Menyimpan…" : isEdit ? "Simpan perubahan" : "Buat produk"}
+            {pending
+              ? "Menyimpan…"
+              : isEdit
+                ? "Simpan perubahan"
+                : "Add Product"}
           </Button>
         </div>
+
+        <div className="mt-2 grid gap-8 xl:grid-cols-[minmax(0,1fr)_300px] xl:items-start">
+          <div className="space-y-8">
+            <section className="space-y-3">
+              <Label>Status</Label>
+              <div className="flex flex-wrap gap-2">
+                {STATUS_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() =>
+                      setValue("status", opt.value, { shouldValidate: true })
+                    }
+                    className={cn(
+                      "rounded-lg border px-4 py-2 text-sm font-medium transition-colors",
+                      statusValue === opt.value
+                        ? "text-foreground border-[var(--mamabear-dark-pink)] bg-[var(--mamabear-light-pink)]"
+                        : "border-border bg-background hover:bg-muted"
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              <StatusBadge status={statusValue} />
+              {errors.status ? (
+                <p className="text-destructive text-sm">
+                  {errors.status.message}
+                </p>
+              ) : null}
+            </section>
+
+            <section className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="name">Nama produk *</Label>
+                <Input
+                  id="name"
+                  {...register("name")}
+                  placeholder="ASI Booster Tea – Hazelnut"
+                  className={fieldClass("name")}
+                />
+                {errors.name ? (
+                  <p className="text-destructive text-sm">
+                    {errors.name.message}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="slug">Slug *</Label>
+                <Input
+                  id="slug"
+                  {...register("slug", {
+                    onChange: () => {
+                      slugManuallyEdited.current = true;
+                    },
+                  })}
+                  placeholder="asi-booster-tea-hazelnut"
+                  className={fieldClass("slug")}
+                />
+                {errors.slug ? (
+                  <p className="text-destructive text-sm">
+                    {errors.slug.message}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="sku">SKU *</Label>
+                <Input
+                  id="sku"
+                  {...register("sku")}
+                  placeholder="SKU-001"
+                  className={fieldClass("sku")}
+                />
+                {errors.sku ? (
+                  <p className="text-destructive text-sm">
+                    {errors.sku.message}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="description">Deskripsi</Label>
+                <Textarea
+                  id="description"
+                  rows={5}
+                  {...register("description")}
+                  placeholder="Deskripsi produk…"
+                  className={fieldClass("description")}
+                />
+                {errors.description ? (
+                  <p className="text-destructive text-sm">
+                    {errors.description.message}
+                  </p>
+                ) : null}
+              </div>
+            </section>
+
+            <section className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="basePrice">Harga dasar (Rp) *</Label>
+                <Input
+                  id="basePrice"
+                  type="number"
+                  min={0}
+                  {...register("basePrice")}
+                  className={fieldClass("basePrice")}
+                />
+                {errors.basePrice ? (
+                  <p className="text-destructive text-sm">
+                    {errors.basePrice.message}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="discountPrice">Harga diskon (Rp)</Label>
+                <Input
+                  id="discountPrice"
+                  type="number"
+                  min={0}
+                  placeholder="Opsional"
+                  {...register("discountPrice")}
+                  className={fieldClass("discountPrice")}
+                />
+                {errors.discountPrice ? (
+                  <p className="text-destructive text-sm">
+                    {errors.discountPrice.message}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="weight">Berat (gram) *</Label>
+                <Input
+                  id="weight"
+                  type="number"
+                  min={1}
+                  {...register("weight")}
+                  className={fieldClass("weight")}
+                />
+                {errors.weight ? (
+                  <p className="text-destructive text-sm">
+                    {errors.weight.message}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="stock">Stok *</Label>
+                <Input
+                  id="stock"
+                  type="number"
+                  min={0}
+                  {...register("stock")}
+                  className={fieldClass("stock")}
+                />
+                {errors.stock ? (
+                  <p className="text-destructive text-sm">
+                    {errors.stock.message}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="categoryId">Kategori</Label>
+                <Select
+                  value={categoryIdValue || "none"}
+                  onValueChange={(v) =>
+                    setValue("categoryId", v === "none" ? "" : v, {
+                      shouldValidate: true,
+                    })
+                  }
+                >
+                  <SelectTrigger id="categoryId" className="w-full sm:max-w-xs">
+                    <SelectValue placeholder="Pilih kategori" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Tanpa kategori</SelectItem>
+                    {categories.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </section>
+          </div>
+
+          <div className="space-y-6 xl:sticky xl:top-6">
+            <ImageUploader
+              value={imageValue}
+              onChange={(v) => setImageValue(v)}
+              onUploadingChange={setImageUploading}
+            />
+          </div>
+        </div>
+
+        {isEdit ? (
+          <div className="flex justify-start">
+            <Button
+              type="button"
+              variant="outline"
+              className="text-destructive hover:text-destructive"
+              onClick={() => setDeleteOpen(true)}
+            >
+              <Trash2 className="size-4" />
+              Hapus
+            </Button>
+          </div>
+        ) : null}
       </form>
 
       {isEdit && product ? (
