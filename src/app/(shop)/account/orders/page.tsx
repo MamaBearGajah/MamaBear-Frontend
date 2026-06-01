@@ -56,16 +56,16 @@ const MOCK_ORDERS: Order[] = [
 ];
 
 async function fetchOrders(): Promise<Order[]> {
-  // Try to fetch from an API route if available, otherwise fall back to mock data.
   try {
-    const base = process.env.NEXT_PUBLIC_API_BASE || "";
-    const apiUrl = base ? `${base}/api/orders` : `/api/orders`;
+    const base = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const origin = base.startsWith("http") ? base : `http://${base}`;
+    const apiUrl = new URL("/api/orders", origin).toString();
     const res = await fetch(apiUrl, { cache: "no-store" });
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data)) return data as Order[];
     }
-  } catch (err) {
+  } catch {
     // ignore and fallback to mock
   }
 
