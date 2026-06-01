@@ -87,6 +87,23 @@ const PaymentPage = () => {
 
   return (
     <div className="min-h-screen bg-pink-50 py-10 px-4">
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="flex transform flex-col items-center gap-3 rounded-lg bg-white/95 px-6 py-8 shadow-lg">
+              <img src='/loading.gif' className='w-[50%]' alt="Loading" />
+            {/* <svg className="h-10 w-10 animate-spin text-pink-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg> */}
+
+            <div className="text-center">
+
+              <div className="text-lg font-semibold text-slate-900">Processing payment</div>
+              <div className="text-sm text-slate-500">Please wait while we initiate your payment...</div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-8">
 
         {/* LEFT - PAYMENT METHOD */}
@@ -185,11 +202,21 @@ const PaymentPage = () => {
           <button
             onClick={handlePayment}
             disabled={loading}
-            className="w-full mt-6 bg-pink-600 text-white py-3 rounded-xl font-bold"
+            className="w-full mt-6 inline-flex items-center justify-center gap-3 bg-pink-600 text-white py-3 rounded-xl font-bold disabled:opacity-60"
           >
-            {loading
-              ? "Processing..."
-              : `Continue with ${method.toUpperCase()} via ${gateway.toUpperCase()}`}
+            {loading ? (
+              <>
+                <svg className="h-5 w-5 animate-spin text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+
+                Processing payment...
+              </>
+            ) : (
+              `Continue with ${method.toUpperCase()} via ${gateway.toUpperCase()}`
+            )}
           </button>
 
           <p className="text-xs text-gray-400 mt-3 text-center">
