@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { CancelOrderDialog } from "@/components/common/CancelOrderDialog";
+import { ReviewSection } from "@/components/common/ReviewSection";
 import { StatusTimeline } from "@/components/common/StatusTimeline";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { getOrderById, type Order as OrderType } from "@/lib/api/orders";
@@ -34,6 +35,18 @@ const MOCK_ORDERS: OrderType[] = [
     ],
     total: 55000,
     status: "Cancelled",
+  },
+  {
+    id: "MB-2026-5001",
+    date: "2026-05-30",
+    items: [
+      { id: "p4", name: "MamaBear Prenatal Vitamin", quantity: 1, price: 185000 },
+      { id: "p5", name: "Kookie Bites – Almond", quantity: 2, price: 42000 },
+    ],
+    total: 269000,
+    status: "Delivered",
+    kurir: "JNE Express",
+    resi: "JNE987654321",
   },
   {
     id: "MB-2025-4521",
@@ -157,6 +170,8 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
               </CardContent>
             </Card>
           )}
+
+          <ReviewSection order={order} />
         </div>
 
         <div className="space-y-4">
