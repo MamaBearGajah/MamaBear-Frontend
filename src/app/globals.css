@@ -79,9 +79,9 @@ body {
   --mamabear-font-2: var(--mamabear-font-2);
   --mamabear-font-3: var(--mamabear-font-3);
   --mamabear-font-4: var(--mamabear-font-4);
-  --light-pink: var(--mamabear-light-pink);
-  --dark-pink: var(--mamabear-dark-pink);
-  --brown: var(--mamabear-brown);
+  --color-light-pink: var(--mamabear-light-pink);
+  --color-dark-pink: var(--mamabear-dark-pink);
+  --color-brown: var(--mamabear-brown);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
