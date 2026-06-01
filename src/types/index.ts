@@ -24,18 +24,23 @@ export interface Product {
   name: string;
   slug: string;
   description: string;
-  basePrice: string;
-  discountPrice: string;
+  basePrice: number;
+  discountPrice: number;
   weight: number;
   sku: string;
   stock: number;
-  mainImage: string;
+  soldCount: number;
   status: ProductStatus;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
+  avgRating?: number;
+  reviewCount?: number;
+  deletedAt: Date|string;
   images: ProductImage[];
   category: ProductCategory;
 }
+
+
 
 export interface ProductCategory {
   id: string;
@@ -55,18 +60,35 @@ export interface ProductVariant {
   productId: string;
   name: string;
   value: string;
-  imageUrl: string;
+  basePrice: number;
+  discountPrice: number;
   priceAdjustment: number;
   stock: number;
+  imageUrl: string;
   sku?: string | null;
   isActive: boolean;
   createdAt: string | Date;
   updatedAt: string | Date;
+  product?: ProductVariantOption;
+}
+
+export interface ProductVariantOption {
+  id: string;
+  name: string;
+  stock: number;
+  category: ProductCategoryOption;
+}
+
+export interface ProductCategoryOption{
+  id: string;
+  name: string;
+  slug: string;
 }
 
 export interface ProductImage {
   id: string;
   productId: string;
+  publicId: string;
   imageUrl: string;
   altText: string;
   sortOrder: number;
@@ -76,20 +98,39 @@ export interface ProductImage {
   updatedAt: string;
 }
 
+export interface ProductYouMightLove{
+  name: string,
+  avgRating: number,
+  discountPrice: number,
+  image: string,
+  stock: number,
+  createdAt: Date | string,
+  slug: string
+}
+
 export interface Review {
-  id: number;
-  title: string;
-  reviewerName: string;
-  productId: number;
+  id: string;
+  productId: string;
+  userId: string;
+  orderId: string;
   rating: number;
-  numUpvotes: number;
-  description: string;
-  attachmentUrl: string;
+  review: string;
+  isVerifiedPurchase: boolean;
+  helpfulCount: number;
+  // reviewerName: string;
+  user:{
+    id: string;
+    name: string;
+  }
   createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export type ProductBadgeType = "best-seller" | "fan-favorite" | "new";
 
+// export interface ReviewParams {
+
+// }
 export interface ProductListItem {
   id: string;
   name: string;
@@ -130,6 +171,9 @@ export interface CartItem {
   id: string;
   productId: string;
   variantId?: string;
+  variantName?: string;
+  variantValue?: string;
+  variantLabel?: string;
   quantity: number;
   name: string;
   basePrice: number;
@@ -137,6 +181,37 @@ export interface CartItem {
   image: string;
 }
 
+export interface CartItemVariant {
+  id: string;
+  productId: string;
+  name: string;
+  value: string;
+  variantId?: string;
+  quantity: number;
+  priceAdjustment: string;
+  basePrice: string;
+  isActive: boolean;
+  discountPrice?: string;
+  imageUrl: string;
+  stock:number;
+  sku:string;
+  createdAt: Date|string;
+  product: CartItemVariantProduct;
+}
+
+
+export interface CartItemVariantProduct{
+  id:string;
+  name:string;
+  stock:number;
+  category: CartItemVariantCategory;
+}
+
+export interface CartItemVariantCategory{
+  id:string;
+  name:string;
+  slug:string;
+}
 export interface OrderItem {
   id: string;
   productId: string;
@@ -180,6 +255,7 @@ export interface Category {
   name: string;
   slug: string;
   description?: string;
+  imageUrl?: string;
   isActive: boolean;
 }
 
@@ -214,6 +290,13 @@ export interface ProductListParams {
   status?: ProductStatus;
   sortBy?: ProductSortBy;
   sortOrder?: SortOrder;
+}
+
+export interface CategoryListParams{
+  isActive?: boolean;
+  page?: number;
+  limit?: number;
+  parentId?: string;
 }
 
 export interface SearchSuggestion {

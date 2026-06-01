@@ -6,6 +6,8 @@ export const MOCK_CATEGORIES: Category[] = [
     parentId: null,
     name: "Semua Produk",
     slug: "semua-produk",
+    description: "Lihat semua produk MamaBear",
+    imageUrl: "https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=400&fit=crop",
     isActive: true,
   },
   {
@@ -13,6 +15,8 @@ export const MOCK_CATEGORIES: Category[] = [
     parentId: "cat-root",
     name: "ASI Booster Tea",
     slug: "asi-booster-tea",
+    description: "Lihat semua produk MamaBear",
+    imageUrl: "https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=400&fit=crop",
     isActive: true,
   },
   {
@@ -20,6 +24,8 @@ export const MOCK_CATEGORIES: Category[] = [
     parentId: "cat-root",
     name: "ASI Booster Capsules",
     slug: "asi-booster-capsules",
+    description: "Lihat semua produk MamaBear",
+    imageUrl: "https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=400&fit=crop",
     isActive: true,
   },
   {
@@ -27,6 +33,8 @@ export const MOCK_CATEGORIES: Category[] = [
     parentId: "cat-root",
     name: "Kookie Bites",
     slug: "kookie-bites",
+    description: "Lihat semua produk MamaBear",
+    imageUrl: "https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=400&fit=crop",
     isActive: true,
   },
   {
@@ -34,6 +42,8 @@ export const MOCK_CATEGORIES: Category[] = [
     parentId: "cat-root",
     name: "Chocomalt",
     slug: "chocomalt",
+    description: "Lihat semua produk MamaBear",
+    imageUrl: "https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=400&fit=crop",
     isActive: true,
   },
   {
@@ -41,6 +51,8 @@ export const MOCK_CATEGORIES: Category[] = [
     parentId: "cat-root",
     name: "Sprinkles Cereal",
     slug: "sprinkles-cereal",
+    description: "Lihat semua produk MamaBear",
+    imageUrl: "https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=400&fit=crop",
     isActive: true,
   },
   {
@@ -48,6 +60,8 @@ export const MOCK_CATEGORIES: Category[] = [
     parentId: "cat-root",
     name: "Superfood Pancake Mix",
     slug: "superfood-pancake-mix",
+    description: "Lihat semua produk MamaBear",
+    imageUrl: "https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=400&fit=crop",
     isActive: true,
   },
   {
@@ -55,6 +69,8 @@ export const MOCK_CATEGORIES: Category[] = [
     parentId: "cat-root",
     name: "Protein Bites",
     slug: "protein-bites",
+    description: "Lihat semua produk MamaBear",
+    imageUrl: "https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=400&fit=crop",
     isActive: true,
   },
   {
@@ -62,6 +78,8 @@ export const MOCK_CATEGORIES: Category[] = [
     parentId: "cat-root",
     name: "Pregnancy Support",
     slug: "pregnancy-support",
+    description: "Lihat semua produk MamaBear",
+    imageUrl: "https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=400&fit=crop",
     isActive: true,
   },
   {
@@ -69,6 +87,8 @@ export const MOCK_CATEGORIES: Category[] = [
     parentId: "cat-root",
     name: "Postpartum Recovery",
     slug: "postpartum-recovery",
+    description: "Lihat semua produk MamaBear",
+    imageUrl: "https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=400&fit=crop",
     isActive: true,
   },
 ];
@@ -77,20 +97,23 @@ const PLACEHOLDER_IMAGE =
   "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=200&h=200&fit=crop";
 
 export const INITIAL_MOCK_PRODUCTS: ProductListItem[] = [
-  {
-    id: "p-1",
-    name: "ASI Booster Tea – Hazelnut Milk Tea",
-    slug: "asi-booster-tea-hazelnut",
-    basePrice: 65000,
-    stock: 42,
-    avgRating: 4.8,
-    ratingCount: 284,
-    categoryId: "cat-1",
-    weight: 150,
-    badge: "best-seller",
-    flavorTags: ["Hazelnut", "Lychee", "Thai"],
-    images: [{ id: "img-1", imageUrl: PLACEHOLDER_IMAGE, isFeatured: true }],
-  },
+  // {
+  //   id: "p-1",
+  //   name: "ASI Booster Tea – Hazelnut Milk Tea",
+  //   slug: "asi-booster-tea-hazelnut",
+  //   description: "Deskripsi Produk",
+  //   basePrice: 65000,
+  //   discountPrice:55000,
+  //   sku: "ABT-HNT-150",
+  //   stock: 42,
+  //   avgRating: 4.8,
+  //   ratingCount: 284,
+  //   categoryId: "cat-1",
+  //   weight: 150,
+  //   badge: "best-seller",
+  //   flavorTags: ["Hazelnut", "Lychee", "Thai"],
+  //   images: [{ id: "img-1", imageUrl: PLACEHOLDER_IMAGE, isFeatured: true }],
+  // },
   {
     id: "p-2",
     name: "ASI Booster Tea – Original",

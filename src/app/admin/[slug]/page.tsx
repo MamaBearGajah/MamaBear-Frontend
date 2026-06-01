@@ -24,7 +24,7 @@ export default async function ProductDetailPage({
 	// console.log("fetchedAllDataData", fetchedAllDataData)
 	const fetchedData = await fetchProductSlug(slug)
 	const fetchedDataData = fetchedData.data;
-	const slicedData = fetchedAllDataData?.slice(0,3);
+	const slicedData = fetchedAllDataData?.slice(0,5);
 	// console.log("slicedData", slicedData)
 	const productId = fetchedDataData.id;
 	const productVariant = await fetchProductVariantId(productId)

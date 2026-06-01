@@ -3,6 +3,8 @@
 import Link from "next/link";
 import React, { useState } from "react";
 import { useCart } from "@/hooks/useCart";
+import { safeFormatPrice } from "@/lib/utils";
+import CartItem from "@/components/cart/CartItem";
 import {
   Minus,
   Plus,
@@ -223,14 +225,19 @@ const CartPage = () => {
                           >
                             {item.name}
                           </h2>
+                          {item.variantLabel ? (
+                            <p className="text-sm text-gray-500 mt-1">
+                              {item.variantLabel}
+                            </p>
+                          ) : null}
 
                           <div className="flex items-center gap-2 mt-1">
-                            {item.discountPrice && (
+                            {item.discountPrice && item.basePrice && (
                               <span
                                 className="text-sm line-through"
                                 style={{ color: "#B9998D" }}
                               >
-                                Rp {item.basePrice.toLocaleString()}
+                                {safeFormatPrice(item.basePrice)}
                               </span>
                             )}
 
@@ -238,14 +245,14 @@ const CartPage = () => {
                               className="font-bold"
                               style={{ color: "#D5557E" }}
                             >
-                              Rp {price.toLocaleString()}
+                              {safeFormatPrice(price)}
                             </span>
                           </div>
                         </div>
 
                         {/* REMOVE */}
                         <button
-                          onClick={() => removeItem(item.productId)}
+                          onClick={() => removeItem(item.productId, item.variantId)}
                           className="p-2 rounded-full hover:bg-pink-50 transition"
                         >
                           <Trash2
@@ -262,6 +269,7 @@ const CartPage = () => {
                             onClick={() =>
                               updateQuantity(
                                 item.productId,
+                                item.variantId,
                                 item.quantity - 1
                               )
                             }
@@ -278,6 +286,7 @@ const CartPage = () => {
                             onClick={() =>
                               updateQuantity(
                                 item.productId,
+                                item.variantId,
                                 item.quantity + 1
                               )
                             }
@@ -292,7 +301,7 @@ const CartPage = () => {
                           className="font-black text-lg"
                           style={{ color: "#D5557E" }}
                         >
-                          Rp {(price * item.quantity).toLocaleString()}
+                          {safeFormatPrice(price * item.quantity)}
                         </div>
                       </div>
                     </div>
@@ -373,7 +382,7 @@ const CartPage = () => {
                   </span>
 
                   <span className="font-bold">
-                    Rp {subtotal.toLocaleString()}
+                    {safeFormatPrice(subtotal)}
                   </span>
                 </div>
 
@@ -383,7 +392,7 @@ const CartPage = () => {
                   </span>
 
                   <span className="font-bold text-green-600">
-                    - Rp {discount.toLocaleString()}
+                    - {safeFormatPrice(discount)}
                   </span>
                 </div>
 
@@ -395,7 +404,7 @@ const CartPage = () => {
                   <span className="font-bold">
                     {shipping === 0
                       ? "FREE"
-                      : `Rp ${shipping.toLocaleString()}`}
+                      : safeFormatPrice(shipping)}
                   </span>
                 </div>
 
@@ -411,7 +420,7 @@ const CartPage = () => {
                     className="font-black text-2xl"
                     style={{ color: "#D5557E" }}
                   >
-                    Rp {finalTotal.toLocaleString()}
+                    {safeFormatPrice(finalTotal)}
                   </span>
                 </div>
               </div>
@@ -432,6 +441,6 @@ const CartPage = () => {
       </div>
     </div>
   );
-};
+}
 
 export default CartPage;
