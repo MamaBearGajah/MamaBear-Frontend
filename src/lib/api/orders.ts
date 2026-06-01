@@ -17,11 +17,58 @@ export type Order = {
 
 let ORDERS: Order[] = [
 	{
+		id: "MB-2026-1001",
+		date: "2026-05-28",
+		items: [
+			{ id: "p10", name: "MamaBear Protein Mix", quantity: 1, price: 125000 },
+		],
+		total: 125000,
+		status: "Pending",
+	},
+	{
+		id: "MB-2026-1002",
+		date: "2026-05-25",
+		items: [
+			{ id: "p11", name: "Kookie Bites – Peanut", quantity: 2, price: 49000 },
+		],
+		total: 98000,
+		status: "Processing",
+		kurir: "JNE Regular",
+		resi: "JNE123456789",
+	},
+	{
+		id: "MB-2026-1003",
+		date: "2026-05-20",
+		items: [
+			{ id: "p12", name: "Zaya Mix – Vanilla", quantity: 1, price: 55000 },
+		],
+		total: 55000,
+		status: "Cancelled",
+	},
+	{
 		id: "MB-2025-4521",
 		date: "2025-03-15",
 		items: [{ id: "p1", name: "ASI Booster Tea – Thai Milk Tea", quantity: 2, price: 49000 }],
 		total: 98000,
 		status: "Delivered",
+		kurir: "JNE Express",
+		resi: "1234567890123",
+	},
+    {
+		id: "MB-2025-4523",
+		date: "2025-03-15",
+		items: [{ id: "p1", name: "ASI Booster Tea – Thai Milk Tea", quantity: 2, price: 49000 }],
+		total: 88000,
+		status: "Processing",
+		kurir: "JNE Express",
+		resi: "1234567890123",
+	},
+    {
+		id: "MB-2025-4411",
+		date: "2025-03-17",
+		items: [{ id: "p1", name: "ASI Booster Tea – Thai Milk Tea", quantity: 2, price: 49000 }],
+		total: 988000,
+		status: "Processing",
 		kurir: "JNE Express",
 		resi: "1234567890123",
 	},
@@ -33,7 +80,7 @@ let ORDERS: Order[] = [
 			{ id: "p3", name: "Almon Mix – Vanilla", quantity: 1, price: 59000 },
 		],
 		total: 176000,
-		status: "Delivered",
+		status: "Cancelled",
 		kurir: "TIKI Overnight",
 		resi: "9876543210987",
 	},

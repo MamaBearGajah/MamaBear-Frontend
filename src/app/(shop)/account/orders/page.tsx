@@ -53,6 +53,26 @@ const MOCK_ORDERS: Order[] = [
     total: 188000,
     status: "Delivered",
   },
+  {
+    id: "MB-2024-9811",
+    date: "2024-12-12",
+    items: [
+      { id: "p5", name: "Zaya Mix – Chocolate", quantity: 2, price: 55000 },
+      { id: "p6", name: "Kookie Bites – Matcha", quantity: 2, price: 39000 },
+    ],
+    total: 188000,
+    status: "Cancelled",
+  },
+  {
+    id: "MB-2025-9111",
+    date: "2025-12-12",
+    items: [
+      { id: "p5", name: "Zaya Mix – Chocolate", quantity: 2, price: 55000 },
+      { id: "p6", name: "Kookie Bites – Matcha", quantity: 2, price: 39000 },
+    ],
+    total: 210000,
+    status: "Processing",
+  },
 ];
 
 async function fetchOrders(): Promise<Order[]> {
