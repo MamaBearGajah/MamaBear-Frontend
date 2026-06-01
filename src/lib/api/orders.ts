@@ -11,6 +11,8 @@ export type Order = {
 	items: OrderItem[];
 	total: number;
 	status: "Delivered" | "Processing" | "Cancelled" | "Pending";
+	kurir?: string;
+	resi?: string;
 };
 
 let ORDERS: Order[] = [
@@ -20,6 +22,8 @@ let ORDERS: Order[] = [
 		items: [{ id: "p1", name: "ASI Booster Tea – Thai Milk Tea", quantity: 2, price: 49000 }],
 		total: 98000,
 		status: "Delivered",
+		kurir: "JNE Express",
+		resi: "1234567890123",
 	},
 	{
 		id: "MB-2025-3892",
@@ -30,6 +34,8 @@ let ORDERS: Order[] = [
 		],
 		total: 176000,
 		status: "Delivered",
+		kurir: "TIKI Overnight",
+		resi: "9876543210987",
 	},
 ];
 
