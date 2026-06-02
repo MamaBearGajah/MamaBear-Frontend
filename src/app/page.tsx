@@ -10,7 +10,7 @@ import FloatingChatButton from "@/components/FloatingChatButton";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 // import { fetchProducts } from "../../services/index";
-import { MOCK_CATEGORIES } from "@/components/CategoryShowcase";
+//import { MOCK_CATEGORIES } from "@/components/CategoryShowcase";
 import BackToTop from "@/components/common/BackToTop";
 
 async function tryFetch(url: string) {
@@ -29,10 +29,10 @@ async function tryFetch(url: string) {
 async function fetchCategories(): Promise<Category[]> {
   const BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
   const candidates = [
-    `${BASE}/categories`,
-    `${BASE}/categories/list`,
-    `${BASE}/product-categories`,
-    `${BASE}/products/categories`,
+    ${BASE}/categories,
+    ${BASE}/categories/list,
+    ${BASE}/product-categories,
+    ${BASE}/products/categories,
   ];
 
   for (const url of candidates) {
@@ -71,34 +71,48 @@ export default async function Home() {
     >
       <Header />
       <main className="flex w-full flex-1 flex-col bg-[#FEF2F5] dark:bg-black">
-        <BackToTop/>
+        <BackToTop />
         <HomeBanner />
         {/* MOBILE-ONLY: page gutters live here; desktop keeps 3cm gutters */}
-        <section className="px-4 sm:px-[15%]">
-          <CategorySection />
+        <section className="px-4 sm:px-[3cm]">
+          <div className="mx-auto w-full max-w-[1320px]">
+            <CategorySection />
+          </div>
         </section>
-        <section className="px-4 sm:px-[15%]">
-          <FeaturedCardsSection />
+        <section className="px-4 sm:px-[3cm]">
+          <div className="mx-auto w-full max-w-[1320px]">
+            <FeaturedCardsSection />
+          </div>
         </section>
         {/* Backend top-products fetch is temporarily disabled.
           When BE data is ready, restore:
           const products = await fetchProducts();
           <TopProducts products={products} />
         */}
-        <section className="px-0 sm:px-[15%]">
-          <TopProducts />
+        <section className="px-4 sm:px-[3cm]">
+          <div className="mx-auto w-full max-w-[1320px]">
+            <TopProducts />
+          </div>
         </section>
-        <section className="px-4 sm:px-[15%]">
-          <PromoSection />
+        <section className="px-4 sm:px-[3cm]">
+          <div className="mx-auto w-full max-w-[1320px]">
+            <PromoSection />
+          </div>
         </section>
-        <section className="px-4 sm:px-[15%]">
-          <Testimonial />
+        <section className="px-4 sm:px-[3cm]">
+          <div className="mx-auto w-full max-w-[1320px]">
+            <Testimonial />
+          </div>
         </section>
-        <section className="px-4 sm:px-[15%]">
-          <FAQSection />
+        <section className="px-4 sm:px-[3cm]">
+          <div className="mx-auto w-full max-w-[1320px]">
+            <FAQSection />
+          </div>
         </section>
-        <section className="px-4 sm:px-[15%]">
-          <SubscribeSection />
+        <section className="px-4 sm:px-[3cm]">
+          <div className="mx-auto w-full max-w-[1320px]">
+            <SubscribeSection />
+          </div>
         </section>
         <FloatingChatButton href="#" />
       </main>
