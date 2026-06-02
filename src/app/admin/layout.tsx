@@ -19,12 +19,12 @@ export default function AdminLayout({
   const { state } = useAuth();
 
   // if (state.isLoading) {
-  //   return null;
-  // }
+  //  return null;
+  //}
 
-  // if (!state.isAuthenticated || !state.user || state.user.role !== "admin") {
-  //   redirect("/login");
-  // }
+  //if (!state.isAuthenticated || !state.user || state.user.role !== "admin") {
+  //redirect("/login");
+  //}
 
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
