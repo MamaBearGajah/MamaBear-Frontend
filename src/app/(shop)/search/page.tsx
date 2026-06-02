@@ -15,7 +15,6 @@ import {
   parseShopListParamsFromRecord,
   toStorefrontSearchListParams,
 } from "@/lib/shop/product-list-params";
-import { getShopAccessToken } from "@/lib/auth/shop-access-token";
 import { computeCategoryCounts } from "@/lib/shop/category-counts";
 import { filterStorefrontProducts } from "@/lib/shop/storefront-products";
 import type { PaginationMeta, ProductListItem } from "@/types";
@@ -48,12 +47,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   }
 
   const listParams = toStorefrontSearchListParams(filters);
-  const accessToken = await getShopAccessToken();
 
   const [productsRes, categoriesRes, allProductsRes] = await Promise.all([
-    getSearchResults(listParams, accessToken),
-    getCategoryList(accessToken),
-    getProductList({ page: 1, limit: 100 }, accessToken),
+    getSearchResults(listParams),
+    getCategoryList(),
+    getProductList({ page: 1, limit: 100 }),
   ]);
 
   const normalizedProducts = (productsRes.data || []).map((p) => ({

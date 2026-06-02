@@ -1,6 +1,5 @@
 import type { ApiResponse, Category, CategoryListParams } from "@/types";
 import { apiClient } from "./client";
-import { isMockProductsEnabled } from "./mock-data";
 
 type CategoriesMeta = {
   total: number;
@@ -23,15 +22,9 @@ import { ALL_PRODUCTS_CATEGORY, flattenCategories } from "@/lib/categories/flatt
 import { normalizeApiResponse } from "./normalize-api-response";
 
 export async function getCategoryList(
-  // accessToken?: string | null,
   params: CategoryListParams = {},
 ): Promise<ApiResponse<Category[]>> {
-  if (isMockProductsEnabled()) {
-    return { success: true, data: MOCK_CATEGORIES };
-  }
-
   const { data } = await apiClient.get<ApiResponse<Category[]>>("/categories", {
-    // headers: authHeaders(accessToken),
     params,
   });
 
@@ -53,10 +46,6 @@ export async function getCategoryList(
 export async function getCategoryListNoFlatten(
   params: CategoryListParams = {},
 ): Promise<ApiResponse<Category[]>> {
-  if (isMockProductsEnabled()) {
-    return { success: true, data: MOCK_CATEGORIES };
-  }
-
   const { data } = await apiClient.get<ApiResponse<Category[]>>("/categories", {
     params,
   });

@@ -1,6 +1,5 @@
 "use client"
 import {useState, useEffect} from 'react';
-import { mockProducts } from '../../lib/MockProducts';
 import { Product, Review } from '@/types';
 import {reviewsApi, getAllReviews}  from '../../lib/api/reviews';
 import Stars from '@/components/productDetail/Stars'
@@ -69,8 +68,7 @@ export default function ReviewCard({navValue, productId, product}:{navValue:stri
     case "Ingredients":
         return(
         <div className='flex flex-col justify-start items-start md:w-[60%] md:h-[60%]'>
-            
-        {mockProducts[1].ingredients}
+            {product.ingredients ?? "-"}
         </div>)
         
     case "How To Use":

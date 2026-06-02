@@ -75,6 +75,11 @@ apiClient.interceptors.response.use(
   }
 );
 
+export function authHeaders(accessToken?: string) {
+  if (!accessToken) return {};
+  return { Authorization: `Bearer ${accessToken}` };
+}
+
 
 // import axios from "axios";
 
