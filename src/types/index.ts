@@ -35,12 +35,10 @@ export interface Product {
   updatedAt: Date;
   avgRating?: number;
   reviewCount?: number;
-  deletedAt: Date|string;
+  deletedAt: Date | string;
   images: ProductImage[];
   category: ProductCategory;
 }
-
-
 
 export interface ProductCategory {
   id: string;
@@ -72,6 +70,38 @@ export interface ProductVariant {
   product?: ProductVariantOption;
 }
 
+export interface ProductVariantList {
+  id: string;
+  productId: string;
+  name: string;
+  value: string;
+  basePrice: string;
+  discountPrice: string;
+  priceAdjustment: string;
+  stock: number;
+  reservedStock: number;
+  imageUrl: string;
+  altText: string | null;
+  sku: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  product: {
+    id: string;
+    name: string;
+    slug: string;
+    stock: number;
+    images: {
+      imageUrl: string;
+    }[];
+    category: {
+      id: string;
+      name: string;
+      slug: string;
+    };
+  };
+}
+
 export interface ProductVariantOption {
   id: string;
   name: string;
@@ -79,7 +109,7 @@ export interface ProductVariantOption {
   category: ProductCategoryOption;
 }
 
-export interface ProductCategoryOption{
+export interface ProductCategoryOption {
   id: string;
   name: string;
   slug: string;
@@ -98,14 +128,14 @@ export interface ProductImage {
   updatedAt: string;
 }
 
-export interface ProductYouMightLove{
-  name: string,
-  avgRating: number,
-  discountPrice: number,
-  image: string,
-  stock: number,
-  createdAt: Date | string,
-  slug: string
+export interface ProductYouMightLove {
+  name: string;
+  avgRating: number;
+  discountPrice: number;
+  image: string;
+  stock: number;
+  createdAt: Date | string;
+  slug: string;
 }
 
 export interface Review {
@@ -118,10 +148,10 @@ export interface Review {
   isVerifiedPurchase: boolean;
   helpfulCount: number;
   // reviewerName: string;
-  user:{
+  user: {
     id: string;
     name: string;
-  }
+  };
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -193,24 +223,23 @@ export interface CartItemVariant {
   isActive: boolean;
   discountPrice?: string;
   imageUrl: string;
-  stock:number;
-  sku:string;
-  createdAt: Date|string;
+  stock: number;
+  sku: string;
+  createdAt: Date | string;
   product: CartItemVariantProduct;
 }
 
-
-export interface CartItemVariantProduct{
-  id:string;
-  name:string;
-  stock:number;
+export interface CartItemVariantProduct {
+  id: string;
+  name: string;
+  stock: number;
   category: CartItemVariantCategory;
 }
 
-export interface CartItemVariantCategory{
-  id:string;
-  name:string;
-  slug:string;
+export interface CartItemVariantCategory {
+  id: string;
+  name: string;
+  slug: string;
 }
 export interface OrderItem {
   id: string;
@@ -292,7 +321,7 @@ export interface ProductListParams {
   sortOrder?: SortOrder;
 }
 
-export interface CategoryListParams{
+export interface CategoryListParams {
   isActive?: boolean;
   page?: number;
   limit?: number;

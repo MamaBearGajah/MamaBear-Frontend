@@ -77,7 +77,6 @@ export default function ResetPasswordForm() {
 
   const handleSubmit = async (data: ResetPasswordSchema) => {
     const { password } = data;
-    console.log(password, token);
     try {
       setError("");
       setIsLoading(true);
