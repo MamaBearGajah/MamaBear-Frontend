@@ -15,7 +15,6 @@ interface VariantsPageClientProps {
   categoryMap: Record<string, string>;
   initialFilters: ProductFilters;
   accessToken?: string;
-  mockMode: boolean;
 }
 
 function VariantsPageContent({
@@ -25,7 +24,6 @@ function VariantsPageContent({
   categoryMap,
   initialFilters,
   accessToken,
-  mockMode,
 }: VariantsPageClientProps) {
   return (
     <>
@@ -34,7 +32,6 @@ function VariantsPageContent({
         categories={categories}
         accessToken={accessToken}
         initialFilters={initialFilters}
-        mockMode={mockMode}
       />
       <VariantsTable variants={variants} categoryMap={categoryMap} />
       <div className="mt-6">

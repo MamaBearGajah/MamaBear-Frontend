@@ -18,7 +18,6 @@ interface ProductsToolbarProps {
   categories: Category[];
   accessToken?: string;
   initialFilters: ProductFilters;
-  mockMode?: boolean;
 }
 
 export default function ProductsToolbar({
@@ -26,7 +25,6 @@ export default function ProductsToolbar({
   categories,
   accessToken,
   initialFilters,
-  mockMode = false,
 }: ProductsToolbarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -66,10 +64,6 @@ export default function ProductsToolbar({
   };
 
   const handleExport = async () => {
-    if (mockMode) {
-      toast.info("Export akan tersedia setelah backend siap.");
-      return;
-    }
     setExporting(true);
     try {
       const { downloadUrl } = await exportProducts(accessToken);
@@ -119,8 +113,7 @@ export default function ProductsToolbar({
             <Button
               type="button"
               variant="outline"
-              disabled={exporting || mockMode}
-              title={mockMode ? "Tersedia setelah backend siap" : undefined}
+              disabled={exporting}
               onClick={handleExport}
             >
               <Download className="size-4" />

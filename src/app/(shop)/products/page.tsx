@@ -14,7 +14,6 @@ import {
   parseShopListParamsFromRecord,
   toStorefrontProductListParams,
 } from "@/lib/shop/product-list-params";
-import { isMockProductsEnabled } from "@/lib/api/mock-data";
 import { filterStorefrontProducts } from "@/lib/shop/storefront-products";
 import type { PaginationMeta } from "@/types";
 

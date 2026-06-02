@@ -24,7 +24,7 @@ export default async function VariantsPage({ params }: VariantsPageProps) {
   const isCreate = id === "new";
   const session = await getServerSession();
 
-  const categoriesRes = await getCategoryList(session?.accessToken);
+  const categoriesRes = await getCategoryList();
 
   let product = undefined;
   if (!isCreate) {

@@ -9,18 +9,8 @@ import {
   ProductPayload,
   ApiResponse
 } from "@/types";
-// import { apiClient, authHeaders } from "./client";
-import { apiClient } from "./client";
+import { apiClient, authHeaders } from "./client";
 import axios from "axios";
-import {
-  createMockProduct,
-  getMockProductById,
-  getMockProductBySlug,
-  isMockProductsEnabled,
-  updateMockProduct,
-} from "./mock-data";
-import {getMockAllProducts, getMockProductBySlug2,getMockProductVariantById} from "@/lib/MockProducts";
-import { fetchMockProductList } from "./mock-products";
 import { mapProductListItems } from "./map-product-list-item";
 import { normalizeApiResponse } from "./normalize-api-response";
 
@@ -83,16 +73,7 @@ export async function getAllProducts(
   // accessToken?: string,
   params: ProductListParams = {},
 ): Promise<Product[]> {
-  if (isMockProductsEnabled()) {
-    const product =getMockAllProducts();
-    if (!product) {
-      const err = new Error("Product not found") as Error & { code?: string };
-      err.code = "NOT_FOUND";
-      throw err;
-    }
-    return product;
-  }
-  const { data } = await apiClient.get<ApiResponse<Product>>(
+  const { data } = await apiClient.get(
     `/Products`,
     {    
       // headers: authHeaders(accessToken), 
@@ -100,7 +81,8 @@ export async function getAllProducts(
          
     },
   );
-  return data.data.data;
+  const normalized = normalizeApiResponse<Product[]>(data);
+  return Array.isArray(normalized.data) ? normalized.data : [];
 }
 
 // For Product Detail Page to fetch product by slug
@@ -108,20 +90,12 @@ export async function getProductBySlug2(
   slug: string,
   // accessToken?: string,
 ): Promise<Product> {
-  if (isMockProductsEnabled()) {
-    const product = getMockProductBySlug2("modern-coffee-table");
-    if (!product) {
-      const err = new Error("Product not found") as Error & { code?: string };
-      err.code = "NOT_FOUND";
-      throw err;
-    }
-    return product;
-  }
-  const data  = await apiClient.get<ApiResponse<Product>>(
+  const { data } = await apiClient.get(
     `/products/slug/${slug}`,
     // { headers: authHeaders(accessToken) },
   );
-  return data.data.data ;
+  const normalized = normalizeApiResponse<Product>(data);
+  return normalized.data;
 }
 
 // export const getProductBySlug2 = async (slug: string): Promise<Product> => {
@@ -139,23 +113,15 @@ export async function getProductBySlug2(
 export async function getProductVariantById(
   productId: string,
   // accessToken?: string,
-): Promise<Product> {
-  if (isMockProductsEnabled()) {
-    const product = getMockProductVariantById("p2");
-    if (!product) {
-      const err = new Error("Product not found") as Error & { code?: string };
-      err.code = "NOT_FOUND";
-      throw err;
-    }
-    return product;
-  }
-  const { data } = await apiClient.get<ApiResponse<ProductVariant>>(
+): Promise<ProductVariant[]> {
+  const { data } = await apiClient.get(
     `/products/${productId}/variants`,
     {
       //  headers: authHeaders(accessToken) 
     },
   );
-  return data.data;
+  const normalized = normalizeApiResponse<ProductVariant[]>(data);
+  return Array.isArray(normalized.data) ? normalized.data : [];
 }
 
 
@@ -164,15 +130,6 @@ export async function getProductBySlug(
   slug: string,
   // accessToken?: string,
 ): Promise<Product> {
-  if (isMockProductsEnabled()) {
-    const product = getMockProductBySlug(slug);
-    if (!product) {
-      const err = new Error("Product not found") as Error & { code?: string };
-      err.code = "NOT_FOUND";
-      throw err;
-    }
-    return product;
-  }
   const { data } = await apiClient.get<ApiResponse<Product>>(
     `/products/slug/${slug}`,
     // { headers: authHeaders(accessToken) },
@@ -191,10 +148,6 @@ export async function fetchProductSlug(slug: string): Promise<Product> {
 export async function getProductList(
   params: ProductListParams = {},
 ): Promise<ApiResponse<ProductListItem[]>> {
-  if (isMockProductsEnabled()) {
-    return fetchMockProductList(params);
-  }
-
   const { data } = await apiClient.get("/products", {
     params: toApiProductParams(params),
   });
@@ -210,16 +163,6 @@ export async function getProductById(
   id: string,
   accessToken?: string
 ): Promise<Product> {
-  if (isMockProductsEnabled()) {
-    const product = getMockProductById(id);
-    if (!product) {
-      const err = new Error("Product not found") as Error & { code?: string };
-      err.code = "NOT_FOUND";
-      throw err;
-    }
-    return product;
-  }
-
   const { data } = await apiClient.get<ApiResponse<Product>>(
     `/products/${id}`,
     {
@@ -259,10 +202,6 @@ export async function createProduct(
   payload: ProductPayload,
   accessToken?: string
 ): Promise<Product> {
-  if (isMockProductsEnabled()) {
-    return createMockProduct(payload);
-  }
-
   const { data } = await apiClient.post<ApiResponse<Product>>(
     "/products",
     payload,
@@ -278,10 +217,6 @@ export async function updateProduct(
   payload: ProductPayload,
   accessToken?: string
 ): Promise<Product> {
-  if (isMockProductsEnabled()) {
-    return updateMockProduct(id, payload);
-  }
-
   const { data } = await apiClient.put<ApiResponse<Product>>(
     `/products/${id}`,
     payload,
@@ -306,16 +241,6 @@ export async function deleteProduct(
   id: string,
   accessToken?: string
 ): Promise<void> {
-  if (isMockProductsEnabled()) {
-    const { deleteMockProduct } = await import("./mock-data");
-    if (!deleteMockProduct(id)) {
-      const err = new Error("Product not found") as Error & { code?: string };
-      err.code = "NOT_FOUND";
-      throw err;
-    }
-    return;
-  }
-
   await apiClient.delete(`/products/${id}`, {
     headers: authHeaders(accessToken),
   });

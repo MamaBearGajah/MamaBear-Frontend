@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import AdminPageHeader from "@/components/layout/AdminPageHeader";
-import ProductsPageClient from "@/components/admin/ProductsPageClient";
 import { getCategoryList } from "@/lib/api/categories";
-import { isMockProductsEnabled } from "@/lib/api/mock-data";
-import { getProductVariantById, getProductList } from "@/lib/api/products";
+import { getProductVariantById } from "@/lib/api/products";
 import { getServerSession } from "@/lib/auth/session";
 import type { ProductFilters } from "@/components/admin/ProductFilterDialog";
-import type { ProductListParams, ApiResponse } from "@/types";
+import type { ProductListParams } from "@/types";
 import VariantsPageClient from "../../../components/admin/VariantsPageClient";
 
 export const metadata: Metadata = {
@@ -70,22 +68,21 @@ export default async function AdminVariantsPage({
     maxPrice,
   };
 
-  let mockMode = isMockProductsEnabled();
   const ProductId = "2e316469-8243-49a3-b242-1037d12dd710";
 
-  const variantRes = await getProductVariantById(ProductId);
-
-  const { MOCK_CATEGORIES } = await import("@/lib/api/mock-data");
-  const categoriesRes = { success: true, data: MOCK_CATEGORIES };
+  const [variants, categoriesRes] = await Promise.all([
+    getProductVariantById(ProductId),
+    getCategoryList(),
+  ]);
 
   const categoryMap = Object.fromEntries(
     (categoriesRes?.data || []).map((c) => [c.id, c.name])
   );
 
-  const meta = variantRes?.meta ?? {
+  const meta = {
     page: 1,
     limit: 20,
-    totalItems: variantRes?.data?.length ?? 0,
+    totalItems: variants.length,
     totalPages: 1,
   };
   return (
@@ -97,13 +94,12 @@ export default async function AdminVariantsPage({
 
       <Suspense fallback={<ProductsListFallback />}>
         <VariantsPageClient
-          variants={variantRes?.data}
+          variants={variants}
           meta={meta}
           categories={categoriesRes.data}
           categoryMap={categoryMap}
           initialFilters={initialFilters}
           accessToken={accessToken}
-          mockMode={mockMode}
         />
       </Suspense>
     </div>
