@@ -35,6 +35,7 @@ export interface ImageUploaderProps {
   onChange?: (value: ImageUploaderValue) => void;
   onFileSelected?: (file: File) => void;
   onUploadingChange?: (uploading: boolean) => void;
+  onSubmit?: (value: ImageUploaderValue) => void;
   className?: string;
   disabled?: boolean;
   title?: string;
@@ -56,7 +57,7 @@ function toValue(
     imageUrl: next?.imageUrl ?? "",
     altText: next?.altText ?? "",
     imageType: next?.imageType ?? "main",
-    isFeatured: next?.isFeatured ?? true,
+    isFeatured: next?.isFeatured ?? false,
     sortOrder: next?.sortOrder ?? 0,
   };
 }
@@ -66,6 +67,7 @@ export default function ImageUploader({
   onChange,
   onFileSelected,
   onUploadingChange,
+  onSubmit,
   className,
   disabled = false,
   title = "Product Image",
@@ -277,6 +279,24 @@ export default function ImageUploader({
     handleFile(event.dataTransfer.files?.[0]);
   };
 
+  const resetForm = () => {
+    setInternalValue(toValue(undefined));
+    setLocalPreview("");
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+    }
+  };
+
+  const handleSubmit = () => {
+    if (!internalValue.imageUrl.trim()) {
+      toast.error("Image URL is required.");
+      return;
+    }
+    onSubmit?.(internalValue);
+    resetForm();
+  };
+
   return (
     <section
       className={cn(
@@ -364,7 +384,28 @@ export default function ImageUploader({
             <p className="text-[12px] leading-5 text-[#8D6B5B]">
               Paste a direct image URL (Unsplash, CDN, etc.)
             </p>
-            <div className="mt-3 grid grid-cols-2 items-center gap-4">
+
+            <div className="space-y-2">
+              <Label htmlFor="altText">
+                Title <span className="text-[#D5557E]">*</span>
+              </Label>
+              <Input
+                id="altText"
+                value={internalValue.altText}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  emitChange({ ...internalValue, altText: next });
+                }}
+                placeholder="Describe the image for accessibility..."
+                disabled={disabled || isUploading}
+                className="border-[#E5E7EB] focus-visible:border-[#F1AFC4] focus-visible:ring-[#F1AFC4]/30"
+              />
+              <p className="text-[12px] leading-5 text-[#8D6B5B]">
+                Provide a descriptive alt text for the image.
+              </p>
+            </div>
+
+            <div className="mt-3">
               <div className="space-y-2">
                 <Label htmlFor="imageType">Image Type</Label>
                 <Select
@@ -385,24 +426,19 @@ export default function ImageUploader({
                   </SelectContent>
                 </Select>
               </div>
+            </div>
 
-              <div className="flex items-center gap-2">
-                <input
-                  id="isFeatured"
-                  type="checkbox"
-                  checked={internalValue.isFeatured}
-                  onChange={(e) =>
-                    emitChange({
-                      ...internalValue,
-                      isFeatured: e.target.checked,
-                    })
-                  }
-                  className="h-4 w-4 rounded border-gray-300 text-[var(--mamabear-dark-pink)] focus:ring-[var(--mamabear-dark-pink)]"
-                />
-                <Label htmlFor="isFeatured" className="mb-0">
-                  Featured
-                </Label>
-              </div>
+            <div className="mt-6 flex justify-end">
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={
+                  disabled || isUploading || !internalValue.imageUrl.trim()
+                }
+                className="inline-flex items-center gap-2 rounded-lg bg-[#D5557E] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#C84E77] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Submit Image
+              </button>
             </div>
           </div>
         </div>

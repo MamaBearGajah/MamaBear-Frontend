@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import ImageUploader, {
   type ImageUploaderValue,
 } from "@/components/admin/ImageUploader";
+import ProductGallery, {
+  type ProductImage,
+} from "@/components/admin/ProductGallery";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -60,6 +63,19 @@ export default function ProductForm({
   const [deletePending, startDeleteTransition] = useTransition();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
+  const [galleryImages, setGalleryImages] = useState<ProductImage[]>(() => {
+    if (!product || !product.images) return [];
+    return [...product.images]
+      .sort((a, b) => (a.sortOrder ?? Infinity) - (b.sortOrder ?? Infinity))
+      .map((img, index) => ({
+        id: img.id,
+        imageUrl: img.imageUrl ?? "",
+        altText: img.altText ?? "",
+        imageType: img.imageType ?? "other",
+        isFeatured: (img.sortOrder ?? index + 1) === 1,
+        sortOrder: img.sortOrder ?? index + 1,
+      }));
+  });
   const slugManuallyEdited = useRef(false);
 
   const isEdit = mode === "edit" && !!product;
@@ -175,6 +191,40 @@ export default function ProductForm({
 
   const fieldClass = (field: keyof ProductFormInput) =>
     cn(errors[field] && "border-destructive");
+
+  const handleImageSubmit = (imageValue: ImageUploaderValue) => {
+    const newImage: ProductImage = {
+      imageUrl: imageValue.imageUrl,
+      altText: imageValue.altText,
+      imageType: imageValue.imageType,
+      isFeatured: false,
+      sortOrder: galleryImages.length + 1,
+    };
+    setGalleryImages([...galleryImages, newImage]);
+    toast.success("Image added to gallery");
+  };
+
+  const handleImageDelete = (index: number) => {
+    const nextImages = galleryImages
+      .filter((_, i) => i !== index)
+      .map((img, nextIndex) => ({
+        ...img,
+        sortOrder: nextIndex + 1,
+        isFeatured: nextIndex === 0,
+      }));
+    setGalleryImages(nextImages);
+    toast.success("Image removed from gallery");
+  };
+
+  const handleGalleryReorder = (images: ProductImage[]) => {
+    setGalleryImages(
+      images.map((img, index) => ({
+        ...img,
+        sortOrder: index + 1,
+        isFeatured: index === 0,
+      }))
+    );
+  };
 
   return (
     <>
@@ -394,6 +444,12 @@ export default function ProductForm({
               value={imageValue}
               onChange={(v) => setImageValue(v)}
               onUploadingChange={setImageUploading}
+              onSubmit={handleImageSubmit}
+            />
+            <ProductGallery
+              images={galleryImages}
+              onDelete={(index) => handleImageDelete(index)}
+              onReorder={handleGalleryReorder}
             />
           </div>
         </div>
