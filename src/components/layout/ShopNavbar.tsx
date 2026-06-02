@@ -52,7 +52,7 @@ function NavbarContent() {
   const { state, logout } = useAuth();
   return (
     <div className="border-border/60 border-b bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/90">
-      <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center gap-3 px-[0cm] py-3 md:gap-4 md:py-3.5">
+      <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center gap-3 px-[2cm] py-3 md:gap-4 md:py-3.5">
         <Link href="/" className="flex shrink-0 items-center gap-2.5">
           <Image
             src="/Logo Mamabear.png"
