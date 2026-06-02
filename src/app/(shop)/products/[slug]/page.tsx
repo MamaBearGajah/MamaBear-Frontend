@@ -138,16 +138,18 @@ export default async function ProductDetailPage({
 
     //fetch all data using new API with mockproduct
     const fetchedAllDataData = await getAllProducts();
+    console.log("fetchedAllDataData", fetchedAllDataData);
     // const slicedData = fetchedAllDataData?.slice(0,3);
-    const slicedData = fetchedAllDataData
-      .sort((a:Product, b:Product) => parseFloat(b.avgRating ?? "0") - parseFloat(a.avgRating ?? "0"))
-      .slice(0, 5);
+    // const slicedData = fetchedAllDataData
+    //   .sort((a:Product, b:Product) => parseFloat(b.avgRating ?? "0") - parseFloat(a.avgRating ?? "0"))
+    //   .slice(0, 5);
 
     //fetch one data by slug using old API no mockproduct
     // const fetchedDataData = await fetchProductSlug2(slug);
 
     //fetch one data by slug using new API with mockproduct
     const fetchedDataData = await getProductBySlug2(slug);
+    console.log("fetchedDataData", fetchedDataData);
     const productId = fetchedDataData.id;
 
 
