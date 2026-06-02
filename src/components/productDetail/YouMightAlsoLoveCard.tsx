@@ -18,7 +18,7 @@ type Product = {
 
 const YouMightAlsoLoveCard = ({product}:{product:Product}) => {
   return (
-    <div className='border rounded-lg flex flex-col justify-start p-5 items-start w-[100%] md:w-[80%] hover:shadow-lg transition duration-300 cursor-pointer hover:scale-102'>
+    <div className='border rounded-lg flex flex-col justify-start p-5 mb-5 items-start w-[100%] md:w-[80%] hover:shadow-lg transition duration-300 cursor-pointer hover:scale-102'>
       <Link href={`/products/${product.slug}`} className='w-[60%]'>
         <img className='w-[full]'  src={product.imageUrl} alt={product.name}></img>
         <h2 className='mt-2 mb-2 font-bold text-xs md:text-lg'>{product.name}</h2>
