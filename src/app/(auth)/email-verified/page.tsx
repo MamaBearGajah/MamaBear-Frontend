@@ -9,11 +9,7 @@ export default async function VerifyEmail({
 }: {
   searchParams: Promise<{ status: string }>;
 }) {
-  // const searchParams = useSearchParams();
-  // const statusParam = searchParams.get("status");
   const { status } = await searchParams;
-
-  console.log(status);
 
   return (
     <div className="my-auto flex h-screen w-full flex-col items-center justify-center bg-[#FFF5F8] lg:flex-row">

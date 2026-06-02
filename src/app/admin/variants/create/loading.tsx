@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function ProductsLoading() {
+export default function VariantsLoading() {
   return (
     <div className="flex flex-1 flex-col gap-6 p-6 md:p-8">
       <div className="border-border space-y-2 border-b pb-6">

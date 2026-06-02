@@ -1,25 +1,30 @@
+"use client";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { ThemeProvider } from "next-themes";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import { Toaster } from "@/components/ui/sonner";
-import { getServerSession, isAdminRole } from "@/lib/auth/session";
+import { useAuth } from "../../context/AuthContext";
 
-export const metadata: Metadata = {
-  title: "Admin",
-  robots: { index: false, follow: false },
-};
+// export const metadata: Metadata = {
+//   title: "Admin",
+//   robots: { index: false, follow: false },
+// };
 
-export default async function AdminLayout({
+export default function AdminLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await getServerSession();
+  const { state } = useAuth();
 
-  // if (!session || !isAdminRole(session.user.role)) {
-  //   redirect("/login");
-  // }
+  if (state.isLoading) {
+    return null;
+  }
+
+  if (!state.isAuthenticated || !state.user || state.user.role !== "admin") {
+    redirect("/login");
+  }
 
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>

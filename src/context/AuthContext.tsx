@@ -127,8 +127,6 @@
 //   return ctx;
 // };
 
-
-
 "use client";
 import {
   createContext,
@@ -152,9 +150,9 @@ type AuthState = {
 };
 
 type AuthAction =
-  | { type: "LOGIN"; payload: { user: User } }
+  | { type: "LOGIN"; payload: User }
   | { type: "LOGOUT" }
-  | { type: "INITIALIZE"; payload: { user: User | null } };
+  | { type: "INITIALIZE"; payload: User | null };
 
 type AuthContextType = {
   state: AuthState;
@@ -170,7 +168,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
   switch (action.type) {
     case "LOGIN":
       return {
-        user: action.payload.user,
+        user: action.payload,
         isAuthenticated: true,
         isLoading: false,
       };
@@ -178,8 +176,8 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
       return { user: null, isAuthenticated: false, isLoading: false };
     case "INITIALIZE":
       return {
-        user: action.payload.user,
-        isAuthenticated: !!action.payload.user,
+        user: action.payload,
+        isAuthenticated: !!action.payload,
         isLoading: false,
       };
     default:
@@ -213,10 +211,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async function loadUser() {
       try {
         const res = await authApi.getMe();
-        dispatch({ type: "INITIALIZE", payload: { user: res.data } });
+        dispatch({ type: "INITIALIZE", payload: res.data });
       } catch {
         // 401 → not logged in (interceptor handles token refresh if configured)
-        dispatch({ type: "INITIALIZE", payload: { user: null } });
+        dispatch({ type: "INITIALIZE", payload: null });
       }
     }
     loadUser();
@@ -230,9 +228,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (data: LoginPayload) => {
     const res = await authApi.login(data);
     // FIX: unwrap to the actual user object your API returns
-    const user: User = res.data.data.data;
+    const user = res.data.data.user;
+    // console.log(user);
     // FIX: payload must match { user: User }
-    dispatch({ type: "LOGIN", payload: { user } });
+    dispatch({ type: "LOGIN", payload: user });
   }, []);
 
   // -------------------------------------------------------

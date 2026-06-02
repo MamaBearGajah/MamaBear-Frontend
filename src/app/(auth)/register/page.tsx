@@ -105,7 +105,6 @@ export default function Register() {
       if (axios.isAxiosError(e)) {
         setError(errorMessage(e.response?.status ?? 500));
         toast.error("Account creation failed");
-        console.log(e.response?.status);
       } else {
         setError("An unexpected error occurred");
         toast.error("Account creation failed");
