@@ -18,6 +18,9 @@ function toApiProductParams(params: ProductListParams): ProductListParams {
   if (apiParams.categoryId === "cat-root") {
     delete apiParams.categoryId;
   }
+  if (apiParams.sortBy === "price") {
+    apiParams.sortBy = "basePrice";
+  }
   return apiParams;
 }
 
@@ -99,13 +102,14 @@ export async function getSearchResults(
   }
 
   try {
+    const apiParams = toApiProductParams(params);
     const { data } = await apiClient.get("/search", {
       params: {
         q,
-        page: params.page ?? 1,
-        limit: params.limit ?? 20,
-        sortBy: params.sortBy ?? "createdAt",
-        sortOrder: params.sortOrder ?? "desc",
+        page: apiParams.page ?? 1,
+        limit: apiParams.limit ?? 20,
+        sortBy: apiParams.sortBy ?? "createdAt",
+        sortOrder: apiParams.sortOrder ?? "desc",
       },
     });
     return normalizeApiResponse<ProductListItem[]>(data);

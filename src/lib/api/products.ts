@@ -20,6 +20,9 @@ function toApiProductParams(params: ProductListParams): ProductListParams {
   if (apiParams.categoryId === "cat-root") {
     delete apiParams.categoryId;
   }
+  if (apiParams.sortBy === "price") {
+    apiParams.sortBy = "basePrice";
+  }
   return apiParams;
 }
 
