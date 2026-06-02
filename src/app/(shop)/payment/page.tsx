@@ -1,18 +1,21 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useCart } from "@/hooks/useCart";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import PaymentSelector, { PaymentMethod } from "@/components/checkout/PaymentSelector";
 import { safeFormatPrice } from "@/lib/utils";
-import { CreditCard, Wallet, ArrowLeft, CheckCircle } from "lucide-react";
 
 const PaymentPage = () => {
   const { state, clearCart } = useCart();
+  const router = useRouter();
   const { items, subtotal } = state;
 
-  const [method, setMethod] = useState("card");
+  const [method, setMethod] = useState<PaymentMethod>("gopay");
+  const [gateway, setGateway] = useState<"xendit" | "midtrans">("xendit");
   const [loading, setLoading] = useState(false);
-  const [paid, setPaid] = useState(false);
 
   const discount = subtotal * 0.15;
   const shipping = subtotal >= 200000 ? 0 : 15000;
@@ -22,12 +25,43 @@ const PaymentPage = () => {
     setLoading(true);
 
     try {
-      // simulate payment processing
+      // In a real integration, this is where you would call
+      // your backend endpoint to create a payment session with
+      // Xendit or Midtrans.
+      // Example backend payload:
+      // {
+      //   gateway: gateway,
+      //   paymentMethod: method,
+      //   amount: total,
+      //   items: items,
+      // }
+      
       await new Promise((res) => setTimeout(res, 2000));
 
-      setPaid(true);
+      // Create order on server
+      const payload = {
+        date: new Date().toISOString().slice(0, 10),
+        items: items.map((it) => ({ id: it.id, name: it.name, quantity: it.quantity, price: (it.discountPrice ?? it.basePrice) })),
+        total: total,
+        status: "Processing",
+      };
+
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Failed to create order");
+
+      const created = await res.json();
+
       clearCart();
+
+      // Redirect to order confirmation page
+      router.push(`/order?id=${created.id}`);
     } catch (err) {
+      console.error(err);
       alert("Payment failed");
     } finally {
       setLoading(false);
@@ -35,7 +69,7 @@ const PaymentPage = () => {
   };
 
   // EMPTY CART GUARD
-  if (items.length === 0 && !paid) {
+  if (items.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-pink-50">
         <div className="text-center">
@@ -48,34 +82,24 @@ const PaymentPage = () => {
     );
   }
 
-  // SUCCESS SCREEN
-  if (paid) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-pink-50">
-        <div className="bg-white p-10 rounded-2xl text-center shadow-sm">
-          <CheckCircle className="mx-auto text-green-500 mb-4" size={50} />
-
-          <h1 className="text-2xl font-bold mb-2">
-            Payment Successful 🎉
-          </h1>
-
-          <p className="text-gray-500 mb-6">
-            Your order has been confirmed
-          </p>
-
-          <Link
-            href="/products"
-            className="bg-pink-600 text-white px-6 py-3 rounded-xl font-bold"
-          >
-            Continue Shopping
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-pink-50 py-10 px-4">
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="flex transform flex-col items-center gap-3 rounded-lg bg-white/95 px-6 py-8 shadow-lg">
+            {/* Loading state */}
+            <svg className="h-10 w-10 animate-spin text-pink-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+
+            <div className="text-center">
+              <div className="text-lg font-semibold text-slate-900">Processing payment</div>
+              <div className="text-sm text-slate-500">Please wait while we initiate your payment...</div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-8">
 
         {/* LEFT - PAYMENT METHOD */}
@@ -90,56 +114,37 @@ const PaymentPage = () => {
 
           <h2 className="font-semibold mb-4">Choose Payment Method</h2>
 
-          <div className="space-y-3">
-            {/* CARD */}
-            <button
-              onClick={() => setMethod("card")}
-              className={`w-full flex items-center gap-3 p-4 border rounded-xl ${
-                method === "card" ? "border-pink-600 bg-pink-50" : ""
-              }`}
-            >
-              <CreditCard />
-              Credit / Debit Card
-            </button>
+          <PaymentSelector selected={method} onSelect={setMethod} />
 
-            {/* E-WALLET */}
-            <button
-              onClick={() => setMethod("ewallet")}
-              className={`w-full flex items-center gap-3 p-4 border rounded-xl ${
-                method === "ewallet" ? "border-pink-600 bg-pink-50" : ""
-              }`}
-            >
-              <Wallet />
-              E-Wallet (GrabPay / PayNow / ShopeePay)
-            </button>
+          <div className="mt-6">
+            <h3 className="font-semibold mb-3">Choose Integration Gateway</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {(["xendit", "midtrans"] as const).map((provider) => (
+                <button
+                  key={provider}
+                  type="button"
+                  onClick={() => setGateway(provider)}
+                  className={`rounded-2xl border p-4 text-left transition-all duration-200 ${
+                    gateway === provider
+                      ? "border-pink-600 bg-pink-50 shadow-sm"
+                      : "border-gray-200 bg-white hover:border-pink-300"
+                  }`}
+                >
+                  <div className="text-base font-semibold">{provider.toUpperCase()}</div>
+                  <div className="text-xs text-slate-500">
+                    {provider === "xendit"
+                      ? "Xendit payment gateway"
+                      : "Midtrans payment gateway"}
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* MOCK CARD INPUT */}
-          {method === "card" && (
-            <div className="mt-6 space-y-3">
-              <input
-                placeholder="Card Number"
-                className="w-full border p-3 rounded-xl"
-              />
-              <div className="flex gap-3">
-                <input
-                  placeholder="MM/YY"
-                  className="w-full border p-3 rounded-xl"
-                />
-                <input
-                  placeholder="CVV"
-                  className="w-full border p-3 rounded-xl"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* E-WALLET MOCK */}
-          {method === "ewallet" && (
-            <div className="mt-6 text-sm text-gray-500">
-              You will be redirected to your selected wallet provider.
-            </div>
-          )}
+          <div className="mt-6 rounded-2xl border border-pink-200 bg-pink-50 p-4 text-sm text-slate-700">
+            <strong>{gateway.toUpperCase()} integration:</strong> use your backend to create a payment session for {method === "va" ? "Virtual Account" : method === "card" ? "Credit / Debit Card" : method.toUpperCase()}.
+            For example, Xendit can create e-wallet charges, card payments, and VA invoices, while Midtrans can generate Snap tokens for GoPay, OVO, DANA, card checkout and bank transfer.
+          </div>
         </div>
 
         {/* RIGHT - SUMMARY */}
@@ -193,9 +198,21 @@ const PaymentPage = () => {
           <button
             onClick={handlePayment}
             disabled={loading}
-            className="w-full mt-6 bg-pink-600 text-white py-3 rounded-xl font-bold"
+            className="w-full mt-6 inline-flex items-center justify-center gap-3 bg-pink-600 text-white py-3 rounded-xl font-bold disabled:opacity-60"
           >
-            {loading ? "Processing..." : "Pay Now"}
+            {loading ? (
+              <>
+                <svg className="h-5 w-5 animate-spin text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+
+                Processing payment...
+              </>
+            ) : (
+              `Continue with ${method.toUpperCase()} via ${gateway.toUpperCase()}`
+            )}
           </button>
 
           <p className="text-xs text-gray-400 mt-3 text-center">

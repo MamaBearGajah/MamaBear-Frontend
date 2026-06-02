@@ -1,4 +1,4 @@
-import { memo } from 'react';
+
 import YouMightAlsoLoveCard from './YouMightAlsoLoveCard';
 // import { mockBestSellingProducts } from '../../lib/MockBestSelling';
 import { Product } from '../../types';
