@@ -1,0 +1,13 @@
+import ProductCard from "./ProductCard"
+import { Product } from "@/types"
+import { ProductVariant } from "@/types"
+// import ProductModal from "./ProductModal"
+
+export default async function ProductSection({ productId, product, productVariant, isTop5BestsellerFlag }: { productId: string, product: Product, productVariant: ProductVariant[], isTop5BestsellerFlag: boolean }) {
+    return(
+        <div className='mt-5 flex flex-col justify-center'>
+            <ProductCard productId={productId} product={product} productVariant={productVariant} isTop5BestsellerFlag={isTop5BestsellerFlag}/>
+            {/* <ProductModal/> */}
+        </div>
+    )
+}
