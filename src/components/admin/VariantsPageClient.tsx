@@ -1,21 +1,19 @@
 "use client";
 
 import { Suspense } from "react";
-import ProductsToolbar from "@/components/admin/ProductsToolbar";
-import ProductsTable from "@/components/admin/ProductsTable";
+import VariantsToolbar from "@/components/admin/VariantsToolbar";
 import Pagination from "@/components/shared/Pagination";
-import type { Category, PaginationMeta, ProductVariant } from "@/types";
+import type { Category, PaginationMeta } from "@/types";
 import type { ProductFilters } from "@/components/admin/ProductFilterDialog";
 import VariantsTable from "./VariantsTable";
+import { ProductVariantList } from "@/types";
 
 interface VariantsPageClientProps {
-  variants: ProductVariant[];
+  variants: ProductVariantList[];
   meta: PaginationMeta;
   categories: Category[];
   categoryMap: Record<string, string>;
   initialFilters: ProductFilters;
-  accessToken?: string;
-  mockMode: boolean;
 }
 
 function VariantsPageContent({
@@ -24,17 +22,13 @@ function VariantsPageContent({
   categories,
   categoryMap,
   initialFilters,
-  accessToken,
-  mockMode,
 }: VariantsPageClientProps) {
   return (
     <>
-      <ProductsToolbar
+      <VariantsToolbar
         meta={meta}
         categories={categories}
-        accessToken={accessToken}
         initialFilters={initialFilters}
-        mockMode={mockMode}
       />
       <VariantsTable variants={variants} categoryMap={categoryMap} />
       <div className="mt-6">
