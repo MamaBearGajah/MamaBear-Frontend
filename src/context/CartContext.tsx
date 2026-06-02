@@ -378,7 +378,11 @@ type CartContextType = {
   itemCount: number;
   addItem: (item: CartItem) => void;
   removeItem: (productId: string, variantId?: string) => void;
-  updateQuantity: (productId: string, variantId: string | undefined, quantity: number) => void;
+  updateQuantity: (
+    productId: string,
+    variantId: string | undefined,
+    quantity: number
+  ) => void;
   clearCart: () => void;
   setGuestCartId: (id: string) => void;
 };
@@ -473,7 +477,10 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       const { productId, variantId } = action.payload;
       const updatedItems = state.items.filter(
         (item) =>
-          !(item.productId === productId && (item.variantId ?? null) === (variantId ?? null))
+          !(
+            item.productId === productId &&
+            (item.variantId ?? null) === (variantId ?? null)
+          )
       );
 
       return {
@@ -486,7 +493,8 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     case "UPDATE_QUANTITY": {
       const { productId, variantId, quantity } = action.payload;
       const updatedItems = state.items.map((item) =>
-        item.productId === productId && (item.variantId ?? null) === (variantId ?? null)
+        item.productId === productId &&
+        (item.variantId ?? null) === (variantId ?? null)
           ? {
               ...item,
               quantity,
@@ -633,7 +641,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const updateQuantity = (productId: string, variantId: string | undefined, quantity: number) => {
+  const updateQuantity = (
+    productId: string,
+    variantId: string | undefined,
+    quantity: number
+  ) => {
     if (quantity <= 0) {
       removeItem(productId, variantId);
       return;

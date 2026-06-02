@@ -19,14 +19,15 @@ import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { deleteProductAction } from "@/lib/actions/products";
 import { effectivePrice, formatPrice, cn } from "@/lib/utils";
 import { handleApiError } from "@/lib/errorHandler";
-import type { ProductVariant } from "@/types";
+import type { ProductVariant, ProductVariantList } from "@/types";
+import { variantApi } from "../../lib/api/variants";
 
 const LOW_STOCK_THRESHOLD = 30;
 const PLACEHOLDER_SRC =
   "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=96&h=96&fit=crop";
 
 interface VariantsTableProps {
-  variants: ProductVariant[];
+  variants: ProductVariantList[];
   categoryMap: Record<string, string>;
 }
 
@@ -36,14 +37,18 @@ export default function VariantsTable({
 }: VariantsTableProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [deleteTarget, setDeleteTarget] = useState<ProductVariant | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ProductVariantList | null>(
+    null
+  );
 
   const handleDelete = () => {
     if (!deleteTarget) return;
     startTransition(async () => {
       try {
-        await deleteProductAction(deleteTarget.id);
-        toast.success(`"${deleteTarget.name}" berhasil dihapus.`);
+        await variantApi.delete(deleteTarget.productId, deleteTarget.id);
+        toast.success(
+          `"${deleteTarget.name} ${deleteTarget.value}" berhasil dihapus.`
+        );
         setDeleteTarget(null);
         router.refresh();
       } catch (error) {
@@ -87,16 +92,17 @@ export default function VariantsTable({
                     <div className="flex items-center gap-3">
                       <div className="bg-muted relative size-12 shrink-0 overflow-hidden rounded-lg">
                         <Image
-                          src={imageUrl}
+                          src={variant.imageUrl}
                           alt={`${variant.name} ${variant.value}`}
                           fill
                           className="object-cover"
                           sizes="48px"
+                          unoptimized
                         />
                       </div>
                       <div className="min-w-0">
                         <p className="text-foreground truncate font-medium">
-                          {variant.productId}
+                          {variant.product.name}
                         </p>
                         <p className="text-muted-foreground truncate text-xs">
                           {sublabel}
@@ -116,9 +122,11 @@ export default function VariantsTable({
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{"—"}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {variant.product.category.name}
+                  </TableCell>
                   <TableCell className="font-medium">
-                    {formatPrice(variant.priceAdjustment)}
+                    {formatPrice(Number(variant.priceAdjustment))}
                   </TableCell>
                   <TableCell>
                     <span
@@ -152,7 +160,7 @@ export default function VariantsTable({
                         title="Edit"
                       >
                         <Link
-                          href={`/admin/products/${variant.productId}/variants/${variant.id}`}
+                          href={`/admin/variants/edit/${variant.productId}/${variant.id}`}
                         >
                           <Pencil className="size-4 text-blue-600" />
                           <span className="sr-only">Edit</span>
@@ -165,8 +173,7 @@ export default function VariantsTable({
                         title="View store"
                       >
                         <Link
-                          href={`/product/${variant.productId}/variants/${variant.id}`}
-                          target="_blank"
+                          href={`/admin/variants/view/${variant.productId}/${variant.id}`}
                         >
                           <Eye className="size-4 text-green-600" />
                           <span className="sr-only">View</span>
@@ -196,7 +203,7 @@ export default function VariantsTable({
         title="Hapus varian produk?"
         description={
           deleteTarget
-            ? `Varian "${deleteTarget.name}" akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.`
+            ? `Varian "${deleteTarget.name} ${deleteTarget.value}" akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.`
             : undefined
         }
         confirmLabel="Hapus"

@@ -7,7 +7,7 @@ import {
   ProductListItem,
   ProductListParams,
   ProductPayload,
-  ApiResponse
+  ApiResponse,
 } from "@/types";
 // import { apiClient, authHeaders } from "./client";
 import { apiClient } from "./client";
@@ -19,7 +19,11 @@ import {
   isMockProductsEnabled,
   updateMockProduct,
 } from "./mock-data";
-import {getMockAllProducts, getMockProductBySlug2,getMockProductVariantById} from "@/lib/MockProducts";
+import {
+  getMockAllProducts,
+  getMockProductBySlug2,
+  getMockProductVariantById,
+} from "@/lib/MockProducts";
 import { fetchMockProductList } from "./mock-products";
 import { mapProductListItems } from "./map-product-list-item";
 import { normalizeApiResponse } from "./normalize-api-response";
@@ -65,7 +69,6 @@ const BASE_URL = "http://localhost:3000/api"; //Change to deployed BASE_URL late
 //   }
 // };
 
-
 // export const fetchProductVariantId2 = async (id:string): Promise<ProductVariant[]> => {
 //   try{
 //     const response = await axios.get(`${BASE_URL}/Products/{productId}/variants/${id}/variants`)
@@ -81,10 +84,10 @@ const BASE_URL = "http://localhost:3000/api"; //Change to deployed BASE_URL late
 export async function getAllProducts(
   // id: string,
   // accessToken?: string,
-  params: ProductListParams = {},
+  params: ProductListParams = {}
 ): Promise<Product[]> {
   if (isMockProductsEnabled()) {
-    const product =getMockAllProducts();
+    const product = getMockAllProducts();
     if (!product) {
       const err = new Error("Product not found") as Error & { code?: string };
       err.code = "NOT_FOUND";
@@ -92,20 +95,16 @@ export async function getAllProducts(
     }
     return product;
   }
-  const { data } = await apiClient.get<ApiResponse<Product>>(
-    `/Products`,
-    {    
-      // headers: authHeaders(accessToken), 
+  const { data } = await apiClient.get<ApiResponse<Product>>(`/Products`, {
+    // headers: authHeaders(accessToken),
     params: toApiProductParams(params),
-         
-    },
-  );
+  });
   return data.data.data;
 }
 
 // For Product Detail Page to fetch product by slug
 export async function getProductBySlug2(
-  slug: string,
+  slug: string
   // accessToken?: string,
 ): Promise<Product> {
   if (isMockProductsEnabled()) {
@@ -117,11 +116,11 @@ export async function getProductBySlug2(
     }
     return product;
   }
-  const data  = await apiClient.get<ApiResponse<Product>>(
-    `/products/slug/${slug}`,
+  const data = await apiClient.get<ApiResponse<Product>>(
+    `/products/slug/${slug}`
     // { headers: authHeaders(accessToken) },
   );
-  return data.data.data ;
+  return data.data.data;
 }
 
 // export const getProductBySlug2 = async (slug: string): Promise<Product> => {
@@ -137,7 +136,7 @@ export async function getProductBySlug2(
 
 // For Product Detail Page to fetch product variant by product id
 export async function getProductVariantById(
-  productId: string,
+  productId: string
   // accessToken?: string,
 ): Promise<Product> {
   if (isMockProductsEnabled()) {
@@ -152,16 +151,15 @@ export async function getProductVariantById(
   const { data } = await apiClient.get<ApiResponse<ProductVariant>>(
     `/products/${productId}/variants`,
     {
-      //  headers: authHeaders(accessToken) 
-    },
+      //  headers: authHeaders(accessToken)
+    }
   );
   return data.data;
 }
 
-
 /** API contract §5.2 — GET /products/slug/{slug} */
 export async function getProductBySlug(
-  slug: string,
+  slug: string
   // accessToken?: string,
 ): Promise<Product> {
   if (isMockProductsEnabled()) {
@@ -174,14 +172,11 @@ export async function getProductBySlug(
     return product;
   }
   const { data } = await apiClient.get<ApiResponse<Product>>(
-    `/products/slug/${slug}`,
+    `/products/slug/${slug}`
     // { headers: authHeaders(accessToken) },
   );
   return data.data;
 }
-
-
-
 
 /** @deprecated Use getProductBySlug — kept for legacy callers */
 export async function fetchProductSlug(slug: string): Promise<Product> {
@@ -189,7 +184,7 @@ export async function fetchProductSlug(slug: string): Promise<Product> {
 }
 
 export async function getProductList(
-  params: ProductListParams = {},
+  params: ProductListParams = {}
 ): Promise<ApiResponse<ProductListItem[]>> {
   if (isMockProductsEnabled()) {
     return fetchMockProductList(params);
@@ -206,10 +201,7 @@ export async function getProductList(
   };
 }
 
-export async function getProductById(
-  id: string,
-  accessToken?: string
-): Promise<Product> {
+export async function getProductById(id: string): Promise<Product> {
   if (isMockProductsEnabled()) {
     const product = getMockProductById(id);
     if (!product) {
@@ -220,12 +212,7 @@ export async function getProductById(
     return product;
   }
 
-  const { data } = await apiClient.get<ApiResponse<Product>>(
-    `/products/${id}`,
-    {
-      headers: authHeaders(accessToken),
-    }
-  );
+  const { data } = await apiClient.get<ApiResponse<Product>>(`/products/${id}`);
   return data.data;
 }
 
@@ -255,28 +242,21 @@ export const UpdateProduct = async (
   }
 };
 
-export async function createProduct(
-  payload: ProductPayload,
-  accessToken?: string
-): Promise<Product> {
+export async function createProduct(payload: ProductPayload): Promise<Product> {
   if (isMockProductsEnabled()) {
     return createMockProduct(payload);
   }
 
   const { data } = await apiClient.post<ApiResponse<Product>>(
     "/products",
-    payload,
-    {
-      headers: authHeaders(accessToken),
-    }
+    payload
   );
   return data.data;
 }
 
 export async function updateProduct(
   id: string,
-  payload: ProductPayload,
-  accessToken?: string
+  payload: ProductPayload
 ): Promise<Product> {
   if (isMockProductsEnabled()) {
     return updateMockProduct(id, payload);
@@ -284,10 +264,7 @@ export async function updateProduct(
 
   const { data } = await apiClient.put<ApiResponse<Product>>(
     `/products/${id}`,
-    payload,
-    {
-      headers: authHeaders(accessToken),
-    }
+    payload
   );
   return data.data;
 }
@@ -302,10 +279,7 @@ export const DeleteProduct = async (id: string): Promise<void> => {
   }
 };
 
-export async function deleteProduct(
-  id: string,
-  accessToken?: string
-): Promise<void> {
+export async function deleteProduct(id: string): Promise<void> {
   if (isMockProductsEnabled()) {
     const { deleteMockProduct } = await import("./mock-data");
     if (!deleteMockProduct(id)) {
@@ -316,12 +290,8 @@ export async function deleteProduct(
     return;
   }
 
-  await apiClient.delete(`/products/${id}`, {
-    headers: authHeaders(accessToken),
-  });
+  await apiClient.delete(`/products/${id}`);
 }
-
-
 
 export const CreateProductVariant = async (
   id: string,
