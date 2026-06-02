@@ -99,7 +99,7 @@ export async function getAllProducts(
     // headers: authHeaders(accessToken),
     params: toApiProductParams(params),
   });
-  return data.data.data;
+  return data.data;
 }
 
 // For Product Detail Page to fetch product by slug
