@@ -66,7 +66,7 @@ function NavbarContent() {
   const { state, logout } = useAuth();
   const { user, isAuthenticated, isLoading } = state;
   const isAdmin = user?.role === "admin" || user?.role === "super_admin";
-  const firstName = user?.data?.name?.split(" ")[0];
+  const firstName = user?.name?.split(" ")[0];
 
   return (
     <div className="border-border/60 border-b bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/90">

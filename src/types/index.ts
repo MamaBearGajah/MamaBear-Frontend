@@ -147,7 +147,6 @@ export interface Review {
   review: string;
   isVerifiedPurchase: boolean;
   helpfulCount: number;
-  // reviewerName: string;
   user: {
     id: string;
     name: string;
@@ -158,9 +157,6 @@ export interface Review {
 
 export type ProductBadgeType = "best-seller" | "fan-favorite" | "new";
 
-// export interface ReviewParams {
-
-// }
 export interface ProductListItem {
   id: string;
   name: string;
@@ -241,6 +237,7 @@ export interface CartItemVariantCategory {
   name: string;
   slug: string;
 }
+
 export interface OrderItem {
   id: string;
   productId: string;
@@ -285,6 +282,7 @@ export interface Category {
   slug: string;
   description?: string;
   imageUrl?: string;
+  sortOrder?: number;   // ← tambah ini: dari backend, untuk urutan tampil
   isActive: boolean;
 }
 
