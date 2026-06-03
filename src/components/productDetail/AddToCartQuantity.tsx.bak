@@ -6,15 +6,9 @@ import { CartItem } from '@/types';
 import {Product} from '@/types/index';
 import { ProductVariant } from '@/types';
 
-interface AddToCartQuantityProps {
-  price: number;
-  product: Product;
-  variant?: ProductVariant | null;
-}
-
-export default function AddToCartQuantity({ price, product, variant }: AddToCartQuantityProps) {
-  const [quantity, setQuantity] = useState(1);
-  const { addItem } = useCart();
+export default function AddToCartQuantity({price, product, variant}:{price:number, product: Product, variant: ProductVariant | null}){
+    const [Quantity, setQuantity] = useState(1);
+    const { addItem } = useCart();
 
     function AddToFavourite(){
         console.log("add to favourite")
@@ -32,7 +26,7 @@ export default function AddToCartQuantity({ price, product, variant }: AddToCart
                 variantName: variant.name,
                 variantValue: variant.value,
                 variantLabel: variant.name && variant.value ? `${variant.name}: ${variant.value}` : variant.name ?? variant.value,
-                quantity: quantity,
+                quantity: Quantity,
                 name: product.name,
                 basePrice: Number(variant.basePrice ?? product.basePrice),
                 discountPrice: variant.discountPrice ? Number(variant.discountPrice) : product.discountPrice ? Number(product.discountPrice) : undefined,
@@ -45,9 +39,9 @@ export default function AddToCartQuantity({ price, product, variant }: AddToCart
             <div className='flex justify-start items-center w-full'>
                 <div className='flex w-[25%] md:w-[25%] justify-center items-center border border-gray-300 rounded-full p-2'>
                     <span className="border-r text-center p-1 w-[1  0%] md:w-[20%] cursor-pointer text-center hover:scale-102 transition duration-300" onClick={() => {
-                            if(quantity>1){
-                                setQuantity(quantity-1)
-                            }else if(quantity===0){
+                            if(Quantity>1){
+                                setQuantity(Quantity-1)
+                            }else if(Quantity===0){
                                 return
                             }
                         }
@@ -55,9 +49,9 @@ export default function AddToCartQuantity({ price, product, variant }: AddToCart
                     >
                         -
                     </span>
-                    <span className='md:w-[50%] w-[50%] text-center'>{quantity}</span>
+                    <span className='md:w-[50%] w-[50%] text-center'>{Quantity}</span>
                     <span className="border-l text-center p-1 w-[30%] md:w-[20%] cursor-pointer text-center hover:scale-102 transition duration-300" onClick={() => 
-                        setQuantity(quantity+1)
+                        setQuantity(Quantity+1)
                         }
                         >
                             +
@@ -72,7 +66,7 @@ export default function AddToCartQuantity({ price, product, variant }: AddToCart
             </div>
             <br></br>
             <div className='text-[var(--mamabear-dark-pink)] font-bold border border-2 border-black rounded-full w-full pt-2 pb-2 hover:bg-gray-300 flex justify-center items-center'>
-                Buy Now - Rp {quantity * price}
+                Buy Now - Rp {Quantity * price}
             </div>
         </div>
     )
