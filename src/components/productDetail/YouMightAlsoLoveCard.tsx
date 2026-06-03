@@ -64,23 +64,16 @@ const YouMightAlsoLoveCard = ({ product }: ProductYouMightLove) => {
 
         {((product.stock ?? 0) > 0) && (
           <Link
-            href={`/cart?add=${product.id}`}
-            onClick={() => {
-              addItem({
-                id: nanoid(),
-                productId: product.id ?? nanoid(),
-                name: product.name,
-                basePrice: Number(product.basePrice ?? product.discountPrice),
-                discountPrice: product.discountPrice,
-                image: imageUrl,
-                quantity: 1,
-              } as CartItem);
-              alert('Item added to cart!');
-            }}
-            className={cn('absolute inset-x-3 bottom-3 z-20 flex items-center justify-center gap-2 rounded-full bg-dark-pink py-2.5 text-sm font-semibold text-white shadow-md', 'translate-y-full opacity-0 transition-all duration-300 ease-out', 'group-hover:translate-y-0 group-hover:opacity-100')}
+            href={`/products/${product.slug}`}
+            className={cn(
+              "absolute inset-x-3 bottom-3 z-20 flex items-center justify-center gap-2 rounded-full bg-dark-pink py-2.5 text-sm font-semibold text-white shadow-md",
+              "translate-y-full opacity-0 transition-all duration-300 ease-out",
+              "group-hover:translate-y-0 group-hover:opacity-100",
+              "hover:bg-dark-pink/90",
+            )}
           >
             <ShoppingCart className="size-4" strokeWidth={2} />
-            Add to Cart
+            Buy Now
           </Link>
         )}
       </div>

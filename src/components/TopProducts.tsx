@@ -329,11 +329,11 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                   )}
 
                   <Link
-                    href={cartHref}
+                    href={`/products/${product.slug ?? ""}`}
                     className="absolute inset-x-3 bottom-3 z-20 flex translate-y-3 items-center justify-center gap-2 rounded-xl bg-[#D5557E] px-4 py-2.5 text-sm font-semibold text-white opacity-0 shadow-md transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100 peer-checked:translate-y-0 peer-checked:opacity-100 hover:bg-[#C84E77]"
                   >
                     <ShoppingCart className="size-4" strokeWidth={1.85} />
-                    Add to Cart
+                    Buy Now
                   </Link>
                 </div>
 

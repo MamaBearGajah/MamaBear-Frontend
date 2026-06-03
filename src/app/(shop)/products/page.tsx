@@ -6,9 +6,8 @@ import ProductsPageHeader from "@/components/product/ProductsPageHeader";
 import ProductListToolbar from "@/components/product/ProductListToolbar";
 import ShopProductGrid from "@/components/product/ShopProductGrid";
 import Pagination from "@/components/shared/Pagination";
-// Import komponen CategoryGrid yang baru
-import CategoryGrid from "@/components/product/CategoryGrid"; 
-import { getCategoryList } from "@/lib/api/categories";
+import CategoryGrid from "@/components/product/CategoryGrid";
+import { getCategoryList, getCategoryProducts } from "@/lib/api/categories";
 import { getProductList } from "@/lib/api/products";
 import { computeCategoryCounts } from "@/lib/shop/category-counts";
 import {
@@ -16,7 +15,6 @@ import {
   parseShopListParamsFromRecord,
   toStorefrontProductListParams,
 } from "@/lib/shop/product-list-params";
-import { isMockProductsEnabled } from "@/lib/api/mock-data";
 import { filterStorefrontProducts } from "@/lib/shop/storefront-products";
 import type { PaginationMeta } from "@/types";
 
@@ -34,8 +32,27 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const filters = parseShopListParamsFromRecord(params);
   const listParams = toStorefrontProductListParams(filters);
 
+  const activeCategoryId =
+    filters.categoryId && filters.categoryId !== "cat-root"
+      ? filters.categoryId
+      : undefined;
+
   const [productsRes, categoriesRes, allProductsRes] = await Promise.all([
-    getProductList(listParams),
+    // Kalau ada categoryId → pakai endpoint recursive /categories/:id/products
+    // supaya parent category (Moms & Baby, Maternity Supplies, ASI Booster)
+    // tetap nampilin produk dari semua descendants-nya
+    activeCategoryId
+      ? getCategoryProducts(activeCategoryId, {
+          page: listParams.page,
+          limit: listParams.limit,
+          q: listParams.q,
+          sortBy: listParams.sortBy,
+          sortOrder: listParams.sortOrder,
+          inStock: listParams.inStock,
+          minPrice: listParams.minPrice,
+          maxPrice: listParams.maxPrice,
+        })
+      : getProductList(listParams),
     getCategoryList(),
     getProductList({ page: 1, limit: 100 }),
   ]);
@@ -64,11 +81,9 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           <ActiveFilterBadges categories={categoriesRes.data} />
         </Suspense>
 
-        {/* --- POSISI BARU: Di atas Filter dan Produk --- */}
         <Suspense fallback={null}>
           <CategoryGrid categories={categoriesRes.data} />
         </Suspense>
-        {/* ---------------------------------------------- */}
 
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
           <FilterSidebar

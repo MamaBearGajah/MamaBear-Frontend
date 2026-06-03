@@ -66,7 +66,7 @@ function NavbarContent() {
   const { state, logout } = useAuth();
   const { user, isAuthenticated, isLoading } = state;
   const isAdmin = user?.role === "admin" || user?.role === "super_admin";
-  const firstName = user?.data?.name?.split(" ")[0];
+  const firstName = user?.name?.split(" ")[0];
 
   return (
     <div className="border-border/60 border-b bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/90">
@@ -94,6 +94,8 @@ function NavbarContent() {
         <div className="order-3 w-full min-w-0 md:order-none md:max-w-xl md:flex-1 lg:max-w-2xl">
           <SearchBar />
         </div>
+
+        <CartButton href="/cart" className="order-4 ml-auto md:order-none" />
 
         {/* Right actions */}
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
