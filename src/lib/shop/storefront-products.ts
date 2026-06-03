@@ -1,11 +1,8 @@
-import { fetchMockProductList } from "@/lib/api/mock-products";
-import {
-  getMockProductsStore,
-  isMockProductsEnabled,
-} from "@/lib/api/mock-data";
-import type { ProductListItem, ProductStatus, ShopFiltersState } from "@/types";
-import { computeCategoryCounts } from "./category-counts";
-import { toStorefrontSearchListParams } from "./product-list-params";
+import { filterProductsByCategoryScope } from "@/lib/categories/category-scope";
+import type { Category, ProductListItem, ProductSortBy, ProductStatus, SortOrder } from "@/types";
+import { effectivePrice } from "@/lib/utils";
+
+export { filterProductsByCategoryScope };
 
 export const STOREFRONT_PRODUCT_STATUS: ProductStatus = "active";
 
@@ -19,24 +16,37 @@ export function filterStorefrontProducts(
   return products.filter(isStorefrontActiveProduct);
 }
 
-export function getStorefrontCategoryCounts(): Record<string, number> {
-  if (!isMockProductsEnabled()) return {};
-  return computeCategoryCounts(
-    filterStorefrontProducts(getMockProductsStore()),
-  );
+export function filterProductsByEffectivePrice(
+  products: ProductListItem[],
+  minPrice?: number,
+  maxPrice?: number,
+): ProductListItem[] {
+  return products.filter((product) => {
+    const price = effectivePrice(product);
+    if (minPrice != null && price < minPrice) return false;
+    if (maxPrice != null && price > maxPrice) return false;
+    return true;
+  });
 }
 
-export function getSearchCategoryCounts(
-  filters: ShopFiltersState,
-): Record<string, number> {
-  if (!isMockProductsEnabled()) return {};
-  const q = filters.q?.trim();
-  if (!q) return {};
+/** BE uses basePrice; storefront "price" sort uses discount when present. */
+export function sortProductsByEffectivePrice(
+  products: ProductListItem[],
+  sortOrder: SortOrder = "asc",
+): ProductListItem[] {
+  const sorted = [...products].sort(
+    (a, b) => effectivePrice(a) - effectivePrice(b),
+  );
+  return sortOrder === "desc" ? sorted.reverse() : sorted;
+}
 
-  const res = fetchMockProductList({
-    ...toStorefrontSearchListParams(filters),
-    page: 1,
-    limit: 500,
-  });
-  return computeCategoryCounts(res.data);
+export function applyStorefrontSort(
+  products: ProductListItem[],
+  sortBy: ProductSortBy,
+  sortOrder: SortOrder,
+): ProductListItem[] {
+  if (sortBy === "price") {
+    return sortProductsByEffectivePrice(products, sortOrder);
+  }
+  return products;
 }

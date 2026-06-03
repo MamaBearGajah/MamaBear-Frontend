@@ -5,19 +5,24 @@ type CategoryNode = Category & { children?: CategoryNode[] };
 /** Flatten nested category tree from BE into a flat list for buildCategoryTree. */
 export function flattenCategories(nodes: CategoryNode[]): Category[] {
   const flat: Category[] = [];
+  const seen = new Set<string>();
 
   function walk(items: CategoryNode[]) {
     for (const item of items) {
       const { children, ...rest } = item;
-      flat.push({
-        ...rest,
-        isActive: rest.isActive ?? true,
-      });
+      if (!seen.has(rest.id)) {
+        seen.add(rest.id);
+        flat.push({
+          ...rest,
+          isActive: rest.isActive ?? true,
+        });
+      }
       if (children?.length) walk(children);
     }
   }
 
-  walk(nodes);
+  const roots = nodes.filter((node) => node.parentId == null);
+  walk(roots.length > 0 ? roots : nodes);
   return flat;
 }
 

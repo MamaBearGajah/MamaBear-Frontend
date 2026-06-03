@@ -1,5 +1,4 @@
 import { apiClient} from "./client";
-import { isMockProductsEnabled } from "./mock-data";
 
 export interface ExportProductsResponse {
   downloadUrl: string;
@@ -8,10 +7,6 @@ export interface ExportProductsResponse {
 export async function exportProducts(
   // accessToken?: string,
 ): Promise<ExportProductsResponse> {
-  if (isMockProductsEnabled()) {
-    throw new Error("Export tidak tersedia dalam mode mock.");
-  }
-
   const { data } = await apiClient.get<{
     success: boolean;
     data: ExportProductsResponse;

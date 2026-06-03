@@ -6,20 +6,20 @@ import { getCategoryList } from "@/lib/api/categories";
 import { getProductById } from "@/lib/api/products";
 import { getServerSession } from "@/lib/auth/session";
 
-interface ProductFormPageProps {
+interface VariantsPageProps {
   params: Promise<{ id: string }>;
 }
 
 export async function generateMetadata({
   params,
-}: ProductFormPageProps): Promise<Metadata> {
+}: VariantsPageProps): Promise<Metadata> {
   const { id } = await params;
   return {
-    title: id === "new" ? "Add Product" : "Edit Product",
+    title: id === "new" ? "Add Variant" : "Edit Variant",
   };
 }
 
-export default async function ProductFormPage({ params }: ProductFormPageProps) {
+export default async function VariantsPage({ params }: VariantsPageProps) {
   const { id } = await params;
   const isCreate = id === "new";
   const session = await getServerSession();
@@ -38,7 +38,7 @@ export default async function ProductFormPage({ params }: ProductFormPageProps) 
   return (
     <div className="flex flex-1 flex-col p-6 md:p-8">
       <AdminPageHeader
-        title={isCreate ? "Add Product" : "Edit Product"}
+        title={isCreate ? "Add Variant" : "Edit Variant"}
         userName={session?.user.name ?? "Admin"}
         showGlobalSearch={false}
       />

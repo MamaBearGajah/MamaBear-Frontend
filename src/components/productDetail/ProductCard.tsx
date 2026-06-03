@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { getProductId } from "../../../server";
-import { mockProducts } from "../../lib/MockProducts";
 import ProductCarousel from "./ProductCarousel";
 import AddToCartQuantity from "./AddToCartQuantity";
 import { Product } from "@/types";
@@ -89,7 +88,6 @@ export default function ProductCard({
     }
   }, [productId, productVariantData]);
 
-  // const imageArray = mockProducts[0].images.map((item) => item.imageUrl)
   const imageArray = product.images.map((item) => item.imageUrl)
   const fetchedProduct = product;
   const productName = product.name;
@@ -138,8 +136,8 @@ export default function ProductCard({
             <h4 className='text-xs text-dark-pink'>{productCategory}</h4>
             <h2 className='text-2xl font-bold'>{productName}</h2>
             <div className='flex justify-start items-center'> 
-              <Stars rating={mockProducts[0].rating}/>
-              <div className='ml-2 mr-2 md:ml-6 md:mr-6 md:block hidden'>(284 reviews)</div>
+              <Stars rating={product.avgRating ?? 0}/>
+              <div className='ml-2 mr-2 md:ml-6 md:mr-6 md:block hidden'>({product.reviewCount ?? 0} reviews)</div>
               {isTop5BestsellerFlag ? 
                 (<span className='bg-pink-300 text-[var(--mamabear-dark-pink)] rounded-full md:pl-4 md:pr-4 pl-5 pr-5 pt-2 pb-2 ml-4'>🏆Bestseller</span>) 
                 : null

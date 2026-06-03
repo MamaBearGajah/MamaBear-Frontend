@@ -108,6 +108,34 @@ export function toStorefrontSearchListParams(
   return params;
 }
 
+export const STOREFRONT_CLIENT_CATALOG_LIMIT = 100;
+
+export function needsStorefrontClientCatalog(filters: ShopFiltersState): boolean {
+  return (
+    filters.minPrice != null ||
+    filters.maxPrice != null ||
+    (Boolean(filters.categoryId) && filters.categoryId !== "cat-root") ||
+    filters.sortBy === "price"
+  );
+}
+
+/** Params for fetching a batch to filter/sort on the client (price, category, sort). */
+export function toStorefrontClientCatalogParams(
+  filters: ShopFiltersState,
+): ProductListParams {
+  const params = toStorefrontProductListParams(filters);
+  return {
+    ...params,
+    categoryId: undefined,
+    minPrice: undefined,
+    maxPrice: undefined,
+    sortBy: filters.sortBy === "price" ? "createdAt" : params.sortBy,
+    sortOrder: filters.sortBy === "price" ? "desc" : params.sortOrder,
+    page: 1,
+    limit: STOREFRONT_CLIENT_CATALOG_LIMIT,
+  };
+}
+
 export function parseShopListParams(
   searchParams: URLSearchParams,
 ): ShopFiltersState {
