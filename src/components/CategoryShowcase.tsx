@@ -108,7 +108,6 @@ export default async function CategorySection({
     fetchedCategories = [];
   }
 
-  console.log("fetchedcategories", fetchedCategories)
   const categories =
     fetchedCategories.length > 0
       ? fetchedCategories
