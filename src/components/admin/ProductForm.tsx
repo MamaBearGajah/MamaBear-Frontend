@@ -154,6 +154,47 @@ export default function ProductForm({
         const payload = {
           ...formValuesToPayload(data),
           mainImage: imageValue?.imageUrl?.trim() || undefined,
+          images: galleryImages.map((img) => ({
+            id: img.id,
+            imageUrl: img.imageUrl,
+            altText: img.altText,
+            imageType: img.imageType,
+            isFeatured: img.isFeatured,
+            sortOrder: img.sortOrder,
+          })),
+          // variants: product?.variants.map((v) => ({
+          //   id: v.id,
+          //   name: v.name,
+          //   sku: v.sku,
+          //   price: v.price,
+          //   discountPrice: v.discountPrice,
+          //   weight: v.weight,
+          //   stock: v.stock,
+          // })),
+          // variants: [
+          //   {
+          //     name: "placeholdername",
+          //     value: "placeholdervalue",
+          //     basePrice: 100000,
+          //     discountPrice: 90000,
+          //     priceAdjustment: 0,
+          //     stock: 20,
+          //     imageUrl:"https://placehold.co/600x400",
+          //     sku: "PLACEHOLDER-SKU",
+          //     isActive: true,
+          //   },
+          //   {
+          //     name: "placeholdername2",
+          //     value: "placeholdervalue2",
+          //     basePrice: 100000,
+          //     discountPrice: 90000,
+          //     priceAdjustment: 0,
+          //     stock: 20,
+          //     imageUrl:"https://placehold.co/600x400",
+          //     sku: "PLACEHOLDER-SKU2",
+          //     isActive: true,
+          //   }
+          // ],
         };
 
         console.log("Payload to submit:", payload);
