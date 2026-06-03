@@ -1,6 +1,5 @@
 
 import YouMightAlsoLoveCard from './YouMightAlsoLoveCard';
-// import { mockBestSellingProducts } from '../../lib/MockBestSelling';
 import { Product } from '../../types';
 
 const YouMightAlsoLove = ({product}:{product:Product[]}) => {

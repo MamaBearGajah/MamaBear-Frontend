@@ -20,80 +20,6 @@ interface CategoryCardProps {
   mobileSize?: boolean;
 }
 
-const FALLBACK_SHOWCASE_CATEGORIES: Category[] = [
-  {
-    id: 1,
-    name: "Almon Mix",
-    image:
-      "https://images.unsplash.com/photo-1772986799138-93e3a459543d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhbG1vbmQlMjBudXRzJTIwaGVhbHRoeSUyMGZvb2QlMjBzdXBlcmZvb2R8ZW58MXx8fHwxNzc3NjM5MzIzfDA&ixlib=rb-4.1.0&q=80&w=1080",
-    count: 5,
-  },
-  {
-    id: 2,
-    name: "Kukis Almond Oat",
-    image: "/Image%20HomePage/almonoatkukis.jpg",
-    count: 3,
-  },
-  {
-    id: 3,
-    name: "Breast milk Storage Bag",
-    image: "/Image%20HomePage/breastmilk.jpg",
-    count: 4,
-  },
-  {
-    id: 4,
-    name: "Teh Pelancar Asi",
-    image:
-      "https://images.unsplash.com/photo-1606841613102-2bfd25e23265?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoZXJiYWwlMjB0ZWElMjBzdXBlcmZvb2QlMjB3ZWxsbmVzcyUyMGRyaW5rfGVufDF8fHx8MTc3NzYzOTMxOHww&ixlib=rb-4.1.0&q=80&w=1080",
-    count: 3,
-  },
-  {
-    id: 5,
-    name: "Zoya Mix",
-    image: "/Image%20HomePage/zoyamix.jpeg",
-    count: 4,
-  },
-  { id: 6, name: "Kapsul", image: "/Image%20HomePage/kapsul.jpg", count: 3 },
-];
-
-/*
-    API fetch skeleton (commented out)
-
-    When the backend is ready, you can fetch categories from the BE endpoint
-    `get/categories`. Keep this code commented until you want to switch from
-    the mock data to the real data.
-
-    Example (Server-side / Next.js - recommended for SSR):
-
-    // export async function fetchCategories(): Promise<Category[]> {
-    //   try {
-    //     const res = await fetch('/get/categories', { next: { revalidate: 60 } });
-    //     if (!res.ok) throw new Error('Failed to fetch categories');
-    //     const data = await res.json();
-    //     return data as Category[];
-    //   } catch (err) {
-    //     console.warn('fetchCategories failed, falling back to mock', err);
-    //     return MOCK_CATEGORIES;
-    //   }
-    // }
-
-    Example (Client-side - if you convert this component to a client component):
-
-    // import { useEffect, useState } from 'react';
-    // const [fetchedCategories, setFetchedCategories] = useState<Category[] | null>(null);
-    // useEffect(() => {
-    //   let mounted = true;
-    //   fetch('/get/categories')
-    //     .then((r) => r.ok ? r.json() : Promise.reject(r))
-    //     .then((data) => mounted && setFetchedCategories(data))
-    //     .catch(() => mounted && setFetchedCategories(MOCK_CATEGORIES));
-    //   return () => { mounted = false; };
-    // }, []);
-
-    Note: Current implementation uses `MOCK_CATEGORIES` or the `categories` prop
-    passed from the page. Leave that in place until the endpoint is live.
-
-  */
 
 function CategoryCard({
   category,
@@ -179,7 +105,7 @@ export default async function CategorySection({
       throw new Error("No categories returned from backend");
     }
   } catch {
-    fetchedCategories = FALLBACK_SHOWCASE_CATEGORIES;
+    fetchedCategories = [];
   }
 
   console.log("fetchedcategories", fetchedCategories)

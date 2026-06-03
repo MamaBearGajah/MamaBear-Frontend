@@ -32,7 +32,9 @@ function CategoryTreeNodeItem({
   const isSelected = isRoot
     ? !selectedCategoryId
     : selectedCategoryId === node.id;
-  const count = getTreeNodeProductCount(node, categoryCounts);
+  const count = isRoot
+    ? Object.values(categoryCounts).reduce((sum, value) => sum + value, 0)
+    : getTreeNodeProductCount(node, categoryCounts);
   const paddingClass =
     depth === 0 ? "" : depth === 1 ? "pl-4" : "pl-6";
 

@@ -3,7 +3,6 @@ import { Suspense } from "react";
 import AdminPageHeader from "@/components/layout/AdminPageHeader";
 import ProductsPageClient from "@/components/admin/ProductsPageClient";
 import { getCategoryList } from "@/lib/api/categories";
-import { isMockProductsEnabled } from "@/lib/api/mock-data";
 import { getProductList } from "@/lib/api/products";
 import { getServerSession } from "@/lib/auth/session";
 import type { ProductFilters } from "@/components/admin/ProductFilterDialog";
@@ -66,8 +65,8 @@ export default async function AdminProductsPage({ searchParams }: ProductsPagePr
   };
 
   const [productsRes, categoriesRes] = await Promise.all([
-    getProductList(listParams, accessToken),
-    getCategoryList(accessToken),
+    getProductList(listParams),
+    getCategoryList(),
   ]);
 
   const categoryMap = Object.fromEntries(
@@ -96,7 +95,6 @@ export default async function AdminProductsPage({ searchParams }: ProductsPagePr
           categoryMap={categoryMap}
           initialFilters={initialFilters}
           accessToken={accessToken}
-          mockMode={isMockProductsEnabled()}
         />
       </Suspense>
     </div>

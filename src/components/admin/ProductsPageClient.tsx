@@ -14,7 +14,6 @@ interface ProductsPageClientProps {
   categoryMap: Record<string, string>;
   initialFilters: ProductFilters;
   accessToken?: string;
-  mockMode: boolean;
 }
 
 function ProductsPageContent({
@@ -24,7 +23,6 @@ function ProductsPageContent({
   categoryMap,
   initialFilters,
   accessToken,
-  mockMode,
 }: ProductsPageClientProps) {
   return (
     <>
@@ -33,7 +31,6 @@ function ProductsPageContent({
         categories={categories}
         accessToken={accessToken}
         initialFilters={initialFilters}
-        mockMode={mockMode}
       />
       <ProductsTable products={products} categoryMap={categoryMap} />
       <div className="mt-6">

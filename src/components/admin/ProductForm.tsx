@@ -143,7 +143,7 @@ export default function ProductForm({
     }
   }, [nameValue, isEdit, setValue]);
 
-  const onSubmit = (data: ProductFormValues) => {
+   const onSubmit = (data: ProductFormValues) => {
     if (imageUploading) {
       toast.error("Tunggu upload image selesai dulu.");
       return;
@@ -155,6 +155,8 @@ export default function ProductForm({
           ...formValuesToPayload(data),
           mainImage: imageValue?.imageUrl?.trim() || undefined,
         };
+
+        console.log("Payload to submit:", payload);
 
         if (isEdit) {
           await apiClient.put(`/products/${product!.id}`, payload);
@@ -177,6 +179,7 @@ export default function ProductForm({
       }
     });
   };
+
 
   const handleDelete = () => {
     if (!product) return;

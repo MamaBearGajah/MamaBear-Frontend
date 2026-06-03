@@ -81,7 +81,7 @@ export default async function AdminVariantsPage({
     (categoriesRes?.data || []).map((c: Category) => [c.id, c.name])
   );
 
-  const meta = variantRes?.meta ?? {
+  const meta = {
     page: 1,
     limit: 20,
     totalItems: variantRes?.data?.length ?? 0,
