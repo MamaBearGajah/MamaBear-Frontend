@@ -1,5 +1,4 @@
-﻿
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
@@ -25,10 +24,10 @@ interface Address {
   isDefault: boolean;
 }
 
-interface Province { province_id: string; province: string; }
-interface City { city_id: string; city_name: string; type: string; }
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// Backend returns: [{ id, name }]
+interface Province { id: string; name: string; }
+// Backend returns: [{ id, name, zipCode }]
+interface City { id: string; name: string; zipCode?: string; }
 
 function getErrMsg(error: unknown): string {
   if (isAxiosError(error))
@@ -64,13 +63,17 @@ function AddressFormModal({
     postalCode: address?.postalCode ?? "",
   });
 
+  // Fetch cities saat provinceId berubah
   useEffect(() => {
-    if (form.provinceId) {
-      apiClient
-        .get(`/shipping/cities?province=${form.provinceId}`)
-        .then((r) => setCities(r.data?.data?.rajaongkir?.results ?? []))
-        .catch(() => setCities([]));
-    }
+    if (!form.provinceId) { setCities([]); return; }
+    apiClient
+      .get(`/shipping/cities?provinceId=${form.provinceId}`)
+      .then((r) => {
+        // Backend returns array langsung: [{ id, name, zipCode }]
+        const data = r.data?.data ?? r.data ?? [];
+        setCities(Array.isArray(data) ? data : []);
+      })
+      .catch(() => setCities([]));
   }, [form.provinceId]);
 
   const set = (field: string, value: string) =>
@@ -106,21 +109,25 @@ function AddressFormModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5 col-span-2">
-              <Label htmlFor="label">Label (opsional)</Label>
+              <Label htmlFor="label">Label <span className="text-zinc-400 text-xs">(opsional)</span></Label>
               <Input id="label" placeholder="Rumah / Kantor" value={form.label} onChange={e => set("label", e.target.value)} />
             </div>
+
             <div className="space-y-1.5">
               <Label htmlFor="receiverName">Nama Penerima *</Label>
               <Input id="receiverName" required value={form.receiverName} onChange={e => set("receiverName", e.target.value)} />
             </div>
+
             <div className="space-y-1.5">
               <Label htmlFor="phone">No. Telepon *</Label>
               <Input id="phone" required value={form.phone} onChange={e => set("phone", e.target.value)} placeholder="08xxxxxxxxxx" />
             </div>
+
             <div className="space-y-1.5 col-span-2">
               <Label htmlFor="address">Alamat Lengkap *</Label>
               <Input id="address" required value={form.address} onChange={e => set("address", e.target.value)} placeholder="Jl. Mawar No. 1" />
             </div>
+
             <div className="space-y-1.5">
               <Label htmlFor="provinceId">Provinsi *</Label>
               <select
@@ -132,10 +139,11 @@ function AddressFormModal({
               >
                 <option value="">Pilih provinsi</option>
                 {provinces.map(p => (
-                  <option key={p.province_id} value={p.province_id}>{p.province}</option>
+                  <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
               </select>
             </div>
+
             <div className="space-y-1.5">
               <Label htmlFor="cityId">Kota / Kabupaten *</Label>
               <select
@@ -143,15 +151,16 @@ function AddressFormModal({
                 required
                 value={form.cityId}
                 onChange={e => set("cityId", e.target.value)}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                disabled={!form.provinceId}
+                disabled={!form.provinceId || cities.length === 0}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
               >
                 <option value="">Pilih kota</option>
                 {cities.map(c => (
-                  <option key={c.city_id} value={c.city_id}>{c.type} {c.city_name}</option>
+                  <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
             </div>
+
             <div className="space-y-1.5">
               <Label htmlFor="postalCode">Kode Pos *</Label>
               <Input id="postalCode" required value={form.postalCode} onChange={e => set("postalCode", e.target.value)} placeholder="60111" />
@@ -159,9 +168,7 @@ function AddressFormModal({
           </div>
 
           <div className="flex gap-3 pt-2">
-            <Button type="button" variant="outline" className="flex-1" onClick={onClose}>
-              Batal
-            </Button>
+            <Button type="button" variant="outline" className="flex-1" onClick={onClose}>Batal</Button>
             <Button type="submit" disabled={saving} className="flex-1 bg-[#D5557E] hover:bg-[#D5557E]/90 text-white">
               {saving ? "Menyimpan..." : "Simpan"}
             </Button>
@@ -178,17 +185,14 @@ export default function ProfilePage() {
   const { state } = useAuth();
   const { user } = state;
 
-  // Profile state
   const [name, setName] = useState(user?.name ?? "");
   const [phone, setPhone] = useState(user?.phone ?? "");
   const [savingProfile, setSavingProfile] = useState(false);
 
-  // Password state
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
 
-  // Address state
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [showAddressModal, setShowAddressModal] = useState(false);
@@ -196,8 +200,12 @@ export default function ProfilePage() {
 
   useEffect(() => {
     fetchAddresses();
+    // Backend returns array langsung: [{ id, name }]
     apiClient.get("/shipping/provinces")
-      .then(r => setProvinces(r.data?.data?.rajaongkir?.results ?? []))
+      .then(r => {
+        const data = r.data?.data ?? r.data ?? [];
+        setProvinces(Array.isArray(data) ? data : []);
+      })
       .catch(() => {});
   }, []);
 
@@ -263,7 +271,7 @@ export default function ProfilePage() {
     <main className="mx-auto w-full max-w-2xl px-4 py-10 space-y-8">
       <h1 className="text-2xl font-bold text-[#6C4735]">Profil Saya</h1>
 
-      {/* ── Update Profil ── */}
+      {/* Update Profil */}
       <section className="rounded-2xl border border-[#F0D9E2] bg-white p-6 shadow-sm space-y-4">
         <h2 className="text-base font-semibold text-[#6C4735]">Informasi Akun</h2>
         <div className="space-y-1.5">
@@ -285,7 +293,7 @@ export default function ProfilePage() {
         </form>
       </section>
 
-      {/* ── Alamat ── */}
+      {/* Alamat */}
       <section className="rounded-2xl border border-[#F0D9E2] bg-white p-6 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-[#6C4735]">Alamat Pengiriman</h2>
@@ -306,14 +314,16 @@ export default function ProfilePage() {
               <li key={addr.id} className={`rounded-xl border p-4 text-sm space-y-1 ${addr.isDefault ? "border-[#D5557E] bg-[#FFF5F8]" : "border-zinc-200"}`}>
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    {addr.label && <span className="text-xs font-bold text-[#D5557E] uppercase">{addr.label}</span>}
-                    {addr.isDefault && <span className="ml-2 text-xs bg-[#D5557E] text-white rounded-full px-2 py-0.5">Default</span>}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {addr.label && <span className="text-xs font-bold text-[#D5557E] uppercase">{addr.label}</span>}
+                      {addr.isDefault && <span className="text-xs bg-[#D5557E] text-white rounded-full px-2 py-0.5">Default</span>}
+                    </div>
                     <p className="font-medium text-[#6C4735] mt-0.5">{addr.receiverName} · {addr.phone}</p>
                     <p className="text-zinc-500">{addr.address}, Kota {addr.cityId}, {addr.postalCode}</p>
                   </div>
                   <div className="flex gap-1 shrink-0">
                     {!addr.isDefault && (
-                      <Button size="sm" variant="ghost" className="text-zinc-400 hover:text-[#D5557E]" onClick={() => handleSetDefault(addr.id)}>
+                      <Button size="sm" variant="ghost" title="Set default" className="text-zinc-400 hover:text-[#D5557E]" onClick={() => handleSetDefault(addr.id)}>
                         <Star className="size-4" />
                       </Button>
                     )}
@@ -333,7 +343,7 @@ export default function ProfilePage() {
         )}
       </section>
 
-      {/* ── Ganti Password ── */}
+      {/* Ganti Password */}
       <section className="rounded-2xl border border-[#F0D9E2] bg-white p-6 shadow-sm space-y-4">
         <h2 className="text-base font-semibold text-[#6C4735]">Ganti Password</h2>
         <form onSubmit={handleChangePassword} className="space-y-4">
@@ -351,7 +361,6 @@ export default function ProfilePage() {
         </form>
       </section>
 
-      {/* ── Address Modal ── */}
       {showAddressModal && (
         <AddressFormModal
           address={editingAddress}
