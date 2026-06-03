@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import StatusBadge from "@/components/shared/StatusBadge";
-import { apiClient } from "@/lib/api/client";
+import { apiClient, authHeaders } from "@/lib/api/client";
 import { deleteProductAndRedirectAction } from "@/lib/actions/products";
 import { cn, toSlug } from "@/lib/utils";
 import {
@@ -51,12 +51,14 @@ interface ProductFormProps {
   mode: "create" | "edit";
   product?: Product;
   categories: Category[];
+  accessToken?: string;
 }
 
 export default function ProductForm({
   mode,
   product,
   categories,
+  accessToken,
 }: ProductFormProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -88,8 +90,7 @@ export default function ProductForm({
       return {
         imageUrl: first.imageUrl ?? "",
         altText: first.altText ?? product.name ?? "",
-        imageType:
-          (first.imageType as ImageUploaderValue["imageType"]) ?? "main",
+        imageType: (first.imageType as ImageUploaderValue["imageType"]) ?? "main",
         isFeatured: !!product.images.find((i) => i.isFeatured),
         sortOrder: first.sortOrder ?? 0,
       };
@@ -143,7 +144,7 @@ export default function ProductForm({
     }
   }, [nameValue, isEdit, setValue]);
 
-   const onSubmit = (data: ProductFormValues) => {
+  const onSubmit = (data: ProductFormValues) => {
     if (imageUploading) {
       toast.error("Tunggu upload image selesai dulu.");
       return;
@@ -162,47 +163,15 @@ export default function ProductForm({
             isFeatured: img.isFeatured,
             sortOrder: img.sortOrder,
           })),
-          // variants: product?.variants.map((v) => ({
-          //   id: v.id,
-          //   name: v.name,
-          //   sku: v.sku,
-          //   price: v.price,
-          //   discountPrice: v.discountPrice,
-          //   weight: v.weight,
-          //   stock: v.stock,
-          // })),
-          // variants: [
-          //   {
-          //     name: "placeholdername",
-          //     value: "placeholdervalue",
-          //     basePrice: 100000,
-          //     discountPrice: 90000,
-          //     priceAdjustment: 0,
-          //     stock: 20,
-          //     imageUrl:"https://placehold.co/600x400",
-          //     sku: "PLACEHOLDER-SKU",
-          //     isActive: true,
-          //   },
-          //   {
-          //     name: "placeholdername2",
-          //     value: "placeholdervalue2",
-          //     basePrice: 100000,
-          //     discountPrice: 90000,
-          //     priceAdjustment: 0,
-          //     stock: 20,
-          //     imageUrl:"https://placehold.co/600x400",
-          //     sku: "PLACEHOLDER-SKU2",
-          //     isActive: true,
-          //   }
-          // ],
         };
 
-        console.log("Payload to submit:", payload);
+        const headers = authHeaders(accessToken);
 
         if (isEdit) {
-          await apiClient.put(`/products/${product!.id}`, payload);
+          // PATCH bukan PUT — sesuai backend @Patch(':id')
+          await apiClient.patch(`/products/${product!.id}`, payload, { headers });
         } else {
-          await apiClient.post("/products", payload);
+          await apiClient.post("/products", payload, { headers });
         }
 
         toast.success(
@@ -221,7 +190,6 @@ export default function ProductForm({
     });
   };
 
-
   const handleDelete = () => {
     if (!product) return;
     startDeleteTransition(async () => {
@@ -236,12 +204,12 @@ export default function ProductForm({
   const fieldClass = (field: keyof ProductFormInput) =>
     cn(errors[field] && "border-destructive");
 
-  const handleImageSubmit = (imageValue: ImageUploaderValue) => {
+  const handleImageSubmit = (val: ImageUploaderValue) => {
     const newImage: ProductImage = {
-      imageUrl: imageValue.imageUrl,
-      altText: imageValue.altText,
-      imageType: imageValue.imageType,
-      isFeatured: false,
+      imageUrl: val.imageUrl,
+      altText: val.altText,
+      imageType: val.imageType,
+      isFeatured: galleryImages.length === 0, // first image = featured
       sortOrder: galleryImages.length + 1,
     };
     setGalleryImages([...galleryImages, newImage]);
@@ -257,7 +225,7 @@ export default function ProductForm({
         isFeatured: nextIndex === 0,
       }));
     setGalleryImages(nextImages);
-    toast.success("Image removed from gallery");
+    toast.success("Image removed");
   };
 
   const handleGalleryReorder = (images: ProductImage[]) => {
@@ -269,6 +237,9 @@ export default function ProductForm({
       }))
     );
   };
+
+  // Flatten categories for select — exclude parent-less entries if needed
+  const leafCategories = categories.filter((c) => c.id !== "cat-root");
 
   return (
     <>
@@ -295,6 +266,7 @@ export default function ProductForm({
 
         <div className="mt-2 grid gap-8 xl:grid-cols-[minmax(0,1fr)_300px] xl:items-start">
           <div className="space-y-8">
+            {/* Status */}
             <section className="space-y-3">
               <Label>Status</Label>
               <div className="flex flex-wrap gap-2">
@@ -317,13 +289,12 @@ export default function ProductForm({
                 ))}
               </div>
               <StatusBadge status={statusValue} />
-              {errors.status ? (
-                <p className="text-destructive text-sm">
-                  {errors.status.message}
-                </p>
-              ) : null}
+              {errors.status && (
+                <p className="text-destructive text-sm">{errors.status.message}</p>
+              )}
             </section>
 
+            {/* Name, Slug, SKU, Description */}
             <section className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="name">Nama produk *</Label>
@@ -333,11 +304,9 @@ export default function ProductForm({
                   placeholder="ASI Booster Tea – Hazelnut"
                   className={fieldClass("name")}
                 />
-                {errors.name ? (
-                  <p className="text-destructive text-sm">
-                    {errors.name.message}
-                  </p>
-                ) : null}
+                {errors.name && (
+                  <p className="text-destructive text-sm">{errors.name.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -345,18 +314,14 @@ export default function ProductForm({
                 <Input
                   id="slug"
                   {...register("slug", {
-                    onChange: () => {
-                      slugManuallyEdited.current = true;
-                    },
+                    onChange: () => { slugManuallyEdited.current = true; },
                   })}
                   placeholder="asi-booster-tea-hazelnut"
                   className={fieldClass("slug")}
                 />
-                {errors.slug ? (
-                  <p className="text-destructive text-sm">
-                    {errors.slug.message}
-                  </p>
-                ) : null}
+                {errors.slug && (
+                  <p className="text-destructive text-sm">{errors.slug.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -367,11 +332,9 @@ export default function ProductForm({
                   placeholder="SKU-001"
                   className={fieldClass("sku")}
                 />
-                {errors.sku ? (
-                  <p className="text-destructive text-sm">
-                    {errors.sku.message}
-                  </p>
-                ) : null}
+                {errors.sku && (
+                  <p className="text-destructive text-sm">{errors.sku.message}</p>
+                )}
               </div>
 
               <div className="space-y-2 sm:col-span-2">
@@ -383,14 +346,13 @@ export default function ProductForm({
                   placeholder="Deskripsi produk…"
                   className={fieldClass("description")}
                 />
-                {errors.description ? (
-                  <p className="text-destructive text-sm">
-                    {errors.description.message}
-                  </p>
-                ) : null}
+                {errors.description && (
+                  <p className="text-destructive text-sm">{errors.description.message}</p>
+                )}
               </div>
             </section>
 
+            {/* Pricing, Weight, Stock, Category */}
             <section className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="basePrice">Harga dasar (Rp) *</Label>
@@ -401,28 +363,27 @@ export default function ProductForm({
                   {...register("basePrice")}
                   className={fieldClass("basePrice")}
                 />
-                {errors.basePrice ? (
-                  <p className="text-destructive text-sm">
-                    {errors.basePrice.message}
-                  </p>
-                ) : null}
+                {errors.basePrice && (
+                  <p className="text-destructive text-sm">{errors.basePrice.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="discountPrice">Harga diskon (Rp)</Label>
+                <Label htmlFor="discountPrice">
+                  Harga diskon (Rp)
+                  <span className="ml-1 text-xs text-muted-foreground">— opsional, yang ditampilkan ke customer</span>
+                </Label>
                 <Input
                   id="discountPrice"
                   type="number"
                   min={0}
-                  placeholder="Opsional"
+                  placeholder="Kosongkan jika tidak ada diskon"
                   {...register("discountPrice")}
                   className={fieldClass("discountPrice")}
                 />
-                {errors.discountPrice ? (
-                  <p className="text-destructive text-sm">
-                    {errors.discountPrice.message}
-                  </p>
-                ) : null}
+                {errors.discountPrice && (
+                  <p className="text-destructive text-sm">{errors.discountPrice.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -434,11 +395,9 @@ export default function ProductForm({
                   {...register("weight")}
                   className={fieldClass("weight")}
                 />
-                {errors.weight ? (
-                  <p className="text-destructive text-sm">
-                    {errors.weight.message}
-                  </p>
-                ) : null}
+                {errors.weight && (
+                  <p className="text-destructive text-sm">{errors.weight.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -450,11 +409,9 @@ export default function ProductForm({
                   {...register("stock")}
                   className={fieldClass("stock")}
                 />
-                {errors.stock ? (
-                  <p className="text-destructive text-sm">
-                    {errors.stock.message}
-                  </p>
-                ) : null}
+                {errors.stock && (
+                  <p className="text-destructive text-sm">{errors.stock.message}</p>
+                )}
               </div>
 
               <div className="space-y-2 sm:col-span-2">
@@ -472,7 +429,7 @@ export default function ProductForm({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Tanpa kategori</SelectItem>
-                    {categories.map((c) => (
+                    {leafCategories.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
                         {c.name}
                       </SelectItem>
@@ -483,22 +440,33 @@ export default function ProductForm({
             </section>
           </div>
 
+          {/* Image sidebar */}
           <div className="space-y-6 xl:sticky xl:top-6">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                Gambar Produk
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Upload gambar lalu klik "Add to Gallery". Gambar pertama otomatis jadi featured.
+              </p>
+            </div>
             <ImageUploader
               value={imageValue}
               onChange={(v) => setImageValue(v)}
               onUploadingChange={setImageUploading}
               onSubmit={handleImageSubmit}
             />
-            <ProductGallery
-              images={galleryImages}
-              onDelete={(index) => handleImageDelete(index)}
-              onReorder={handleGalleryReorder}
-            />
+            {galleryImages.length > 0 && (
+              <ProductGallery
+                images={galleryImages}
+                onDelete={(index) => handleImageDelete(index)}
+                onReorder={handleGalleryReorder}
+              />
+            )}
           </div>
         </div>
 
-        {isEdit ? (
+        {isEdit && (
           <div className="flex justify-start">
             <Button
               type="button"
@@ -510,10 +478,10 @@ export default function ProductForm({
               Hapus
             </Button>
           </div>
-        ) : null}
+        )}
       </form>
 
-      {isEdit && product ? (
+      {isEdit && product && (
         <ConfirmDialog
           open={deleteOpen}
           onOpenChange={setDeleteOpen}
@@ -524,7 +492,7 @@ export default function ProductForm({
           loading={deletePending}
           onConfirm={handleDelete}
         />
-      ) : null}
+      )}
     </>
   );
 }
