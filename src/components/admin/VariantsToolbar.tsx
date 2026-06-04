@@ -139,7 +139,7 @@ export default function VariantsToolbar({
             >
               <Link href="/admin/variants/create">
                 <Plus className="size-4" />
-                Add Product
+                Add Variant
               </Link>
             </Button>
           </div>
