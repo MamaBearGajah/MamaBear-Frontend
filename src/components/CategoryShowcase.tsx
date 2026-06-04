@@ -56,45 +56,6 @@ const FALLBACK_SHOWCASE_CATEGORIES: Category[] = [
   { id: 6, name: "Kapsul", image: "/Image%20HomePage/kapsul.jpg", count: 3 },
 ];
 
-/*
-    API fetch skeleton (commented out)
-
-    When the backend is ready, you can fetch categories from the BE endpoint
-    `get/categories`. Keep this code commented until you want to switch from
-    the mock data to the real data.
-
-    Example (Server-side / Next.js - recommended for SSR):
-
-    // export async function fetchCategories(): Promise<Category[]> {
-    //   try {
-    //     const res = await fetch('/get/categories', { next: { revalidate: 60 } });
-    //     if (!res.ok) throw new Error('Failed to fetch categories');
-    //     const data = await res.json();
-    //     return data as Category[];
-    //   } catch (err) {
-    //     console.warn('fetchCategories failed, falling back to mock', err);
-    //     return MOCK_CATEGORIES;
-    //   }
-    // }
-
-    Example (Client-side - if you convert this component to a client component):
-
-    // import { useEffect, useState } from 'react';
-    // const [fetchedCategories, setFetchedCategories] = useState<Category[] | null>(null);
-    // useEffect(() => {
-    //   let mounted = true;
-    //   fetch('/get/categories')
-    //     .then((r) => r.ok ? r.json() : Promise.reject(r))
-    //     .then((data) => mounted && setFetchedCategories(data))
-    //     .catch(() => mounted && setFetchedCategories(MOCK_CATEGORIES));
-    //   return () => { mounted = false; };
-    // }, []);
-
-    Note: Current implementation uses `MOCK_CATEGORIES` or the `categories` prop
-    passed from the page. Leave that in place until the endpoint is live.
-
-  */
-
 function CategoryCard({
   category,
   gradientClass,
@@ -131,7 +92,7 @@ function CategoryCard({
       {/* Hover overlay */}
       <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/0 opacity-0 transition duration-300 group-hover:bg-white/10 group-hover:opacity-100">
         <span className="inline-flex items-center rounded-full bg-[#6C4735] px-2 py-0.5 text-[11px] font-semibold tracking-[0.15em] text-white uppercase shadow-[0_2px_6px_rgba(0,0,0,0.15)]">
-          shop now
+          see more
         </span>
       </div>
 
@@ -182,7 +143,7 @@ export default async function CategorySection({
     fetchedCategories = FALLBACK_SHOWCASE_CATEGORIES;
   }
 
-  console.log("fetchedcategories", fetchedCategories)
+  console.log("fetchedcategories", fetchedCategories);
   const categories =
     fetchedCategories.length > 0
       ? fetchedCategories
@@ -190,11 +151,10 @@ export default async function CategorySection({
         ? propCategories
         : [];
 
-
-    //   const categories =
-    // fetchedCategories.length > 0
-    //   ? fetchedCategories
-    //   : null;
+  //   const categories =
+  // fetchedCategories.length > 0
+  //   ? fetchedCategories
+  //   : null;
 
   // gradient variants per card (deterministic for SSR)
   const gradientClasses = [

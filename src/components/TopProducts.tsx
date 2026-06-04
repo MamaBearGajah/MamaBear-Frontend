@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ShoppingCart } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
+import type { ProductBadgeType } from "@/types";
 
 type Product = {
   id: number;
@@ -11,6 +12,12 @@ type Product = {
   rating: number;
   description: string;
   imageUrls: string[];
+};
+
+const BADGE_LABELS: Record<ProductBadgeType, string> = {
+  "best-seller": "Best Seller",
+  "fan-favorite": "Fan Favorite",
+  new: "New",
 };
 
 type BestsellerProduct = {
@@ -119,7 +126,7 @@ type BestSellerApiProduct = {
   weight?: number | null;
   sku?: string;
   stock?: number;
-  soldCount?: number;
+  badge?: ProductBadgeType;
   status?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -170,6 +177,16 @@ function mapBestSellerToCard(product: BestSellerApiProduct): BestsellerProduct {
     typeof discountPrice === "number" &&
     typeof basePrice === "number" &&
     discountPrice < basePrice;
+  const discountPercent = hasDiscount
+    ? Math.round(((basePrice - discountPrice) / basePrice) * 100)
+    : undefined;
+
+  const badgeLabel = product.badge ? BADGE_LABELS[product.badge] : undefined;
+  const badgeClassName = product.badge
+    ? "bg-[#E35F8A] text-white"
+    : hasDiscount
+      ? "bg-[#FF3B30] text-white"
+      : "bg-[#E35F8A] text-white";
 
   return {
     id: product.id,
@@ -183,10 +200,17 @@ function mapBestSellerToCard(product: BestSellerApiProduct): BestsellerProduct {
     imageUrl: normalizeImageSrc(mainImage?.imageUrl),
     imageLabel: mainImage?.altText ?? product.name ?? "Product image",
     imageAccentClass: "from-[#F0E0F0] via-white to-[#E8D8E8]",
-    primaryBadgeLabel: product.soldCount
-      ? `Sold ${product.soldCount}`
-      : "Best Seller",
-    primaryBadgeClassName: "bg-[#E35F8A] text-white",
+    primaryBadgeLabel:
+      badgeLabel ?? (hasDiscount ? `-${discountPercent}%` : "Best Seller"),
+    primaryBadgeClassName: badgeClassName,
+    secondaryBadgeLabel:
+      badgeLabel && discountPercent != null
+        ? `-${discountPercent}%`
+        : undefined,
+    secondaryBadgeClassName:
+      badgeLabel && discountPercent != null
+        ? "bg-[#FF3B30] text-white"
+        : undefined,
   };
 }
 
@@ -261,7 +285,7 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
         <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
           {shownProducts.map((product, index) => {
             const toggleId = `top-products-cart-toggle-${index}`;
-            const cartHref = `/cart?add=${encodeURIComponent(String(product.id ?? product.slug ?? product.name))}`;
+            const productHref = `/product/${product.slug ?? product.id ?? product.name}`;
 
             return (
               <article
@@ -313,7 +337,7 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                       src={product.imageUrl}
                       alt={product.name}
                       fill
-                      className="object-cover"
+                      className="object-cover transition-transform duration-300 group-hover:scale-110"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-center text-[#6C4735]">
@@ -329,11 +353,10 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                   )}
 
                   <Link
-                    href={cartHref}
+                    href={productHref}
                     className="absolute inset-x-3 bottom-3 z-20 flex translate-y-3 items-center justify-center gap-2 rounded-xl bg-[#D5557E] px-4 py-2.5 text-sm font-semibold text-white opacity-0 shadow-md transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100 peer-checked:translate-y-0 peer-checked:opacity-100 hover:bg-[#C84E77]"
                   >
-                    <ShoppingCart className="size-4" strokeWidth={1.85} />
-                    Add to Cart
+                    Shop Now
                   </Link>
                 </div>
 
@@ -417,7 +440,7 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
         <div className="mt-5 grid grid-cols-2 gap-3 px-4">
           {shownProducts.map((product, index) => {
             const toggleId = `top-products-mobile-cart-toggle-${index}`;
-            const cartHref = `/cart?add=${encodeURIComponent(String(product.id ?? product.slug ?? product.name))}`;
+            const productHref = `/product/${product.slug ?? product.id ?? product.name}`;
 
             return (
               <article
@@ -466,7 +489,7 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                       src={product.imageUrl}
                       alt={product.name}
                       fill
-                      className="object-cover"
+                      className="object-cover transition-transform duration-300 group-hover:scale-110"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center px-3 text-center text-[#6C4735]">
@@ -482,11 +505,10 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                   )}
 
                   <Link
-                    href={cartHref}
+                    href={productHref}
                     className="absolute inset-x-2 bottom-2 z-20 flex translate-y-2 items-center justify-center gap-1.5 rounded-lg bg-[#D5557E] px-3 py-1.5 text-[10px] font-semibold text-white opacity-0 shadow-md transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100 peer-checked:translate-y-0 peer-checked:opacity-100 hover:bg-[#C84E77]"
                   >
-                    <ShoppingCart className="size-3" strokeWidth={1.85} />
-                    Add to Cart
+                    Shop Now
                   </Link>
                 </div>
 
