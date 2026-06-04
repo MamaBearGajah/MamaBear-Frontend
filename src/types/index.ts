@@ -257,6 +257,7 @@ export interface Category {
   description?: string;
   imageUrl?: string;
   isActive: boolean;
+  productCount?: number;
 }
 
 export interface PaginationMeta {
@@ -338,3 +339,41 @@ export interface ProductPriceFields {
   basePrice: number;
   discountPrice?: number;
 }
+
+// --- TAMBAHAN UNTUK PROFILE & ADDRESS ---
+
+export interface UserPreferences {
+  newsletter: boolean;
+  emailOrderUpdates: boolean;
+  smsNotifications: boolean;
+}
+
+// Extend dari interface User bawaan BE kamu
+export interface UserProfile extends User {
+  dateOfBirth?: string;
+  memberSince: string;
+  preferences: UserPreferences;
+  addresses: Address[];
+}
+
+export interface Address {
+  id: string;
+  label: string; // "Home" | "Office" | "Other"
+  name: string;
+  phone: string;
+  province: string;
+  city: string;
+  postalCode: string;
+  address: string;
+  isDefault: boolean;
+}
+
+export interface UpdateProfilePayload {
+  name: string;
+  email: string;
+  phone?: string;
+  dateOfBirth?: string;
+  preferences?: UserPreferences;
+}
+
+export type AddressPayload = Omit<Address, "id">;
