@@ -50,6 +50,21 @@ const IMAGE_TYPE_OPTIONS: { value: ImageType; label: string }[] = [
   { value: "other", label: "Other" },
 ];
 
+// Response dari POST /media/sign
+type SignResponse = {
+  uploadUrl: string;
+  signature: string;
+  timestamp: number;
+  apiKey: string;
+  folder: string;
+};
+
+// Response dari Cloudinary setelah upload
+type CloudinaryUploadResponse = {
+  secure_url: string;
+  public_id: string;
+};
+
 function toValue(
   next: Partial<ImageUploaderValue> | undefined
 ): ImageUploaderValue {
@@ -60,6 +75,14 @@ function toValue(
     isFeatured: next?.isFeatured ?? false,
     sortOrder: next?.sortOrder ?? 0,
   };
+}
+
+// Unwrap response backend yang dibungkus { success, data: {...} }
+function unwrapData<T>(payload: unknown): T {
+  if (payload && typeof payload === "object" && "data" in payload) {
+    return (payload as { data: T }).data;
+  }
+  return payload as T;
 }
 
 export default function ImageUploader({
@@ -76,7 +99,11 @@ export default function ImageUploader({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const objectUrlRef = useRef<string | null>(null);
   const isUploadingRef = useRef(false);
-  const [internalValue, setInternalValue] = useState<ImageUploaderValue>(() =>
+
+  // Kalau value prop berubah dari luar (controlled), pakai itu.
+  // Kalau tidak, simpan state lokal sendiri.
+  const isControlled = value !== undefined;
+  const [localValue, setLocalValue] = useState<ImageUploaderValue>(() =>
     toValue(value)
   );
   const [localPreview, setLocalPreview] = useState<string>(
@@ -84,10 +111,8 @@ export default function ImageUploader({
   );
   const [isUploading, setIsUploading] = useState(false);
 
-  useEffect(() => {
-    setInternalValue(toValue(value));
-    setLocalPreview(value?.imageUrl ?? "");
-  }, [value]);
+  // Derived: kalau controlled pakai value prop, kalau uncontrolled pakai state lokal
+  const internalValue = isControlled ? toValue(value) : localValue;
 
   useEffect(() => {
     return () => {
@@ -101,7 +126,7 @@ export default function ImageUploader({
   const previewReady = Boolean(previewSrc);
 
   const emitChange = (next: ImageUploaderValue) => {
-    setInternalValue(next);
+    if (!isControlled) setLocalValue(next);
     onChange?.(next);
   };
 
@@ -111,139 +136,78 @@ export default function ImageUploader({
     onUploadingChange?.(next);
   };
 
-  const safeParseJson = async (response: Response) => {
-    const text = await response.text();
-    if (!text) return null;
-    try {
-      return JSON.parse(text) as unknown;
-    } catch {
-      return text;
-    }
-  };
-
-  const extractSecureUrl = (payload: unknown): string => {
-    if (!payload || typeof payload !== "object") return "";
-    const row = payload as {
-      secure_url?: string;
-      secureUrl?: string;
-      url?: string;
-      data?: unknown;
-    };
-
-    if (typeof row.secure_url === "string") return row.secure_url;
-    if (typeof row.secureUrl === "string") return row.secureUrl;
-    if (typeof row.url === "string") return row.url;
-    if (row.data && typeof row.data === "object")
-      return extractSecureUrl(row.data);
-    return "";
-  };
-
-  const extractSignData = (payload: unknown): Record<string, unknown> => {
-    if (!payload || typeof payload !== "object") return {};
-    const row = payload as { data?: unknown } & Record<string, unknown>;
-    if (row.data && typeof row.data === "object") {
-      return row.data as Record<string, unknown>;
-    }
-    return row;
-  };
-
+  // Cara 2: signed URL — upload langsung ke Cloudinary, tidak lewat server
   const uploadWithSignedUrl = async (file: File): Promise<string> => {
-    const signResponse = await apiClient.post<unknown>("/media/sign", {
-      fileName: file.name,
-      contentType: file.type,
-      size: file.size,
+    // 1. Minta signature dari backend
+    const signRes = await apiClient.post<unknown>("/media/sign", {
       folder: "products",
+      fileName: file.name,
+      fileType: file.type,
     });
 
-    const signData = extractSignData(signResponse.data);
-    const cloudName = String(
-      signData.cloudName ?? signData.cloud_name ?? ""
-    ).trim();
-    const resourceType = String(
-      signData.resourceType ?? signData.resource_type ?? "image"
-    ).trim();
-    const uploadUrl = String(
-      signData.uploadUrl ??
-        signData.upload_url ??
-        (cloudName
-          ? `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`
-          : "")
-    ).trim();
+    // Backend return { success, data: { uploadUrl, signature, timestamp, apiKey, folder } }
+    const signData = unwrapData<SignResponse>(signRes.data);
 
-    if (!uploadUrl) {
-      throw new Error(
-        "Upload URL Cloudinary tidak tersedia dari response signature."
-      );
+    if (!signData.uploadUrl) {
+      throw new Error("Upload URL tidak tersedia dari response signature.");
     }
 
+    // 2. Build FormData untuk dikirim langsung ke Cloudinary
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("api_key", signData.apiKey);
+    formData.append("timestamp", String(signData.timestamp));
+    formData.append("signature", signData.signature);
+    formData.append("folder", signData.folder);
 
-    const apiKey = String(signData.apiKey ?? signData.api_key ?? "").trim();
-    const timestamp = signData.timestamp ?? signData.timeStamp;
-    const signature = String(signData.signature ?? "").trim();
-    const folder = String(signData.folder ?? "products").trim();
-    const uploadPreset = String(
-      signData.uploadPreset ?? signData.upload_preset ?? ""
-    ).trim();
-
-    if (apiKey) formData.append("api_key", apiKey);
-    if (timestamp != null && timestamp !== "")
-      formData.append("timestamp", String(timestamp));
-    if (signature) formData.append("signature", signature);
-    if (folder) formData.append("folder", folder);
-    if (uploadPreset) formData.append("upload_preset", uploadPreset);
-
-    const uploadResponse = await fetch(uploadUrl, {
+    // 3. Upload langsung ke Cloudinary
+    const uploadRes = await fetch(signData.uploadUrl, {
       method: "POST",
       body: formData,
     });
 
-    if (!uploadResponse.ok) {
-      throw new Error("Upload ke Cloudinary gagal setelah signed URL didapat.");
+    if (!uploadRes.ok) {
+      const errText = await uploadRes.text();
+      throw new Error(`Upload ke Cloudinary gagal: ${errText}`);
     }
 
-    const uploadData = await safeParseJson(uploadResponse);
-    const secureUrl = extractSecureUrl(uploadData);
+    const uploadData = (await uploadRes.json()) as CloudinaryUploadResponse;
 
-    if (!secureUrl) {
-      throw new Error(
-        "Cloudinary berhasil upload, tetapi secure_url tidak ditemukan."
-      );
+    if (!uploadData.secure_url) {
+      throw new Error("Upload berhasil tapi secure_url tidak ditemukan.");
     }
 
-    return secureUrl;
+    return uploadData.secure_url;
   };
 
+  // Cara 1: fallback — upload lewat server
   const uploadDirect = async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("folder", "products");
 
-    const uploadResponse = await apiClient.post<unknown>(
-      "/media/upload",
-      formData,
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-      }
+    const uploadRes = await apiClient.post<unknown>("/media/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    // Backend return { success, data: { imageUrl, publicId } }
+    const data = unwrapData<{ imageUrl: string; publicId: string }>(
+      uploadRes.data
     );
 
-    const secureUrl = extractSecureUrl(uploadResponse.data);
-
-    if (!secureUrl) {
+    if (!data.imageUrl) {
       throw new Error(
-        "Backend upload selesai, tetapi secure_url tidak ditemukan."
+        "Backend upload selesai, tetapi imageUrl tidak ditemukan."
       );
     }
 
-    return secureUrl;
+    return data.imageUrl;
   };
 
   const setPreviewFromFile = (file: File) => {
     if (objectUrlRef.current) {
       URL.revokeObjectURL(objectUrlRef.current);
     }
-
     const objectUrl = URL.createObjectURL(file);
     objectUrlRef.current = objectUrl;
     setLocalPreview(objectUrl);
@@ -252,22 +216,42 @@ export default function ImageUploader({
   const handleFile = (file?: File | null) => {
     if (!file || disabled || isUploadingRef.current) return;
 
+    // Validasi tipe & ukuran sebelum upload
+    const ALLOWED = ["image/jpeg", "image/png", "image/webp"];
+    if (!ALLOWED.includes(file.type)) {
+      toast.error("Tipe file tidak didukung. Gunakan jpeg, png, atau webp.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Ukuran file maksimal 5MB.");
+      return;
+    }
+
     setUploading(true);
     setPreviewFromFile(file);
-
     onFileSelected?.(file);
 
     uploadWithSignedUrl(file)
-      .catch(() => uploadDirect(file))
+      .catch((err) => {
+        console.warn("Signed upload gagal, fallback ke direct upload:", err);
+        return uploadDirect(file);
+      })
       .then((secureUrl) => {
+        // Revoke object URL lama, ganti dengan URL Cloudinary final
+        if (objectUrlRef.current) {
+          URL.revokeObjectURL(objectUrlRef.current);
+          objectUrlRef.current = null;
+        }
         setLocalPreview(secureUrl);
         emitChange({ ...internalValue, imageUrl: secureUrl });
-        toast.success("Image berhasil diupload ke Cloudinary.");
+        toast.success("Image berhasil diupload.");
       })
-      .catch((error) => {
+      .catch((err: unknown) => {
         const message =
-          error instanceof Error ? error.message : "Gagal upload image.";
+          err instanceof Error ? err.message : "Gagal upload image.";
         toast.error(message);
+        // Reset preview jika gagal total
+        setLocalPreview(internalValue.imageUrl);
       })
       .finally(() => {
         setUploading(false);
@@ -280,7 +264,7 @@ export default function ImageUploader({
   };
 
   const resetForm = () => {
-    setInternalValue(toValue(undefined));
+    setLocalValue(toValue(undefined));
     setLocalPreview("");
     if (objectUrlRef.current) {
       URL.revokeObjectURL(objectUrlRef.current);
@@ -290,7 +274,11 @@ export default function ImageUploader({
 
   const handleSubmit = () => {
     if (!internalValue.imageUrl.trim()) {
-      toast.error("Image URL is required.");
+      toast.error("Image URL wajib diisi.");
+      return;
+    }
+    if (!internalValue.altText.trim()) {
+      toast.error("Title / alt text wajib diisi.");
       return;
     }
     onSubmit?.(internalValue);
@@ -315,19 +303,18 @@ export default function ImageUploader({
 
       <div className="px-5 pt-4 pb-5">
         <div className="space-y-4">
+          {/* Drop zone */}
           <div
-            onDragOver={(event) => {
-              event.preventDefault();
-            }}
+            onDragOver={(e) => e.preventDefault()}
             onDrop={handleDrop}
             className="group relative flex min-h-[240px] items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-[#F6B8CB] bg-[#FFF4F8] transition"
           >
             <input
               ref={inputRef}
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp"
               className="sr-only"
-              onChange={(event) => handleFile(event.target.files?.[0])}
+              onChange={(e) => handleFile(e.target.files?.[0])}
               disabled={disabled}
             />
 
@@ -338,33 +325,33 @@ export default function ImageUploader({
               className="flex h-full w-full flex-col items-center justify-center gap-3 px-5 py-8 text-center outline-none disabled:cursor-not-allowed"
             >
               {isUploading ? (
-                <div className="flex flex-col items-center gap-3 text-[#D5A0B5]">
+                <div className="flex flex-col items-center gap-3">
                   <ImagePlus className="size-8 animate-pulse text-[#F1AFC4]" />
                   <p className="text-[13px] font-medium text-[#B98CA0]">
-                    Uploading image...
+                    Uploading...
                   </p>
                 </div>
               ) : previewReady ? (
-                <div className="relative flex h-full w-full items-center justify-center">
-                  <img
-                    src={previewSrc}
-                    alt={internalValue.altText || "Preview"}
-                    className="max-h-[210px] max-w-full rounded-2xl object-contain"
-                  />
-                </div>
+                <img
+                  src={previewSrc}
+                  alt={internalValue.altText || "Preview"}
+                  className="max-h-[210px] max-w-full rounded-2xl object-contain"
+                />
               ) : (
-                <div className="flex flex-col items-center gap-3 text-[#D5A0B5]">
+                <div className="flex flex-col items-center gap-1">
                   <ImagePlus className="size-8 text-[#F1AFC4]" />
-                  <div>
-                    <p className="text-[13px] font-medium text-[#B98CA0]">
-                      Enter image URL to preview
-                    </p>
-                  </div>
+                  <p className="text-[11px] font-medium text-[#B98CA0]">
+                    Drag & drop atau klik untuk pilih gambar
+                  </p>
+                  <p className="text-[11px] text-[#D5A0B5]">
+                    jpeg, jpg, png, webp — maks 5MB
+                  </p>
                 </div>
               )}
             </button>
           </div>
 
+          {/* Image URL manual */}
           <div className="space-y-2">
             <Label htmlFor="imageUrl">
               Image URL <span className="text-[#D5557E]">*</span>
@@ -372,74 +359,70 @@ export default function ImageUploader({
             <Input
               id="imageUrl"
               value={internalValue.imageUrl}
-              onChange={(event) => {
-                const next = event.target.value;
-                setLocalPreview(next);
-                emitChange({ ...internalValue, imageUrl: next });
-              }}
-              placeholder="https://images.unsplash.com/..."
+              readOnly
+              placeholder="https://res.cloudinary.com/..."
+              disabled={disabled || isUploading}
+              className="cursor-not-allowed border-[#E5E7EB] bg-gray-50 focus-visible:border-[#F1AFC4] focus-visible:ring-[#F1AFC4]/30"
+            />
+            <p className="text-[12px] leading-5 text-[#8D6B5B]">
+              URL Cloudinary akan muncul otomatis
+            </p>
+          </div>
+
+          {/* Alt text */}
+          <div className="space-y-2">
+            <Label htmlFor="altText">
+              Title <span className="text-[#D5557E]">*</span>
+            </Label>
+            <Input
+              id="altText"
+              value={internalValue.altText}
+              onChange={(e) =>
+                emitChange({ ...internalValue, altText: e.target.value })
+              }
+              placeholder="Deskripsikan gambar ini..."
               disabled={disabled || isUploading}
               className="border-[#E5E7EB] focus-visible:border-[#F1AFC4] focus-visible:ring-[#F1AFC4]/30"
             />
-            <p className="text-[12px] leading-5 text-[#8D6B5B]">
-              Paste a direct image URL (Unsplash, CDN, etc.)
-            </p>
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="altText">
-                Title <span className="text-[#D5557E]">*</span>
-              </Label>
-              <Input
-                id="altText"
-                value={internalValue.altText}
-                onChange={(event) => {
-                  const next = event.target.value;
-                  emitChange({ ...internalValue, altText: next });
-                }}
-                placeholder="Describe the image for accessibility..."
-                disabled={disabled || isUploading}
-                className="border-[#E5E7EB] focus-visible:border-[#F1AFC4] focus-visible:ring-[#F1AFC4]/30"
-              />
-              <p className="text-[12px] leading-5 text-[#8D6B5B]">
-                Provide a descriptive alt text for the image.
-              </p>
-            </div>
+          {/* Image type */}
+          <div className="space-y-2">
+            <Label htmlFor="imageType">Image Type</Label>
+            <Select
+              value={internalValue.imageType}
+              onValueChange={(v) =>
+                emitChange({ ...internalValue, imageType: v as ImageType })
+              }
+            >
+              <SelectTrigger id="imageType" className="w-full sm:max-w-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {IMAGE_TYPE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div className="mt-3">
-              <div className="space-y-2">
-                <Label htmlFor="imageType">Image Type</Label>
-                <Select
-                  value={internalValue.imageType}
-                  onValueChange={(v) =>
-                    emitChange({ ...internalValue, imageType: v as ImageType })
-                  }
-                >
-                  <SelectTrigger id="imageType" className="w-full sm:max-w-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {IMAGE_TYPE_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="mt-6 flex justify-end">
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={
-                  disabled || isUploading || !internalValue.imageUrl.trim()
-                }
-                className="inline-flex items-center gap-2 rounded-lg bg-[#D5557E] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#C84E77] disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Submit Image
-              </button>
-            </div>
+          {/* Submit */}
+          <div className="mt-6 flex justify-end">
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={
+                disabled ||
+                isUploading ||
+                !internalValue.imageUrl.trim() ||
+                !internalValue.altText.trim()
+              }
+              className="inline-flex items-center gap-2 rounded-lg bg-[#D5557E] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#C84E77] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Submit Image
+            </button>
           </div>
         </div>
       </div>

@@ -428,8 +428,8 @@ export default function ProductForm({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Tanpa kategori</SelectItem>
-                    {categories.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
+                    {categories.map((c, index) => (
+                      <SelectItem key={`${c.id ?? c.name}-${index}`} value={c.id}>
                         {c.name}
                       </SelectItem>
                     ))}
@@ -446,13 +446,15 @@ export default function ProductForm({
               onUploadingChange={setImageUploading}
               onSubmit={handleImageSubmit}
             />
-            <ProductGallery
-              images={galleryImages}
-              onDelete={(index) => handleImageDelete(index)}
-              onReorder={handleGalleryReorder}
-            />
           </div>
         </div>
+
+        <ProductGallery
+          images={galleryImages}
+          className="mt-8"
+          onDelete={(index) => handleImageDelete(index)}
+          onReorder={handleGalleryReorder}
+        />
 
         {isEdit ? (
           <div className="flex justify-start">
