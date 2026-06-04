@@ -6,6 +6,8 @@ import ProductsPageHeader from "@/components/product/ProductsPageHeader";
 import ProductListToolbar from "@/components/product/ProductListToolbar";
 import ShopProductGrid from "@/components/product/ShopProductGrid";
 import Pagination from "@/components/shared/Pagination";
+// Import komponen CategoryGrid yang baru
+import CategoryGrid from "@/components/product/CategoryGrid"; 
 import { getCategoryList } from "@/lib/api/categories";
 import { getProductList } from "@/lib/api/products";
 import { computeCategoryCounts } from "@/lib/shop/category-counts";
@@ -18,7 +20,6 @@ import { isMockProductsEnabled } from "@/lib/api/mock-data";
 import { filterStorefrontProducts } from "@/lib/shop/storefront-products";
 import type { PaginationMeta } from "@/types";
 
-
 export const metadata: Metadata = {
   title: "All Products | MamaBear",
   description: "Browse all MamaBear superfood products",
@@ -29,12 +30,9 @@ interface ProductsPageProps {
 }
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
-  
   const params = await searchParams;
   const filters = parseShopListParamsFromRecord(params);
   const listParams = toStorefrontProductListParams(filters);
-
-  // const accessToken = await getShopAccessToken();
 
   const [productsRes, categoriesRes, allProductsRes] = await Promise.all([
     getProductList(listParams),
@@ -62,9 +60,15 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           />
         </Suspense>
 
-        <Suspense fallback={null}>
+       <Suspense fallback={null}>
           <ActiveFilterBadges categories={categoriesRes.data} />
         </Suspense>
+
+        {/* --- POSISI BARU: Di atas Filter dan Produk --- */}
+        <Suspense fallback={null}>
+          <CategoryGrid categories={categoriesRes.data} />
+        </Suspense>
+        {/* ---------------------------------------------- */}
 
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
           <FilterSidebar
@@ -91,5 +95,4 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         </div>
       </div>
     </main>
-  );
-}
+  )}
