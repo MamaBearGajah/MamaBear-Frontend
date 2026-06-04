@@ -196,7 +196,7 @@ const CheckoutPageReview = () => {
                 <form method="dialog" className="w-full">
                   <button
                     onClick={() => {
-                      router.push("/");
+                      router.push("/products");
                       clearCheckout();
                     }}
                     className="w-full rounded-full bg-pink-600 py-3.5 text-sm font-bold text-white transition-colors hover:bg-pink-700"
