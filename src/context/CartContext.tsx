@@ -557,6 +557,7 @@ import React, {
 
 import { CartItem } from "@/types";
 import { useAuth } from "./AuthContext";
+import { apiClient } from "@/lib/api/client";
 
 // =========================
 // TYPES
@@ -892,11 +893,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const clearCart = () => {
+  const clearCart = async () => {
     dispatch({
       type: "CLEAR_CART",
     });
-
+    await apiClient.delete("/cart");
     localStorage.removeItem(CART_STORAGE_KEY);
   };
 
