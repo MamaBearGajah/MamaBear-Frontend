@@ -231,7 +231,7 @@ function MobileHeaderInline() {
             <SearchBar />
           </div>
 
-          {isAuthenticated && !isAdmin && (
+          {isAuthenticated && isAdmin && (
             <>
               <Link
                 href="/wishlist"
@@ -272,25 +272,40 @@ function MobileHeaderInline() {
               </Link>
             ))}
 
+              {isAuthenticated && (
+                  <p className="px-4 py-1 text-xs text-brown/60">
+                      <Link
+                        href="/account/profile"
+                        onClick={() => setMenuOpen(false)}
+                        className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#FACBD8] hover:bg-[#D5557E]/10 px-4 text-sm font-semibold text-[#6C4735] transition hover:opacity-90 min-w-[100px]"
+                      >
+                        Hi, {firstName} 👋
+                    </Link>
+                    <br></br>
+                      {/* <CartButton
+                        href="/cart"
+                        className="text-brown hover:bg-light-pink/60 hover:text-dark-pink inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors"
+                      />
+                      <Link
+                        href="/wishlist"
+                        aria-label="Wishlist"
+                        className="text-brown hover:bg-light-pink/60 hover:text-dark-pink inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors"
+                      >
+                        <Heart className="size-4" strokeWidth={1.75} />
+                      </Link> */}
+                  </p>
+                  
+                  
+                )}
+
             <div className="my-2 h-px bg-[#D5557E]/30" />
 
             {!isLoading && (
               <>
 
-                {isAuthenticated && (
-                  <p className="px-4 py-1 text-xs text-brown/60">
-                      <Link
-                        href="/account/profile"
-                        onClick={() => setMenuOpen(false)}
-                        className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#FACBD8] px-4 text-sm font-semibold text-[#6C4735] transition hover:opacity-90 min-w-[100px]"
-                      >
-                        Hi, {firstName} 👋
-                    </Link>
-                  </p>
-                  
-                )}
 
-                <div className="flex gap-2 mt-1">
+
+                <div className="flex gap-2 mt-2">
                   {isAuthenticated ? (
                     <>
                       {isAdmin && (
