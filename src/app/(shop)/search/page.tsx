@@ -12,12 +12,18 @@ import { getProductList } from "@/lib/api/products";
 import { getCategoryList } from "@/lib/api/categories";
 import {
   DEFAULT_PRICE_BOUNDS,
+  needsStorefrontClientCatalog,
   parseShopListParamsFromRecord,
+  toStorefrontClientCatalogParams,
   toStorefrontSearchListParams,
 } from "@/lib/shop/product-list-params";
-import { getShopAccessToken } from "@/lib/auth/shop-access-token";
 import { computeCategoryCounts } from "@/lib/shop/category-counts";
-import { filterStorefrontProducts } from "@/lib/shop/storefront-products";
+import {
+  applyStorefrontSort,
+  filterProductsByCategoryScope,
+  filterProductsByEffectivePrice,
+  filterStorefrontProducts,
+} from "@/lib/shop/storefront-products";
 import type { PaginationMeta, ProductListItem } from "@/types";
 
 export const metadata: Metadata = {
@@ -48,12 +54,13 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   }
 
   const listParams = toStorefrontSearchListParams(filters);
-  const accessToken = await getShopAccessToken();
+  const needsClientCatalog = needsStorefrontClientCatalog(filters);
+  const clientCatalogParams = toStorefrontClientCatalogParams(filters);
 
   const [productsRes, categoriesRes, allProductsRes] = await Promise.all([
-    getSearchResults(listParams, accessToken),
-    getCategoryList(accessToken),
-    getProductList({ page: 1, limit: 100 }, accessToken),
+    getSearchResults(needsClientCatalog ? clientCatalogParams : listParams),
+    getCategoryList(),
+    getProductList({ page: 1, limit: 100 }),
   ]);
 
   const normalizedProducts = (productsRes.data || []).map((p) => ({
@@ -68,15 +75,54 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       : undefined,
   })) as ProductListItem[];
 
-  const products = filterStorefrontProducts(normalizedProducts);
-  const categoryCounts = computeCategoryCounts(allProductsRes.data);
+  const categories = categoriesRes.data;
+  const storefrontProducts = filterProductsByCategoryScope(
+    filterStorefrontProducts(normalizedProducts),
+    filters.categoryId,
+    categories,
+  );
+  const priceFilteredProducts = applyStorefrontSort(
+    filterProductsByEffectivePrice(
+      storefrontProducts,
+      filters.minPrice,
+      filters.maxPrice,
+    ),
+    filters.sortBy,
+    filters.sortOrder,
+  );
+  const page = filters.page ?? 1;
+  const limit = filters.limit ?? 20;
+  const start = (page - 1) * limit;
+  const products = needsClientCatalog
+    ? priceFilteredProducts.slice(start, start + limit)
+    : priceFilteredProducts;
+  const countProducts = filterProductsByEffectivePrice(
+    filterStorefrontProducts(allProductsRes.data).filter((product) => {
+      const needle = q.toLowerCase();
+      const matchesQuery =
+        product.name.toLowerCase().includes(needle) ||
+        product.slug.toLowerCase().includes(needle);
+      const matchesStock = filters.inStock === true ? product.stock > 0 : true;
+      return matchesQuery && matchesStock;
+    }),
+    filters.minPrice,
+    filters.maxPrice,
+  );
+  const categoryCounts = computeCategoryCounts(countProducts);
 
-  const meta: PaginationMeta = productsRes.meta ?? {
-    page: filters.page,
-    limit: filters.limit,
-    totalItems: products.length,
-    totalPages: 1,
-  };
+  const meta: PaginationMeta = needsClientCatalog
+    ? {
+        page,
+        limit,
+        totalItems: priceFilteredProducts.length,
+        totalPages: Math.max(1, Math.ceil(priceFilteredProducts.length / limit)),
+      }
+    : (productsRes.meta ?? {
+        page,
+        limit,
+        totalItems: products.length,
+        totalPages: 1,
+      });
 
   return (
     <main className="bg-light-pink/25 min-h-[60vh] py-6 md:py-10">

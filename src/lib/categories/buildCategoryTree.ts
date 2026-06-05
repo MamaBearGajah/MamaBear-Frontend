@@ -23,8 +23,14 @@ export function buildCategoryTree(categories: Category[]): CategoryTreeNode[] {
     }
   }
 
+  // Sort by sortOrder (dari backend), fallback ke name alphabetical
   const sortNodes = (list: CategoryTreeNode[]) => {
-    list.sort((a, b) => a.name.localeCompare(b.name));
+    list.sort((a, b) => {
+      const aOrder = a.sortOrder ?? 999;
+      const bOrder = b.sortOrder ?? 999;
+      if (aOrder !== bOrder) return aOrder - bOrder;
+      return a.name.localeCompare(b.name);
+    });
     list.forEach((n) => sortNodes(n.children));
   };
   sortNodes(roots);

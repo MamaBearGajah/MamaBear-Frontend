@@ -1,6 +1,8 @@
-import type { ApiResponse, Category, CategoryListParams } from "@/types";
+import type { ApiResponse, Category, CategoryListParams, ProductListItem, ProductListParams } from "@/types";
 import { apiClient } from "./client";
-import { isMockProductsEnabled } from "./mock-data";
+import { mapProductListItems } from "./map-product-list-item";
+import { ALL_PRODUCTS_CATEGORY } from "@/lib/categories/flattenCategories";
+import { normalizeApiResponse } from "./normalize-api-response";
 
 type CategoriesMeta = {
   total: number;
@@ -14,24 +16,43 @@ type CategoriesPayload = {
   meta: CategoriesMeta;
 };
 
-// type ApiResponse<T> = {
-//   success: boolean;
-//   data: T;
-//   meta?: CategoriesMeta;
-// };
-import { ALL_PRODUCTS_CATEGORY, flattenCategories } from "@/lib/categories/flattenCategories";
-import { normalizeApiResponse } from "./normalize-api-response";
+/**
+ * Walk dari ROOT dulu (parentId == null), lalu ke children-nya secara rekursif.
+ * Ini penting supaya urutan flat list = Moms & Baby → Maternity → AlmonMix → dst.
+ * Kalau tidak dari root, Maternity Supplies (item[0] di response backend) jalan duluan
+ * dan Moms & Baby muncul di akhir.
+ */
+function deduplicateCategories(items: (Category & { children?: Category[] })[]): Category[] {
+  const seen = new Set<string>();
+  const flat: Category[] = [];
 
-export async function getCategoryList(
-  // accessToken?: string | null,
-  params: CategoryListParams = {},
-): Promise<ApiResponse<Category[]>> {
-  if (isMockProductsEnabled()) {
-    return { success: true, data: MOCK_CATEGORIES };
+  function walk(list: (Category & { children?: Category[] })[]) {
+    for (const item of list) {
+      const { children, ...rest } = item;
+      if (!seen.has(rest.id)) {
+        seen.add(rest.id);
+        flat.push({ ...rest, isActive: rest.isActive ?? true });
+      }
+      if (Array.isArray(children) && children.length > 0) {
+        walk(children as (Category & { children?: Category[] })[]);
+      }
+    }
   }
 
+  // Walk dari roots (parentId == null) dulu
+  const roots = items.filter((i) => i.parentId == null);
+  walk(roots.length > 0 ? roots : items);
+
+  // Catch sisa node yang belum masuk (orphan / tidak terjangkau dari root)
+  walk(items);
+
+  return flat;
+}
+
+export async function getCategoryList(
+  params: CategoryListParams = {},
+): Promise<ApiResponse<Category[]>> {
   const { data } = await apiClient.get<ApiResponse<Category[]>>("/categories", {
-    // headers: authHeaders(accessToken),
     params,
   });
 
@@ -42,21 +63,18 @@ export async function getCategoryList(
     return { success: false, data: [ALL_PRODUCTS_CATEGORY], meta: normalized.meta };
   }
 
+  const flat = deduplicateCategories(normalized.data as (Category & { children?: Category[] })[]);
+
   return {
     success: normalized.success,
-    data: [ALL_PRODUCTS_CATEGORY, ...flattenCategories(normalized.data)],
+    data: [ALL_PRODUCTS_CATEGORY, ...flat],
     meta: normalized.meta,
   };
 }
 
-
 export async function getCategoryListNoFlatten(
   params: CategoryListParams = {},
 ): Promise<ApiResponse<Category[]>> {
-  if (isMockProductsEnabled()) {
-    return { success: true, data: MOCK_CATEGORIES };
-  }
-
   const { data } = await apiClient.get<ApiResponse<Category[]>>("/categories", {
     params,
   });
@@ -72,5 +90,32 @@ export async function getCategoryListNoFlatten(
     success: normalized.success,
     data: normalized.data,
     meta: normalized.meta,
+  };
+}
+
+export async function getCategoryProducts(
+  categoryId: string,
+  params: Omit<ProductListParams, "categoryId"> = {},
+): Promise<ApiResponse<ProductListItem[]>> {
+  const { data } = await apiClient.get(`/categories/${categoryId}/products`, {
+    params: {
+      page: params.page,
+      limit: params.limit,
+      q: params.q,
+      sortBy: params.sortBy === "price" ? "basePrice" : params.sortBy,
+      sortOrder: params.sortOrder,
+      ...(params.inStock === true && { inStock: true }),
+      ...(params.minPrice != null && { minPrice: params.minPrice }),
+      ...(params.maxPrice != null && { maxPrice: params.maxPrice }),
+    },
+  });
+
+  const normalized = normalizeApiResponse<ProductListItem[]>(data);
+
+  return {
+    ...normalized,
+    data: mapProductListItems(
+      Array.isArray(normalized.data) ? (normalized.data as unknown[]) : [],
+    ),
   };
 }

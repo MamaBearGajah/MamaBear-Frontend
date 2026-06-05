@@ -73,10 +73,12 @@ body {
 }
 
 @theme inline {
-  /* Fonts — use next/font CSS variables from root layout */
-  --font-sans: var(--font-quicksand), "Quicksand", sans-serif;
-  --font-heading: var(--font-urbanist), "Urbanist", sans-serif;
-  /* Brand colors (Tailwind v4 requires --color-* for bg/text utilities) */
+  --font-heading: var(--font-urbanist);
+  --font-sans: var(--font-quicksand);
+  --mamabear-font-1: var(--mamabear-font-1);
+  --mamabear-font-2: var(--mamabear-font-2);
+  --mamabear-font-3: var(--mamabear-font-3);
+  --mamabear-font-4: var(--mamabear-font-4);
   --color-light-pink: var(--mamabear-light-pink);
   --color-dark-pink: var(--mamabear-dark-pink);
   --color-brown: var(--mamabear-brown);

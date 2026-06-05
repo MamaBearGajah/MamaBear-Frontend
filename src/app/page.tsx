@@ -9,19 +9,7 @@ import HomeBanner from "@/components/HeroBanner";
 import FloatingChatButton from "@/components/FloatingChatButton";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-// import { fetchProducts } from "../../services/index";
-//import { MOCK_CATEGORIES } from "@/components/CategoryShowcase";
 import BackToTop from "@/components/common/BackToTop";
-
-async function tryFetch(url: string) {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
-}
 
 /*
 // Backend fetch for categories is temporarily disabled while BE is not ready.

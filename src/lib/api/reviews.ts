@@ -1,7 +1,5 @@
 import {apiClient} from '@/lib/api/client';
 import {ApiResponse, Product, Review} from '@/types';
-import {isMockProductsEnabled,} from "./mock-data";
-import { getMockAllReviews } from "@/lib/MockProducts";
 
 
 export const reviewsApi = {
@@ -29,15 +27,6 @@ export async function getAllReviews(
     totalPages: number;
   };
 }> {
-  if (isMockProductsEnabled()) {
-    const reviews = getMockAllReviews();
-    if (!reviews) {
-      const err = new Error("Reviews not found") as Error & { code?: string };
-      err.code = "NOT_FOUND";
-      throw err;
-    }
-    return reviews;
-  }
   const { data } = await apiClient.get(
     `/products/${id}/reviews`,
     { params: { page, limit } }
