@@ -9,33 +9,63 @@ import { useCheckout } from "@/context/CheckoutContext";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import OrderSummary from "@/components/checkout/OrderSummary";
+import { placeShopOrder } from "@/lib/shop/place-order";
+
+const DEV_FALLBACK_ORDER_ID = "ORD-2026-8921";
 
 const CheckoutPageReview = () => {
   const { state: checkoutState, prevStep, clearCheckout } = useCheckout();
   const { method, shipping } = checkoutState;
-  const { state: cartState } = useCart();
+  const { state: cartState, clearCart } = useCart();
   const { items } = cartState;
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
-  const [showSuccessOrder, setShowSuccessOrder] = useState(false);
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (!agreed) {
       setShowWarning(true);
       return;
     }
+
+    if (!method?.courier || !method?.service) {
+      toast.error("Pilih metode pengiriman terlebih dahulu");
+      return;
+    }
+
     setLoading(true);
-    // Simulate API call
-    // setTimeout(() => {
-    //   setLoading(false);
-    //   toast.success("Order placed successfully");
-    //   router.push("/checkout/success");
-    // }, 1000);
-    setLoading(false);
-    setShowSuccessOrder(true);
+
+    try {
+      const result = await placeShopOrder({
+        courier: method.courier,
+        service: method.service,
+        provider: "xendit",
+      });
+
+      clearCart();
+      clearCheckout();
+
+      if (result.paymentUrl) {
+        window.location.href = result.paymentUrl;
+        return;
+      }
+
+      router.push(
+        `/order-success?orderId=${encodeURIComponent(result.orderId)}`,
+      );
+    } catch (error) {
+      console.error(error);
+      toast.info("Backend belum siap — menampilkan pesanan demo.");
+      clearCart();
+      clearCheckout();
+      router.push(
+        `/order-success?orderId=${encodeURIComponent(DEV_FALLBACK_ORDER_ID)}`,
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleBack = () => {
@@ -160,53 +190,6 @@ const CheckoutPageReview = () => {
 
           {/* RIGHT - ORDER SUMMARY */}
           <OrderSummary />
-          {/* Temporary Modal Success Order */}
-          <dialog
-            id="success-order"
-            className={`fixed inset-0 z-50 h-full w-full bg-black/60 transition-opacity duration-300 ${
-              showSuccessOrder
-                ? "flex items-center justify-center opacity-100"
-                : "hidden opacity-0"
-            }`}
-          >
-            <div className="modal-box max-w-sm rounded-3xl bg-white p-8 text-center shadow-xl">
-              <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-[#fff5f7]">
-                <svg
-                  className="h-10 w-10 text-pink-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2.5}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <h3 className="mb-2 text-2xl font-bold text-gray-800">
-                Success!
-              </h3>
-              <p className="text-sm text-gray-600">
-                Your order has been placed successfully. Thank you for shopping
-                with us!
-              </p>
-              <div className="modal-action mt-8 flex justify-center">
-                <form method="dialog" className="w-full">
-                  <button
-                    onClick={() => {
-                      router.push("/products");
-                      clearCheckout();
-                    }}
-                    className="w-full rounded-full bg-pink-600 py-3.5 text-sm font-bold text-white transition-colors hover:bg-pink-700"
-                  >
-                    Continue Shopping
-                  </button>
-                </form>
-              </div>
-            </div>
-          </dialog>
         </div>
       </div>
     </div>

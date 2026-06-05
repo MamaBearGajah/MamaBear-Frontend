@@ -24,7 +24,7 @@ import { Controller } from "react-hook-form";
 import AuthBanner from "@/components/AuthBanner";
 import AuthErrorMessage from "@/components/AuthErrorMessage";
 import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import { toast } from "sonner";
 import { authApi } from "../../../lib/api/auth";
@@ -32,6 +32,8 @@ import { authApi } from "../../../lib/api/auth";
 export default function Login() {
   const { login } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -77,7 +79,7 @@ export default function Login() {
       setError(null);
       await login(loginData);
       toast.success("Login berhasil");
-      router.push("/");
+      router.push(redirectTo && redirectTo.startsWith("/") ? redirectTo : "/");
     } catch (e: unknown) {
       if (axios.isAxiosError(e)) {
         setError(errorMessage(e.response?.status ?? 500));

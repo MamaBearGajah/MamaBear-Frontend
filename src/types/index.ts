@@ -264,8 +264,40 @@ export interface Order {
   courier: string;
   service: string;
   trackingNumber?: string;
+  paymentMethod?: string;
+  paymentProvider?: "xendit" | "midtrans";
   items: OrderItem[];
   createdAt: string;
+}
+
+export interface OrderListParams {
+  page?: number;
+  limit?: number;
+  status?: Order["status"];
+}
+
+export interface CreateOrderPayload {
+  addressId: string;
+  courier: string;
+  service: string;
+  paymentMethod: "xendit" | "midtrans";
+  notes?: string;
+}
+
+export interface CreateOrderResult {
+  orderId: string;
+  status: string;
+  total: number;
+}
+
+export interface CheckoutPaymentPayload {
+  orderId: string;
+  provider: "xendit" | "midtrans";
+}
+
+export interface CheckoutPaymentResult {
+  paymentUrl: string;
+  provider: string;
 }
 
 export interface ResFetchReviewsByProductId {
