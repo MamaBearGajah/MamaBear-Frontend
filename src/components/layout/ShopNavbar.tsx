@@ -8,6 +8,8 @@ import { Heart, Settings, ShoppingCart, User, Menu, X, LogOut } from "lucide-rea
 import SearchBar from "./SearchBar";
 import { cn } from "@/lib/utils";
 import { useAuth } from "../../context/AuthContext";
+// Pastikan path import ini sesuai dengan lokasi kamu menyimpan ProfileDropdown
+import ProfileDropdown from "@/components/layout/ProfileDropdown"; 
 import { useCart } from "@/hooks/useCart";
 
 const NAV_LINKS = [
@@ -67,6 +69,14 @@ function NavbarContent() {
   const { user, isAuthenticated, isLoading } = state;
   const isAdmin = user?.role === "admin" || user?.role === "super_admin";
   const firstName = user?.name?.split(" ")[0];
+
+  
+  // Asumsi state.user memiliki properti name dan email.
+  // Jika auth kamu belum menyimpan data user, kita beri nilai fallback sementara.
+  const currentUser = state.user || {
+    name: "Member MamaBear",
+    email: "member@mamabear.co.id"
+  };
 
   return (
     <div className="border-border/60 border-b bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/90">
@@ -136,9 +146,10 @@ function NavbarContent() {
 
               {isAuthenticated && isAdmin && (
                 <>
-                  <Link href="/account/profile" className="hidden sm:inline text-sm font-medium text-brown hover:text-dark-pink transition-colors">
+                  <ProfileDropdown user={currentUser} onLogout={logout} />
+                  {/* <Link href="/account/profile" className="hidden sm:inline text-sm font-medium text-brown hover:text-dark-pink transition-colors">
                     Hi, {firstName}
-                  </Link>
+                  </Link> */}
                   <Link
                     href="/admin"
                     className="border-brown/30 text-brown hover:bg-light-pink/40 inline-flex items-center gap-1.5 rounded-full border bg-white px-4 py-2 text-sm font-medium transition-colors"
@@ -265,10 +276,18 @@ function MobileHeaderInline() {
 
             {!isLoading && (
               <>
+
                 {isAuthenticated && (
                   <p className="px-4 py-1 text-xs text-brown/60">
-                    Hi, {firstName} 👋
+                      <Link
+                        href="/account/profile"
+                        onClick={() => setMenuOpen(false)}
+                        className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#FACBD8] px-4 text-sm font-semibold text-[#6C4735] transition hover:opacity-90 min-w-[100px]"
+                      >
+                        Hi, {firstName} 👋
+                    </Link>
                   </p>
+                  
                 )}
 
                 <div className="flex gap-2 mt-1">
