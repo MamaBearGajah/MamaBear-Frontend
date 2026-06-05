@@ -71,7 +71,6 @@ export default function ReviewCard({navValue, productId, product}:{navValue:stri
         async function fetchReviews() {
             try {
             const response = await getAllReviews(productId, page, limit);
-            console.log("API response:", response);
             setReviews(
             Array.isArray(response) && response.length > 0
                 ? response
@@ -82,8 +81,6 @@ export default function ReviewCard({navValue, productId, product}:{navValue:stri
             console.error("Error fetching reviews:", error);
             }
         }
-
-        // console.log("reviews", reviews);
 
         if (productId) fetchReviews();
         }, [productId, page]);
