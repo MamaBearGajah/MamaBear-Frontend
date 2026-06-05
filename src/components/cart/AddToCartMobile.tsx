@@ -82,10 +82,10 @@ const AddToCartMobile = ({ productId, product }: { productId: string; product: P
   }, [productId]);
   return (
     <div className="flex justify-between items-center md:hidden fixed bottom-0 left-0 right-0 bg-dark-pink p-4 border-t shadow-md cursor-pointer gap-2 z-50 transition duration-300">
-      <div className='flex items-center gap-2'>
-        <span onClick={() => quantity > 1 && setQuantity(quantity - 1)}>-</span>
-        <span className='font-bold bg-white text-black p-4 rounded-full'>{quantity}</span>
-        <span onClick={() => setQuantity(quantity + 1)}>+</span>
+      <div className='flex items-center gap-2 '>
+        <span className='w-8 h-8 text-2xl font-bold flex justify-end' onClick={() => quantity > 1 && setQuantity(quantity - 1)}>-</span>
+        <span className='font-bold w-[100px] h-[20px] bg-white text-black p-4 rounded-full flex items-center justify-center'>{quantity}</span>
+        <span className='w-8 h-8 text-2xl font-bold flex justify-start' onClick={() => setQuantity(quantity + 1)}>+</span>
       </div>
 
       <div className="flex-1 px-2">
@@ -140,7 +140,8 @@ const AddToCartMobile = ({ productId, product }: { productId: string; product: P
         </button>
       </div>
 
-      <Link href="../../checkout/info"><button
+      <Link href="../../checkout/info">
+      <button className='flex items-center justify-center py-3 px-3 rounded-xl bg-brown cursor-pointer text-white font-medium hover:opacity-80 transition'
         onClick={() => {
             if (!selectedVariant) {
               toast.error('Please choose a product variant on the product page before adding to cart.');
@@ -176,7 +177,8 @@ const AddToCartMobile = ({ productId, product }: { productId: string; product: P
           disabled={!selectedVariant}
       > 
           <h2 className='text-white hover:underline transition duration-300'>Checkout</h2>
-        </button></Link>
+        </button>
+        </Link>
     </div>
   );
 };
