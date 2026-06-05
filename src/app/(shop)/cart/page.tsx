@@ -39,6 +39,8 @@ const CartPage = () => {
     }
   };
 
+  console.log("Cart items state:", items);
+
   if (!loading && items.length === 0) {
     return (
       <div
@@ -176,7 +178,7 @@ const CartPage = () => {
                         </div>
                         {/* FIX: pakai item.id bukan item.productId */}
                         <button
-                          onClick={() => removeItem(item.id!)}
+                          onClick={() => removeItem(item.productId, item.variantId)}
                           className="rounded-full p-2 transition hover:bg-pink-50"
                         >
                           <Trash2 size={18} style={{ color: "#D5557E" }} />
@@ -188,7 +190,7 @@ const CartPage = () => {
                           {/* FIX: pakai item.id bukan item.productId + variantId */}
                           <button
                             onClick={() =>
-                              updateQuantity(item.id!, item.quantity - 1)
+                              updateQuantity(item.productId, item.variantId, item.quantity - 1)
                             }
                             className="flex h-10 w-10 items-center justify-center hover:bg-pink-50"
                           >
@@ -199,7 +201,7 @@ const CartPage = () => {
                           </div>
                           <button
                             onClick={() =>
-                              updateQuantity(item.id!, item.quantity + 1)
+                              updateQuantity(item.productId, item.variantId, item.quantity + 1)
                             }
                             className="flex h-10 w-10 items-center justify-center hover:bg-pink-50"
                           >

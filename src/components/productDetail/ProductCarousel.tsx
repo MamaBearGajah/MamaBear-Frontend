@@ -39,21 +39,21 @@ export default function ProductCarousel({images, variantselectedimage, setvarian
     <div className="w-full max-w-md">
 
       {/* Big Image */}
-      <div className=" rounded-xl overflow-hidden mb-4 relative">
-        <div className='text-xs bg-dark-pink text-white px-3 py-1 rounded-lg absolute top-4 left-4 z-10'>{discountPercent}% OFF</div>
-        <img
-          src={selectedImage}
-          alt="Selected"
-          onError={(e) => {
-              // Cast target to HTMLImageElement to access the src property
-              const target = e.target as HTMLImageElement;
-              target.src = "/Logo Mamabear.png"; // Your fallback path
-            }}
-          className="h-[60vh] md:h-[50vh] object-cover"
-        />
-        <button type="button" aria-label="Add to wishlist" className="absolute top-3 right-3 z-10 flex size-9 items-center justify-center rounded-full bg-white/95 text-brown shadow-sm transition-colors hover:bg-light-pink hover:text-dark-pink">
-          <Heart className="size-4" strokeWidth={1.75} />
-        </button>
+      <div className=" rounded-xl overflow-hidden mb-4 relative flex items-center justify-center">
+          <div className='text-xs bg-dark-pink text-white px-3 py-1 rounded-lg absolute top-4 left-4 z-10'>{discountPercent}% OFF</div>
+          <img
+            src={selectedImage}
+            alt="Selected"
+            onError={(e) => {
+                // Cast target to HTMLImageElement to access the src property
+                const target = e.target as HTMLImageElement;
+                target.src = "/Logo Mamabear.png"; // Your fallback path
+              }}
+            className="h-[60vh] md:h-[50vh] object-cover"
+          />
+          <button type="button" aria-label="Add to wishlist" className="absolute top-3 right-3 z-10 flex size-9 items-center justify-center rounded-full bg-white/95 text-brown shadow-sm transition-colors hover:bg-light-pink hover:text-dark-pink">
+            <Heart className="size-4" strokeWidth={1.75} />
+          </button>
       </div>
 
       {/* Small Images */}
