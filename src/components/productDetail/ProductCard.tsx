@@ -99,6 +99,7 @@ export default function ProductCard({
   const productWeight = product.weight;
   const productBasePrice = product.basePrice;
   const productDiscountPrice = product.discountPrice;
+  const discountPercent = (((productBasePrice - productDiscountPrice) / productBasePrice) * 100).toFixed(0);
   // console.log("ProductVariant", productVariant)
   function NotVariantPrice(){
     setThePrice(Number(product.discountPrice));
@@ -131,7 +132,7 @@ export default function ProductCard({
     <div className=" md:flex md:items-start rounded transition-transform duration-200">
 
         <div className='md:w-[35%]'>
-            <ProductCarousel images={imageArray} variantselectedimage={variantSelectedImage} setvariantselectedimage={setvariantSelectedImage} NotVariantPrice={NotVariantPrice}/>
+            <ProductCarousel images={imageArray} variantselectedimage={variantSelectedImage} setvariantselectedimage={setvariantSelectedImage} NotVariantPrice={NotVariantPrice} discountPercent={discountPercent}/>
         </div>
         <div className='p-2 md:pl-10 rounded-md w-[90%] md:w-[60%] flex flex-col gap-2'>
             <h4 className='text-xs text-dark-pink'>{productCategory}</h4>
