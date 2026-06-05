@@ -545,6 +545,7 @@
 
 "use client";
 
+import axios from "axios";
 import React, {
   createContext,
   useContext,
@@ -553,9 +554,12 @@ import React, {
   useReducer,
   ReactNode,
 } from "react";
+import { toast } from "sonner";
 
 import { CartItem } from "@/types";
 import { useAuth } from "./AuthContext";
+import { cartApi } from "@/lib/api/cart";
+import { guestCartApi } from "@/lib/api/guestCart";
 import { getProductById } from "@/lib/api/products";
 
 // =========================
@@ -629,6 +633,53 @@ function calculateSubtotal(items: CartItem[]) {
     const price = item.discountPrice ?? item.basePrice;
     return sum + price * item.quantity;
   }, 0);
+}
+
+function normalizeCartItem(raw: any): CartItem {
+  const product = raw.product ?? {};
+  const variant = raw.variant;
+
+  const image =
+    variant?.imageUrl ??
+    product.images?.[0]?.imageUrl ??
+    raw.image ??
+    "/Logo Mamabear.png";
+
+  const discountPrice =
+    variant?.discountPrice != null
+      ? Number(variant.discountPrice)
+      : product.discountPrice != null
+        ? Number(product.discountPrice)
+        : raw.discountPrice != null
+          ? Number(raw.discountPrice)
+          : undefined;
+
+  return {
+    id: raw.id,
+    productId: raw.productId,
+    variantId: raw.variantId ?? undefined,
+    categoryName: product.category?.name ?? raw.categoryName,
+    variantName: variant?.name ?? raw.variantName,
+    variantValue: variant?.value ?? raw.variantValue,
+    variantLabel:
+      variant?.name && variant?.value
+        ? `${variant.name}: ${variant.value}`
+        : raw.variantLabel,
+    quantity: Number(raw.quantity ?? 0),
+    name: product.name ?? raw.name ?? "",
+    basePrice: Number(
+      variant?.basePrice ?? product.basePrice ?? raw.basePrice ?? 0
+    ),
+    discountPrice,
+    image,
+  };
+}
+
+function parseCart(data: any): { items: CartItem[]; subtotal: number } {
+  const raw = data?.data ?? data ?? {};
+  const items = (raw.items ?? []).map(normalizeCartItem);
+  const subtotal = Number(raw.subtotal ?? 0);
+  return { items, subtotal };
 }
 
 function loadCartFromStorage(): Pick<CartState, "items" | "guestCartId"> {
@@ -803,13 +854,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // 1. RESTORE from localStorage on mount
   // -------------------------------------------------------
   useEffect(() => {
-    const { items, guestCartId } = loadCartFromStorage();
+    const initializeGuestCart = async () => {
+      const { items, guestCartId } = loadCartFromStorage();
+      const resolvedGuestId = guestCartId ?? crypto.randomUUID();
 
-    // Generate a guestCartId if one doesn't exist yet
-    const resolvedGuestId = guestCartId ?? crypto.randomUUID();
+      dispatch({ type: "SET_CART", payload: { items } });
+      dispatch({ type: "SET_GUEST_ID", payload: resolvedGuestId });
 
-    dispatch({ type: "SET_CART", payload: { items } });
-    dispatch({ type: "SET_GUEST_ID", payload: resolvedGuestId });
+      if (!guestCartId) {
+        try {
+          const res = await guestCartApi.create(resolvedGuestId);
+          const createdId =
+            res.data?.data?.id ?? res.data?.id ?? resolvedGuestId;
+          if (createdId !== resolvedGuestId) {
+            dispatch({ type: "SET_GUEST_ID", payload: createdId });
+          }
+        } catch {
+          // If guest cart creation fails, keep local cart state and continue.
+        }
+      }
+    };
+
+    void initializeGuestCart();
   }, []);
 
   useEffect(() => {
@@ -859,6 +925,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
     saveCartToStorage(state.items, state.guestCartId);
   }, [state.items, state.guestCartId]);
 
+  const ensureGuestCartExists = async (guestCartId: string) => {
+    try {
+      const res = await guestCartApi.create(guestCartId);
+      const createdId = res.data?.data?.id ?? res.data?.id ?? guestCartId;
+      if (createdId !== guestCartId) {
+        dispatch({ type: "SET_GUEST_ID", payload: createdId });
+      }
+      return createdId;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.status === 409) {
+        return guestCartId;
+      }
+      throw error;
+    }
+  };
+
   // -------------------------------------------------------
   // 3. GUEST → USER MIGRATION
   //    Fires when the user logs in (user?.id changes).
@@ -904,17 +986,91 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // =========================
 
   const addItem = (item: CartItem) => {
-    dispatch({
-      type: "ADD_ITEM",
-      payload: item,
-    });
+    void (async () => {
+      const payload = {
+        productId: item.productId,
+        variantId: item.variantId,
+        quantity: item.quantity,
+      };
+
+      try {
+        let response;
+
+        if (authState.user) {
+          response = await cartApi.addItem(payload);
+        } else {
+          let guestCartId = state.guestCartId ?? crypto.randomUUID();
+          if (!state.guestCartId) {
+            dispatch({ type: "SET_GUEST_ID", payload: guestCartId });
+            guestCartId = await ensureGuestCartExists(guestCartId);
+          }
+
+          try {
+            response = await guestCartApi.addItem(guestCartId, payload);
+          } catch (error: unknown) {
+            if (axios.isAxiosError(error) && error.response?.status === 404) {
+              guestCartId = await ensureGuestCartExists(guestCartId);
+              response = await guestCartApi.addItem(guestCartId, payload);
+            } else {
+              throw error;
+            }
+          }
+        }
+
+        if (response) {
+          const { items } = parseCart(response.data);
+          dispatch({ type: "SET_CART", payload: { items } });
+        }
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          const status = error.response?.status;
+          const message =
+            error.response?.data?.error?.message ??
+            error.response?.data?.message ??
+            "Gagal menambahkan ke keranjang";
+
+          if (status === 409) {
+            toast.error(message || "Stok tidak cukup");
+          } else {
+            toast.error(message);
+          }
+        } else {
+          toast.error("Gagal menambahkan ke keranjang");
+        }
+      }
+    })();
   };
 
   const removeItem = (productId: string, variantId?: string) => {
-    dispatch({
-      type: "REMOVE_ITEM",
-      payload: { productId, variantId },
-    });
+    void (async () => {
+      const item = state.items.find(
+        (item) =>
+          item.productId === productId &&
+          (item.variantId ?? null) === (variantId ?? null)
+      );
+
+      dispatch({
+        type: "REMOVE_ITEM",
+        payload: { productId, variantId },
+      });
+
+      if (!item) return;
+
+      try {
+        if (authState.user) {
+          await cartApi.removeItem(item.id);
+        } else if (state.guestCartId) {
+          await guestCartApi.removeItem(state.guestCartId, item.id);
+        }
+      } catch (error: unknown) {
+        dispatch({ type: "ADD_ITEM", payload: item });
+        const message = axios.isAxiosError(error)
+          ? (error.response?.data?.error?.message ??
+            error.response?.data?.message)
+          : undefined;
+        toast.error(message ?? "Gagal menghapus item");
+      }
+    })();
   };
 
   const updateQuantity = (
@@ -938,11 +1094,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const clearCart = () => {
-    dispatch({
-      type: "CLEAR_CART",
-    });
+    void (async () => {
+      dispatch({
+        type: "CLEAR_CART",
+      });
 
-    localStorage.removeItem(CART_STORAGE_KEY);
+      if (authState.user) {
+        try {
+          await cartApi.clear();
+        } catch {
+          // If backend clear fails, local state is already cleared and we can continue.
+        }
+      } else if (state.guestCartId) {
+        try {
+          await guestCartApi.delete(state.guestCartId);
+        } catch {
+          // ignore guest clear failures for now
+        }
+      }
+
+      localStorage.removeItem(CART_STORAGE_KEY);
+    })();
   };
 
   const setGuestCartId = (id: string) => {

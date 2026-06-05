@@ -16,6 +16,7 @@ interface CartSummaryProps {
   promoError: string;
   onPromoCodeChange: (value: string) => void;
   onApplyPromo: () => void;
+  checkoutHref?: string;
 }
 
 export default function CartSummary({
@@ -29,8 +30,10 @@ export default function CartSummary({
   promoError,
   onPromoCodeChange,
   onApplyPromo,
+  checkoutHref,
 }: CartSummaryProps) {
   const PAYMENT_METHODS = ["BCA", "Mandiri", "GoPay", "OVO", "Dana", "QRIS"];
+  const hasSelection = itemCount > 0;
 
   return (
     <div className="sticky top-5 rounded-[22px] border border-[#F6B8CB] bg-white p-6 shadow-sm">
@@ -107,8 +110,11 @@ export default function CartSummary({
       </div>
 
       <div className="mt-6">
-        <Link href="/checkout/info">
-          <Button className="h-12 w-full rounded-full bg-[var(--mamabear-dark-pink)] text-base font-semibold text-white hover:bg-[var(--mamabear-dark-pink)]/90">
+        <Link href={checkoutHref ?? "/checkout/info"}>
+          <Button
+            disabled={!hasSelection}
+            className={`h-12 w-full rounded-full bg-[var(--mamabear-dark-pink)] text-base font-semibold text-white hover:bg-[var(--mamabear-dark-pink)]/90 ${!hasSelection ? "cursor-not-allowed opacity-50 hover:bg-[var(--mamabear-dark-pink)]" : ""}`}
+          >
             Proceed to Checkout <ArrowRight className="size-5" />
           </Button>
         </Link>
