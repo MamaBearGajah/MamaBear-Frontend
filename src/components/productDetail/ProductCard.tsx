@@ -127,7 +127,7 @@ export default function ProductCard({
           <hr></hr>
           <br></br>
 
-    <div className="bg-light-pink/25 md:flex md:items-start rounded transition-transform duration-200">
+    <div className=" md:flex md:items-start rounded transition-transform duration-200">
 
         <div className='md:w-[35%]'>
             <ProductCarousel images={imageArray} variantselectedimage={variantSelectedImage} setvariantselectedimage={setvariantSelectedImage} NotVariantPrice={NotVariantPrice}/>
