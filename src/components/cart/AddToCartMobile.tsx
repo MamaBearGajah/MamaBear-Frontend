@@ -3,9 +3,11 @@ import {useState, useEffect, React} from 'react';
 import Link from "next/link";
 import {useCart} from "@/hooks/useCart";
 import { CartItem } from "@/types/index";
+import {ShoppingCart} from 'lucide-react';
 import {Product} from "@/types/index";
 import { nanoid } from 'nanoid';
 import { toast } from 'sonner';
+import redirect from "next/navigation";
 const AddToCartMobile = ({ productId, product }: { productId: string; product: Product }) => {
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
@@ -80,10 +82,10 @@ const AddToCartMobile = ({ productId, product }: { productId: string; product: P
   }, [productId]);
   return (
     <div className="flex justify-between items-center md:hidden fixed bottom-0 left-0 right-0 bg-dark-pink p-4 border-t shadow-md cursor-pointer gap-2 z-50 transition duration-300">
-      <div className='flex items-center gap-2'>
-        <span onClick={() => quantity > 1 && setQuantity(quantity - 1)}>-</span>
-        <span className='font-bold bg-white text-black p-3 rounded-full'>{quantity}</span>
-        <span onClick={() => setQuantity(quantity + 1)}>+</span>
+      <div className='flex items-center gap-2 '>
+        <span className='w-8 h-8 text-2xl font-bold flex justify-end' onClick={() => quantity > 1 && setQuantity(quantity - 1)}>-</span>
+        <span className='font-bold w-[100px] h-[20px] bg-white text-black p-4 rounded-full flex items-center justify-center'>{quantity}</span>
+        <span className='w-8 h-8 text-2xl font-bold flex justify-start' onClick={() => setQuantity(quantity + 1)}>+</span>
       </div>
 
       <div className="flex-1 px-2">
@@ -133,11 +135,50 @@ const AddToCartMobile = ({ productId, product }: { productId: string; product: P
           disabled={!selectedVariant}
           className={`text-white transition duration-300 flex items-center gap-1 ${!selectedVariant ? 'opacity-50 cursor-not-allowed' : 'hover:underline cursor-pointer'}`}
         >
-          <img src='/cart.svg' className='w-[20px] h-[20px]' alt="Add to Cart" />
+          <ShoppingCart className='w-[20px] h-[20px] mr-3' />
           Add To Cart
         </button>
       </div>
-      <Link href="#"><h2 className='text-white hover:underline transition duration-300'>Checkout</h2></Link>
+
+      <Link href="../../checkout/info">
+      <button className='flex items-center justify-center py-3 px-3 rounded-xl bg-brown cursor-pointer text-white font-medium hover:opacity-80 transition'
+        onClick={() => {
+            if (!selectedVariant) {
+              toast.error('Please choose a product variant on the product page before adding to cart.');
+              return;
+            }
+
+            const variant = variants.find((x) => x.id === selectedVariant.id) ?? null;
+            const label = variant?.name && variant?.value
+              ? `${variant.name}: ${variant.value}`
+              : selectedVariant.name && selectedVariant.value
+              ? `${selectedVariant.name}: ${selectedVariant.value}`
+              : selectedVariant.name ?? selectedVariant.value ?? 'Variant';
+
+            addItem({
+              id: nanoid(),
+              productId: product.id,
+              variantId: variant?.id ?? selectedVariant.id,
+              variantName: variant?.name ?? selectedVariant.name,
+              variantValue: variant?.value ?? selectedVariant.value,
+              variantLabel: label,
+              name: product.name,
+              basePrice: Number(variant?.basePrice ?? product.basePrice),
+              discountPrice: variant?.discountPrice
+                ? Number(variant.discountPrice)
+                : product.discountPrice
+                ? Number(product.discountPrice)
+                : undefined,
+              image: variant?.imageUrl ?? (product.images?.[0]?.imageUrl ?? '/Logo Mamabear.png'),
+              quantity: quantity,
+            } as CartItem);
+            toast.success('Item added to cart');
+          }}
+          disabled={!selectedVariant}
+      > 
+          <h2 className='text-white hover:underline transition duration-300'>Checkout</h2>
+        </button>
+        </Link>
     </div>
   );
 };

@@ -2,6 +2,7 @@
 
 import {useState,useEffect, React} from 'react';
 import { Button } from "@/components/ui/button"
+import { ListFilterPlus } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,7 +49,7 @@ export default function ProductDetailNav({setParentNavValue}: Props){
 
             <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline"><img className='w-[20px] cursor-pointer' src='/info.svg'/></Button>
+                <Button  className='cursor-pointer' variant="outline"><ListFilterPlus/>{navValue}</Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
                 <DropdownMenuGroup>
