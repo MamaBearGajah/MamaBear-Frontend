@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Toaster } from "sonner";
 
 export default function AuthLayout({
@@ -5,7 +6,7 @@ export default function AuthLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <>
-      {children}
+      <Suspense fallback={null}>{children}</Suspense>
       <Toaster richColors position="top-right" />
     </>
   );

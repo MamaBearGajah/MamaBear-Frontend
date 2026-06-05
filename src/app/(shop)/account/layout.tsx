@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { User, MapPin, ShoppingBag, Gift } from "lucide-react";
-import { cn } from "@/lib/utils"; // Pastikan utilitas merge class Tailwind ini ada
+import AuthGuard from "@/components/auth/AuthGuard";
+import { cn } from "@/lib/utils";
 
 const ACCOUNT_LINKS = [
   { href: "/account/profile", label: "My Profile", icon: User },
@@ -16,6 +17,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
   const pathname = usePathname();
 
   return (
+    <AuthGuard>
     <div className="min-h-screen bg-[#FAFAFA] pb-20">
       {/* Banner Header Minimalis */}
       <div className="w-full bg-[#D5557E] h-32 sm:h-40" />
@@ -58,5 +60,6 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
         </div>
       </div>
     </div>
+    </AuthGuard>
   );
 }
