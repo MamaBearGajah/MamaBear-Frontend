@@ -81,15 +81,15 @@ const AddToCartMobile = ({ productId, product }: { productId: string; product: P
     };
   }, [productId]);
   return (
-    <div className="flex justify-between items-center md:hidden fixed bottom-0 left-0 right-0 bg-dark-pink p-4 border-t shadow-md cursor-pointer gap-2 z-50 transition duration-300">
+    <div className="flex justify-between items-center md:hidden fixed bottom-0 left-0 right-0 bg-dark-pink border-t shadow-md cursor-pointer gap-2 z-50 transition duration-300">
       <div className='flex items-center gap-2 '>
         <span className='w-8 h-8 text-2xl font-bold flex justify-end' onClick={() => quantity > 1 && setQuantity(quantity - 1)}>-</span>
         <span className='font-bold w-[100px] h-[20px] bg-white text-black p-4 rounded-full flex items-center justify-center'>{quantity}</span>
         <span className='w-8 h-8 text-2xl font-bold flex justify-start' onClick={() => setQuantity(quantity + 1)}>+</span>
       </div>
 
-      <div className="flex-1 px-2">
-        <div className="mb-2 text-sm text-white">
+      <div className="flex-1 px-2 flex flex-col items-center p-4 justify-center">
+        {/* <div className="mb-2 text-xs text-white">
           {selectedVariant ? (
             <span>
               Selected variant: {selectedVariant.name && selectedVariant.value ? `${selectedVariant.name}: ${selectedVariant.value}` : selectedVariant.name ?? selectedVariant.value}
@@ -97,7 +97,7 @@ const AddToCartMobile = ({ productId, product }: { productId: string; product: P
           ) : (
             <span>Please choose a variant from the product page first.</span>
           )}
-        </div>
+        </div> */}
 
         <button
           onClick={() => {
@@ -133,7 +133,7 @@ const AddToCartMobile = ({ productId, product }: { productId: string; product: P
             toast.success('Item added to cart');
           }}
           disabled={!selectedVariant}
-          className={`text-white transition duration-300 flex items-center gap-1 ${!selectedVariant ? 'opacity-50 cursor-not-allowed' : 'hover:underline cursor-pointer'}`}
+          className={`text-black bg-light-pink p-3 rounded-lg text-center  transition duration-300 flex items-center gap-1 ${!selectedVariant ? 'opacity-50' : 'hover:underline cursor-pointer'}`}
         >
           <ShoppingCart className='w-[20px] h-[20px] mr-3' />
           Add To Cart
