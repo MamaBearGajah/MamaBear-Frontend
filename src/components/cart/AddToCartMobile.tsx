@@ -1,12 +1,18 @@
-"use client"
-import {useState, useEffect, React} from 'react';
+"use client";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import {useCart} from "@/hooks/useCart";
+import { useCart } from "@/hooks/useCart";
 import { CartItem } from "@/types/index";
-import {Product} from "@/types/index";
-import { nanoid } from 'nanoid';
-import { toast } from 'sonner';
-const AddToCartMobile = ({ productId, product }: { productId: string; product: Product }) => {
+import { Product } from "@/types/index";
+import { nanoid } from "nanoid";
+import { toast } from "sonner";
+const AddToCartMobile = ({
+  productId,
+  product,
+}: {
+  productId: string;
+  product: Product;
+}) => {
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [variants, setVariants] = useState<any[]>([]);
@@ -50,14 +56,18 @@ const AddToCartMobile = ({ productId, product }: { productId: string; product: P
         const res = await fetch(`/api/products/${productId}/variants`);
         if (!res.ok) return;
         const data = await res.json();
-        setVariants(Array.isArray(data) ? data : data?.variants ?? []);
+        setVariants(Array.isArray(data) ? data : (data?.variants ?? []));
       } catch (e) {
         // ignore fetch errors
       }
     };
 
     const handleVariantSelected = (event: Event) => {
-      const customEvent = event as CustomEvent<{ id: string; name?: string; value?: string }>;
+      const customEvent = event as CustomEvent<{
+        id: string;
+        name?: string;
+        value?: string;
+      }>;
       const detail = customEvent.detail;
       if (detail?.id) {
         setSelectedVariant({
@@ -75,14 +85,19 @@ const AddToCartMobile = ({ productId, product }: { productId: string; product: P
 
     return () => {
       window.removeEventListener("storage", updateSelectedVariantFromStorage);
-      window.removeEventListener("mamabear-selected-variant", handleVariantSelected);
+      window.removeEventListener(
+        "mamabear-selected-variant",
+        handleVariantSelected
+      );
     };
   }, [productId]);
   return (
-    <div className="flex justify-between items-center md:hidden fixed bottom-0 left-0 right-0 bg-dark-pink p-4 border-t shadow-md cursor-pointer gap-2 z-50 transition duration-300">
-      <div className='flex items-center gap-2'>
+    <div className="bg-dark-pink fixed right-0 bottom-0 left-0 z-50 flex cursor-pointer items-center justify-between gap-2 border-t p-4 shadow-md transition duration-300 md:hidden">
+      <div className="flex items-center gap-2">
         <span onClick={() => quantity > 1 && setQuantity(quantity - 1)}>-</span>
-        <span className='font-bold bg-white text-black p-3 rounded-full'>{quantity}</span>
+        <span className="rounded-full bg-white p-3 font-bold text-black">
+          {quantity}
+        </span>
         <span onClick={() => setQuantity(quantity + 1)}>+</span>
       </div>
 
@@ -90,7 +105,10 @@ const AddToCartMobile = ({ productId, product }: { productId: string; product: P
         <div className="mb-2 text-sm text-white">
           {selectedVariant ? (
             <span>
-              Selected variant: {selectedVariant.name && selectedVariant.value ? `${selectedVariant.name}: ${selectedVariant.value}` : selectedVariant.name ?? selectedVariant.value}
+              Selected variant:{" "}
+              {selectedVariant.name && selectedVariant.value
+                ? `${selectedVariant.name}: ${selectedVariant.value}`
+                : (selectedVariant.name ?? selectedVariant.value)}
             </span>
           ) : (
             <span>Please choose a variant from the product page first.</span>
@@ -100,21 +118,28 @@ const AddToCartMobile = ({ productId, product }: { productId: string; product: P
         <button
           onClick={() => {
             if (!selectedVariant) {
-              toast.error('Please choose a product variant on the product page before adding to cart.');
+              toast.error(
+                "Please choose a product variant on the product page before adding to cart."
+              );
               return;
             }
 
-            const variant = variants.find((x) => x.id === selectedVariant.id) ?? null;
-            const label = variant?.name && variant?.value
-              ? `${variant.name}: ${variant.value}`
-              : selectedVariant.name && selectedVariant.value
-              ? `${selectedVariant.name}: ${selectedVariant.value}`
-              : selectedVariant.name ?? selectedVariant.value ?? 'Variant';
+            const variant =
+              variants.find((x) => x.id === selectedVariant.id) ?? null;
+            const label =
+              variant?.name && variant?.value
+                ? `${variant.name}: ${variant.value}`
+                : selectedVariant.name && selectedVariant.value
+                  ? `${selectedVariant.name}: ${selectedVariant.value}`
+                  : (selectedVariant.name ??
+                    selectedVariant.value ??
+                    "Variant");
 
             addItem({
               id: nanoid(),
               productId: product.id,
               variantId: variant?.id ?? selectedVariant.id,
+              categoryName: product.category?.name,
               variantName: variant?.name ?? selectedVariant.name,
               variantValue: variant?.value ?? selectedVariant.value,
               variantLabel: label,
@@ -123,21 +148,32 @@ const AddToCartMobile = ({ productId, product }: { productId: string; product: P
               discountPrice: variant?.discountPrice
                 ? Number(variant.discountPrice)
                 : product.discountPrice
-                ? Number(product.discountPrice)
-                : undefined,
-              image: variant?.imageUrl ?? (product.images?.[0]?.imageUrl ?? '/Logo Mamabear.png'),
+                  ? Number(product.discountPrice)
+                  : undefined,
+              image:
+                variant?.imageUrl ??
+                product.images?.[0]?.imageUrl ??
+                "/Logo Mamabear.png",
               quantity: quantity,
             } as CartItem);
-            toast.success('Item added to cart');
+            toast.success("Item added to cart");
           }}
           disabled={!selectedVariant}
-          className={`text-white transition duration-300 flex items-center gap-1 ${!selectedVariant ? 'opacity-50 cursor-not-allowed' : 'hover:underline cursor-pointer'}`}
+          className={`flex items-center gap-1 text-white transition duration-300 ${!selectedVariant ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:underline"}`}
         >
-          <img src='/cart.svg' className='w-[20px] h-[20px]' alt="Add to Cart" />
+          <img
+            src="/cart.svg"
+            className="h-[20px] w-[20px]"
+            alt="Add to Cart"
+          />
           Add To Cart
         </button>
       </div>
-      <Link href="#"><h2 className='text-white hover:underline transition duration-300'>Checkout</h2></Link>
+      <Link href="#">
+        <h2 className="text-white transition duration-300 hover:underline">
+          Checkout
+        </h2>
+      </Link>
     </div>
   );
 };

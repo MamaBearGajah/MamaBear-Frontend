@@ -24,6 +24,7 @@ export type ImageType =
 
 export type ImageUploaderValue = {
   imageUrl: string;
+  file?: File | null;
   altText: string;
   imageType: ImageType;
   isFeatured: boolean;
@@ -36,6 +37,7 @@ export interface ImageUploaderProps {
   onFileSelected?: (file: File) => void;
   onUploadingChange?: (uploading: boolean) => void;
   onSubmit?: (value: ImageUploaderValue) => void;
+  mainImageExists?: boolean;
   className?: string;
   disabled?: boolean;
   title?: string;
@@ -70,6 +72,7 @@ function toValue(
 ): ImageUploaderValue {
   return {
     imageUrl: next?.imageUrl ?? "",
+    file: next?.file ?? undefined,
     altText: next?.altText ?? "",
     imageType: next?.imageType ?? "main",
     isFeatured: next?.isFeatured ?? false,
@@ -91,6 +94,7 @@ export default function ImageUploader({
   onFileSelected,
   onUploadingChange,
   onSubmit,
+  mainImageExists = false,
   className,
   disabled = false,
   title = "Product Image",
@@ -113,6 +117,28 @@ export default function ImageUploader({
 
   // Derived: kalau controlled pakai value prop, kalau uncontrolled pakai state lokal
   const internalValue = isControlled ? toValue(value) : localValue;
+
+  useEffect(() => {
+    if (!isControlled) return;
+
+    const hasContent = Boolean(
+      value?.imageUrl?.trim() || value?.altText?.trim() || value?.file
+    );
+
+    if (hasContent) {
+      if (value?.imageUrl?.trim()) {
+        setLocalPreview(value.imageUrl);
+      }
+      return;
+    }
+
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+    }
+    setLocalPreview("");
+    setLocalValue(toValue(undefined));
+  }, [isControlled, value]);
 
   useEffect(() => {
     return () => {
@@ -227,35 +253,12 @@ export default function ImageUploader({
       return;
     }
 
-    setUploading(true);
+    // New flow: do NOT upload immediately. Keep file in local state and show preview.
     setPreviewFromFile(file);
     onFileSelected?.(file);
-
-    uploadWithSignedUrl(file)
-      .catch((err) => {
-        console.warn("Signed upload gagal, fallback ke direct upload:", err);
-        return uploadDirect(file);
-      })
-      .then((secureUrl) => {
-        // Revoke object URL lama, ganti dengan URL Cloudinary final
-        if (objectUrlRef.current) {
-          URL.revokeObjectURL(objectUrlRef.current);
-          objectUrlRef.current = null;
-        }
-        setLocalPreview(secureUrl);
-        emitChange({ ...internalValue, imageUrl: secureUrl });
-        toast.success("Image berhasil diupload.");
-      })
-      .catch((err: unknown) => {
-        const message =
-          err instanceof Error ? err.message : "Gagal upload image.";
-        toast.error(message);
-        // Reset preview jika gagal total
-        setLocalPreview(internalValue.imageUrl);
-      })
-      .finally(() => {
-        setUploading(false);
-      });
+    // emit change with file attached; imageUrl remains empty until ProductGallery uploads
+    emitChange({ ...internalValue, file, imageUrl: "" });
+    setUploading(false);
   };
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
@@ -273,8 +276,13 @@ export default function ImageUploader({
   };
 
   const handleSubmit = () => {
-    if (!internalValue.imageUrl.trim()) {
-      toast.error("Image URL wajib diisi.");
+    // Require either a selected file or an existing imageUrl, plus altText
+    if (!(internalValue.file || internalValue.imageUrl?.trim())) {
+      toast.error("Pilih file gambar terlebih dahulu.");
+      return;
+    }
+    if (mainImageExists && internalValue.imageType === "main") {
+      toast.error("Main image sudah ada. Hapus main image yang lama dulu.");
       return;
     }
     if (!internalValue.altText.trim()) {
@@ -351,23 +359,7 @@ export default function ImageUploader({
             </button>
           </div>
 
-          {/* Image URL manual */}
-          <div className="space-y-2">
-            <Label htmlFor="imageUrl">
-              Image URL <span className="text-[#D5557E]">*</span>
-            </Label>
-            <Input
-              id="imageUrl"
-              value={internalValue.imageUrl}
-              readOnly
-              placeholder="https://res.cloudinary.com/..."
-              disabled={disabled || isUploading}
-              className="cursor-not-allowed border-[#E5E7EB] bg-gray-50 focus-visible:border-[#F1AFC4] focus-visible:ring-[#F1AFC4]/30"
-            />
-            <p className="text-[12px] leading-5 text-[#8D6B5B]">
-              URL Cloudinary akan muncul otomatis
-            </p>
-          </div>
+          {/* Image URL input removed — uploader only selects a File and sends it to gallery */}
 
           {/* Alt text */}
           <div className="space-y-2">
@@ -400,7 +392,11 @@ export default function ImageUploader({
               </SelectTrigger>
               <SelectContent>
                 {IMAGE_TYPE_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
+                  <SelectItem
+                    key={opt.value}
+                    value={opt.value}
+                    disabled={opt.value === "main" && mainImageExists}
+                  >
                     {opt.label}
                   </SelectItem>
                 ))}
@@ -416,7 +412,7 @@ export default function ImageUploader({
               disabled={
                 disabled ||
                 isUploading ||
-                !internalValue.imageUrl.trim() ||
+                !(internalValue.file || internalValue.imageUrl?.trim()) ||
                 !internalValue.altText.trim()
               }
               className="inline-flex items-center gap-2 rounded-lg bg-[#D5557E] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#C84E77] disabled:cursor-not-allowed disabled:opacity-50"

@@ -28,8 +28,7 @@ const HomeBanner = () => {
   const [loading, setLoading] = React.useState(true);
   const [mobileIndex, setMobileIndex] = React.useState(0);
 
-  // Mock data (replace with API fetch when backend is ready)
-  const mockBannerData: CarouselBannerItem[] = [
+  const bannerFallbackData: CarouselBannerItem[] = [
     {
       id: 1,
       label: "#1 Trusted by 50,000+ Mamas",
@@ -71,15 +70,15 @@ const HomeBanner = () => {
     //     setBannerData(data);
     //   } catch (error) {
     //     console.error('Failed to fetch banner data:', error);
-    //     setBannerData(mockBannerData);
+    //     setBannerData(bannerFallbackData);
     //   } finally {
     //     setLoading(false);
     //   }
     // };
     // fetchBannerData();
 
-    // For now, using mock data
-    setBannerData(mockBannerData);
+    // Temporary static content until banner API is available.
+    setBannerData(bannerFallbackData);
     setLoading(false);
   }, []);
 

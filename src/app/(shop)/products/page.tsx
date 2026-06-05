@@ -6,7 +6,8 @@ import ProductsPageHeader from "@/components/product/ProductsPageHeader";
 import ProductListToolbar from "@/components/product/ProductListToolbar";
 import ShopProductGrid from "@/components/product/ShopProductGrid";
 import Pagination from "@/components/shared/Pagination";
-import { getCategoryList } from "@/lib/api/categories";
+import CategoryGrid from "@/components/product/CategoryGrid";
+import { getCategoryList, getCategoryProducts } from "@/lib/api/categories";
 import { getProductList } from "@/lib/api/products";
 import { computeCategoryCounts } from "@/lib/shop/category-counts";
 import {
@@ -14,10 +15,8 @@ import {
   parseShopListParamsFromRecord,
   toStorefrontProductListParams,
 } from "@/lib/shop/product-list-params";
-import { isMockProductsEnabled } from "@/lib/api/mock-data";
 import { filterStorefrontProducts } from "@/lib/shop/storefront-products";
 import type { PaginationMeta } from "@/types";
-
 
 export const metadata: Metadata = {
   title: "All Products | MamaBear",
@@ -29,15 +28,31 @@ interface ProductsPageProps {
 }
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
-  
   const params = await searchParams;
   const filters = parseShopListParamsFromRecord(params);
   const listParams = toStorefrontProductListParams(filters);
 
-  // const accessToken = await getShopAccessToken();
+  const activeCategoryId =
+    filters.categoryId && filters.categoryId !== "cat-root"
+      ? filters.categoryId
+      : undefined;
 
   const [productsRes, categoriesRes, allProductsRes] = await Promise.all([
-    getProductList(listParams),
+    // Kalau ada categoryId → pakai endpoint recursive /categories/:id/products
+    // supaya parent category (Moms & Baby, Maternity Supplies, ASI Booster)
+    // tetap nampilin produk dari semua descendants-nya
+    activeCategoryId
+      ? getCategoryProducts(activeCategoryId, {
+          page: listParams.page,
+          limit: listParams.limit,
+          q: listParams.q,
+          sortBy: listParams.sortBy,
+          sortOrder: listParams.sortOrder,
+          inStock: listParams.inStock,
+          minPrice: listParams.minPrice,
+          maxPrice: listParams.maxPrice,
+        })
+      : getProductList(listParams),
     getCategoryList(),
     getProductList({ page: 1, limit: 100 }),
   ]);
@@ -62,8 +77,12 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           />
         </Suspense>
 
-        <Suspense fallback={null}>
+       <Suspense fallback={null}>
           <ActiveFilterBadges categories={categoriesRes.data} />
+        </Suspense>
+
+        <Suspense fallback={null}>
+          <CategoryGrid categories={categoriesRes.data} />
         </Suspense>
 
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
@@ -91,5 +110,4 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         </div>
       </div>
     </main>
-  );
-}
+  )}

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingCart } from "lucide-react";
+// removed ShoppingCart import during merge conflict resolution
 import { apiClient } from "@/lib/api/client";
 import type { ProductBadgeType } from "@/types";
 

@@ -19,7 +19,6 @@ interface CategoryCardProps {
   shouldScroll?: boolean;
   mobileSize?: boolean;
 }
-
 const FALLBACK_SHOWCASE_CATEGORIES: Category[] = [
   {
     id: 1,
@@ -140,10 +139,9 @@ export default async function CategorySection({
       throw new Error("No categories returned from backend");
     }
   } catch {
-    fetchedCategories = FALLBACK_SHOWCASE_CATEGORIES;
+    fetchedCategories = [];
   }
 
-  console.log("fetchedcategories", fetchedCategories);
   const categories =
     fetchedCategories.length > 0
       ? fetchedCategories
