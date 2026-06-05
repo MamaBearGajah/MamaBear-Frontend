@@ -5,6 +5,8 @@ import {useCart} from '@/hooks/useCart';
 import { CartItem } from '@/types';
 import {Product} from '@/types/index';
 import { ProductVariant } from '@/types';
+import {ShoppingCart} from 'lucide-react';
+import { redirect } from 'next/navigation';
 
 interface AddToCartQuantityProps {
   price: number;
@@ -40,6 +42,30 @@ export default function AddToCartQuantity({ price, product, variant }: AddToCart
             };
         addItem(newItem);
     }
+
+    const handleBuyNow = () => {
+        if(!variant){
+            alert('please select a variant!')
+            return;
+        }
+        const newItem: CartItem = {
+            id: `temp-id-${Date.now()}`,
+            productId: product.id,
+            variantId: variant.id,
+            variantName: variant.name,
+            variantValue: variant.value,
+            variantLabel: variant.name && variant.value ? `${variant.name}: ${variant.value}` : variant.name ?? variant.value,
+            quantity: quantity,
+            name: product.name,
+            basePrice: Number(variant.basePrice ?? product.basePrice),
+            discountPrice: variant.discountPrice ? Number(variant.discountPrice) : product.discountPrice ? Number(product.discountPrice) : undefined,
+            image: variant.imageUrl ?? (product.images?.[0]?.imageUrl ?? '/Logo Mamabear.png'),
+        };
+        addItem(newItem);
+        redirect('/checkout/info');
+    }
+
+
     return(
         <div>
             <div className='flex justify-start items-center w-full'>
@@ -63,15 +89,16 @@ export default function AddToCartQuantity({ price, product, variant }: AddToCart
                             +
                     </span>
                 </div>
-                <div onClick={handleAddToCart} className='p-3 w-[55%] md:w-[60%] ml-3 flex justify-center items-center cursor-pointer hover:shadow-lg duration transition-300 rounded-full bg-[var(--mamabear-dark-pink)] text-white'>
-                        <img className='w-[20px]' src="/cart.svg"/>Add To Cart
+                <div onClick={handleAddToCart} className='p-3 w-[55%] md:w-[60%] ml-3 flex justify-center items-center cursor-pointer hover:shadow-lg duration transition-300 rounded-full bg-[var(--mamabear-dark-pink)] transition-all duration-300 text-white'>
+                        <ShoppingCart className='w-[20px] h-[20px] mr-3' />
+                        Add To Cart
                 </div>
-                <div className='border ml-3 rounded-full cursor-pointer p-3 hover:shadow-lg transition duration-300' onClick={AddToFavourite}>
+                <div className='border ml-3 rounded-full cursor-pointer p-3 hover:shadow-lg transition transition-all duration-300 duration-300' onClick={AddToFavourite}>
                         <img className='w-[20px]' src="/heart.svg"></img>
                 </div>
             </div>
             <br></br>
-            <div className='text-[var(--mamabear-dark-pink)] font-bold border border-2 border-black rounded-full w-full pt-2 pb-2 hover:bg-gray-300 flex justify-center items-center'>
+            <div onClick={handleBuyNow} className='cursor-pointer text-[var(--mamabear-dark-pink)] font-bold border border-2 border-dark-pink rounded-full w-full transition-all duration-300 pt-2 pb-2 hover:bg-gray-300 flex justify-center items-center'>
                 Buy Now - Rp {quantity * price}
             </div>
         </div>
