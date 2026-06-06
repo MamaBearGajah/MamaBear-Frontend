@@ -197,6 +197,7 @@ export interface CartItem {
   id: string;
   productId: string;
   variantId?: string;
+  categoryName?: string;
   variantName?: string;
   variantValue?: string;
   variantLabel?: string;
