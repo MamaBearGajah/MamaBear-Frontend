@@ -11,10 +11,15 @@ import {
   ShoppingCart,
   Tags,
   Users,
+  Drill,
+  MonitorCog,
+  Menu,
+  X,
   BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { clearSession } from "@/lib/auth/clear-session";
+import { useState } from "react";
 
 type NavItem = {
   label: string;
@@ -37,6 +42,8 @@ const mainNav: NavItem[] = [
   { label: "Pelanggan", href: "/admin/customers", icon: Users, disabled: true },
   { label: "Kategori", href: "/admin/categories", icon: Tags, disabled: true },
   { label: "Laporan", href: "/admin/reports", icon: BarChart3, disabled: true },
+  { label: "Widgets", href: "/admin/widget", icon: Drill, disabled: false },
+  { label: "Banner", href: "/admin/HomeBanner", icon: MonitorCog, disabled: true },
   {
     label: "Settings",
     href: "/admin/settings",
@@ -49,7 +56,15 @@ const footerNav: NavItem[] = [
   { label: "View Store", href: "/", icon: ExternalLink, external: true },
 ];
 
-function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
+function NavLink({
+  item,
+  pathname,
+  onClick,
+}: {
+  item: NavItem;
+  pathname: string;
+  onClick?: () => void;
+}) {
   const isActive =
     !item.disabled &&
     (item.href === "/admin"
@@ -86,6 +101,7 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
         target="_blank"
         rel="noopener noreferrer"
         className={className}
+        onClick={onClick}
       >
         {content}
       </a>
@@ -95,6 +111,7 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
   return (
     <Link
       href={item.href}
+      onClick={onClick}
       className={className}
       aria-current={isActive ? "page" : undefined}
     >
@@ -106,6 +123,7 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
 export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const [open, setOpen] = useState(false);
 
   const handleLogout = async () => {
     await clearSession();
@@ -114,47 +132,96 @@ export default function AdminSidebar() {
   };
 
   return (
-    <aside
-      className="flex w-64 shrink-0 flex-col bg-[var(--mamabear-brown)] text-white"
-      aria-label="Admin navigation"
-    >
-      <div className="flex items-center gap-3 border-b border-white/10 px-5 py-6">
-        <div
-          className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[var(--mamabear-dark-pink)] text-sm font-bold"
-          aria-hidden
-        >
-          MB
-        </div>
-        <div className="min-w-0">
-          <p className="font-heading truncate text-sm leading-tight font-semibold">
-            mamabear
-          </p>
-          <p className="truncate text-xs text-white/75">Admin Panel</p>
-        </div>
-      </div>
-
-      <nav
-        className="flex flex-1 flex-col gap-0.5 overflow-y-auto py-4 pr-0"
-        aria-label="Main"
+    <>
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setOpen(true)}
+        className="fixed left-4 top-4 z-40 rounded-md bg-[var(--mamabear-brown)] p-2 text-white shadow-lg md:hidden"
       >
-        {mainNav.map((item) => (
-          <NavLink key={item.label} item={item} pathname={pathname} />
-        ))}
-      </nav>
+        <Menu className="h-6 w-6" />
+      </button>
 
-      <div className="border-t border-white/10 py-3">
-        {footerNav.map((item) => (
-          <NavLink key={item.label} item={item} pathname={pathname} />
-        ))}
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-300 transition-colors hover:bg-white/10 hover:text-red-200"
+      {/* Mobile Backdrop */}
+      {open && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={() => setOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-[var(--mamabear-brown)] text-white transition-transform duration-300 ease-in-out",
+          open ? "translate-x-0" : "-translate-x-full",
+          "md:static md:w-64 md:translate-x-0"
+        )}
+        aria-label="Admin navigation"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-white/10 px-5 py-6">
+          <div className="flex items-center gap-3">
+            <div
+              className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[var(--mamabear-dark-pink)] text-sm font-bold"
+              aria-hidden
+            >
+              MB
+            </div>
+
+            <div className="min-w-0">
+              <p className="font-heading truncate text-sm font-semibold">
+                mamabear
+              </p>
+              <p className="truncate text-xs text-white/75">
+                Admin Panel
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setOpen(false)}
+            className="md:hidden"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Navigation */}
+        <nav
+          className="flex flex-1 flex-col gap-0.5 overflow-y-auto py-4"
+          aria-label="Main"
         >
-          <LogOut className="size-5 shrink-0" aria-hidden />
-          Logout
-        </button>
-      </div>
-    </aside>
+          {mainNav.map((item) => (
+            <NavLink
+              key={item.label}
+              item={item}
+              pathname={pathname}
+              onClick={() => setOpen(false)}
+            />
+          ))}
+        </nav>
+
+        {/* Footer */}
+        <div className="border-t border-white/10 py-3">
+          {footerNav.map((item) => (
+            <NavLink
+              key={item.label}
+              item={item}
+              pathname={pathname}
+              onClick={() => setOpen(false)}
+            />
+          ))}
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-300 transition-colors hover:bg-white/10 hover:text-red-200"
+          >
+            <LogOut className="size-5 shrink-0" />
+            Logout
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }

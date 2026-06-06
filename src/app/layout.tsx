@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
+import Script from "next/script";
 
 const quicksand = localFont({
   src: [
@@ -38,6 +39,10 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+    const gaId =
+    typeof window !== "undefined"
+      ? localStorage.getItem("ga_id")
+      : null;
   return (
     <html
       lang="en"
@@ -46,7 +51,15 @@ export default function RootLayout({
     >
       <AuthProvider>
         <CartProvider>
-          <body className="min-h-screen">{children}</body>
+          <body className="min-h-screen">
+            {children}
+            {gaId && (
+              <Script
+                src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+                strategy="afterInteractive"
+              />
+            )}
+          </body>
         </CartProvider>
       </AuthProvider>
     </html>
