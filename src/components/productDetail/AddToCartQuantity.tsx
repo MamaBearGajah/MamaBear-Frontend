@@ -7,6 +7,7 @@ import {Product} from '@/types/index';
 import { ProductVariant } from '@/types';
 import {ShoppingCart} from 'lucide-react';
 import { redirect } from 'next/navigation';
+import { toast } from "sonner";
 
 interface AddToCartQuantityProps {
   price: number;
@@ -41,6 +42,7 @@ export default function AddToCartQuantity({ price, product, variant }: AddToCart
                 image: variant.imageUrl ?? (product.images?.[0]?.imageUrl ?? '/Logo Mamabear.png'),
             };
         addItem(newItem);
+        toast.success('Item added to cart!');                                    toast.success('Item added to cart!');
     }
 
     const handleBuyNow = () => {
