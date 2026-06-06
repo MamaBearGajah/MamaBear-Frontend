@@ -1,7 +1,7 @@
-"use client"
-import {useState, useEffect, React} from 'react';
+"use client";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import {useCart} from "@/hooks/useCart";
+import { useCart } from "@/hooks/useCart";
 import { CartItem } from "@/types/index";
 import {ShoppingCart} from 'lucide-react';
 import {Product} from "@/types/index";
@@ -52,14 +52,18 @@ const AddToCartMobile = ({ productId, product }: { productId: string; product: P
         const res = await fetch(`/api/products/${productId}/variants`);
         if (!res.ok) return;
         const data = await res.json();
-        setVariants(Array.isArray(data) ? data : data?.variants ?? []);
+        setVariants(Array.isArray(data) ? data : (data?.variants ?? []));
       } catch (e) {
         // ignore fetch errors
       }
     };
 
     const handleVariantSelected = (event: Event) => {
-      const customEvent = event as CustomEvent<{ id: string; name?: string; value?: string }>;
+      const customEvent = event as CustomEvent<{
+        id: string;
+        name?: string;
+        value?: string;
+      }>;
       const detail = customEvent.detail;
       if (detail?.id) {
         setSelectedVariant({
@@ -77,7 +81,10 @@ const AddToCartMobile = ({ productId, product }: { productId: string; product: P
 
     return () => {
       window.removeEventListener("storage", updateSelectedVariantFromStorage);
-      window.removeEventListener("mamabear-selected-variant", handleVariantSelected);
+      window.removeEventListener(
+        "mamabear-selected-variant",
+        handleVariantSelected
+      );
     };
   }, [productId]);
   return (
@@ -92,7 +99,10 @@ const AddToCartMobile = ({ productId, product }: { productId: string; product: P
         {/* <div className="mb-2 text-xs text-white">
           {selectedVariant ? (
             <span>
-              Selected variant: {selectedVariant.name && selectedVariant.value ? `${selectedVariant.name}: ${selectedVariant.value}` : selectedVariant.name ?? selectedVariant.value}
+              Selected variant:{" "}
+              {selectedVariant.name && selectedVariant.value
+                ? `${selectedVariant.name}: ${selectedVariant.value}`
+                : (selectedVariant.name ?? selectedVariant.value)}
             </span>
           ) : (
             <span>Please choose a variant from the product page first.</span>
@@ -102,21 +112,28 @@ const AddToCartMobile = ({ productId, product }: { productId: string; product: P
         <button
           onClick={() => {
             if (!selectedVariant) {
-              toast.error('Please choose a product variant on the product page before adding to cart.');
+              toast.error(
+                "Please choose a product variant on the product page before adding to cart."
+              );
               return;
             }
 
-            const variant = variants.find((x) => x.id === selectedVariant.id) ?? null;
-            const label = variant?.name && variant?.value
-              ? `${variant.name}: ${variant.value}`
-              : selectedVariant.name && selectedVariant.value
-              ? `${selectedVariant.name}: ${selectedVariant.value}`
-              : selectedVariant.name ?? selectedVariant.value ?? 'Variant';
+            const variant =
+              variants.find((x) => x.id === selectedVariant.id) ?? null;
+            const label =
+              variant?.name && variant?.value
+                ? `${variant.name}: ${variant.value}`
+                : selectedVariant.name && selectedVariant.value
+                  ? `${selectedVariant.name}: ${selectedVariant.value}`
+                  : (selectedVariant.name ??
+                    selectedVariant.value ??
+                    "Variant");
 
             addItem({
               id: nanoid(),
               productId: product.id,
               variantId: variant?.id ?? selectedVariant.id,
+              categoryName: product.category?.name,
               variantName: variant?.name ?? selectedVariant.name,
               variantValue: variant?.value ?? selectedVariant.value,
               variantLabel: label,
@@ -125,12 +142,15 @@ const AddToCartMobile = ({ productId, product }: { productId: string; product: P
               discountPrice: variant?.discountPrice
                 ? Number(variant.discountPrice)
                 : product.discountPrice
-                ? Number(product.discountPrice)
-                : undefined,
-              image: variant?.imageUrl ?? (product.images?.[0]?.imageUrl ?? '/Logo Mamabear.png'),
+                  ? Number(product.discountPrice)
+                  : undefined,
+              image:
+                variant?.imageUrl ??
+                product.images?.[0]?.imageUrl ??
+                "/Logo Mamabear.png",
               quantity: quantity,
             } as CartItem);
-            toast.success('Item added to cart');
+            toast.success("Item added to cart");
           }}
           disabled={!selectedVariant}
           className={`text-black bg-light-pink p-3 rounded-lg text-center  transition duration-300 flex items-center gap-1 ${!selectedVariant ? 'opacity-50' : 'hover:underline cursor-pointer'}`}

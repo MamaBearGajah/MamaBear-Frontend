@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {useState} from 'react';
 import {useCart} from '@/hooks/useCart';
@@ -18,9 +18,9 @@ export default function AddToCartQuantity({ price, product, variant }: AddToCart
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCart();
 
-    function AddToFavourite(){
-        console.log("add to favourite")
-    }
+  function AddToFavourite() {
+    console.log("add to favourite");
+  }
 
     const handleAddToCart = () => {
             if(!variant){

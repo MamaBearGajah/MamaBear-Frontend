@@ -54,6 +54,30 @@ interface ProductFormProps {
   accessToken?: string;
 }
 
+const EMPTY_IMAGE_VALUE: ImageUploaderValue = {
+  imageUrl: "",
+  altText: "",
+  imageType: "main",
+  isFeatured: false,
+  sortOrder: 0,
+};
+
+function normalizeGalleryImages(images: ProductImage[]) {
+  const nextImages = images.map((img) => ({ ...img }));
+  const mainIndex = nextImages.findIndex((img) => img.imageType === "main");
+
+  if (mainIndex > 0) {
+    const [mainImage] = nextImages.splice(mainIndex, 1);
+    nextImages.unshift(mainImage);
+  }
+
+  return nextImages.map((img, index) => ({
+    ...img,
+    sortOrder: index + 1,
+    isFeatured: index === 0,
+  }));
+}
+
 export default function ProductForm({
   mode,
   product,
@@ -67,16 +91,18 @@ export default function ProductForm({
   const [imageUploading, setImageUploading] = useState(false);
   const [galleryImages, setGalleryImages] = useState<ProductImage[]>(() => {
     if (!product || !product.images) return [];
-    return [...product.images]
-      .sort((a, b) => (a.sortOrder ?? Infinity) - (b.sortOrder ?? Infinity))
-      .map((img, index) => ({
-        id: img.id,
-        imageUrl: img.imageUrl ?? "",
-        altText: img.altText ?? "",
-        imageType: img.imageType ?? "other",
-        isFeatured: (img.sortOrder ?? index + 1) === 1,
-        sortOrder: img.sortOrder ?? index + 1,
-      }));
+    return normalizeGalleryImages(
+      [...product.images]
+        .sort((a, b) => (a.sortOrder ?? Infinity) - (b.sortOrder ?? Infinity))
+        .map((img, index) => ({
+          id: img.id,
+          imageUrl: img.imageUrl ?? "",
+          altText: img.altText ?? "",
+          imageType: img.imageType ?? "other",
+          isFeatured: (img.sortOrder ?? index + 1) === 1,
+          sortOrder: img.sortOrder ?? index + 1,
+        }))
+    );
   });
   const slugManuallyEdited = useRef(false);
 
@@ -90,7 +116,8 @@ export default function ProductForm({
       return {
         imageUrl: first.imageUrl ?? "",
         altText: first.altText ?? product.name ?? "",
-        imageType: (first.imageType as ImageUploaderValue["imageType"]) ?? "main",
+        imageType:
+          (first.imageType as ImageUploaderValue["imageType"]) ?? "main",
         isFeatured: !!product.images.find((i) => i.isFeatured),
         sortOrder: first.sortOrder ?? 0,
       };
@@ -169,7 +196,9 @@ export default function ProductForm({
 
         if (isEdit) {
           // PATCH bukan PUT — sesuai backend @Patch(':id')
-          await apiClient.patch(`/products/${product!.id}`, payload, { headers });
+          await apiClient.patch(`/products/${product!.id}`, payload, {
+            headers,
+          });
         } else {
           await apiClient.post("/products", payload, { headers });
         }
@@ -205,37 +234,43 @@ export default function ProductForm({
     cn(errors[field] && "border-destructive");
 
   const handleImageSubmit = (val: ImageUploaderValue) => {
+    // Include the File (if present) and a preview URL so ProductGallery can show it
+    if (
+      val.imageType === "main" &&
+      galleryImages.some((img) => img.imageType === "main")
+    ) {
+      toast.error(
+        "Main image sudah ada. Hapus yang lama dulu sebelum menambah main baru."
+      );
+      return;
+    }
+
+    const previewUrl = val.file ? URL.createObjectURL(val.file) : undefined;
     const newImage: ProductImage = {
-      imageUrl: val.imageUrl,
+      imageUrl: val.imageUrl ?? "",
+      file: (val as any).file ?? null,
+      previewUrl: previewUrl ?? null,
       altText: val.altText,
       imageType: val.imageType,
       isFeatured: galleryImages.length === 0, // first image = featured
       sortOrder: galleryImages.length + 1,
+      status: "pending",
     };
-    setGalleryImages([...galleryImages, newImage]);
+    setGalleryImages((prev) => normalizeGalleryImages([...prev, newImage]));
+    setImageValue(EMPTY_IMAGE_VALUE);
     toast.success("Image added to gallery");
   };
 
   const handleImageDelete = (index: number) => {
-    const nextImages = galleryImages
-      .filter((_, i) => i !== index)
-      .map((img, nextIndex) => ({
-        ...img,
-        sortOrder: nextIndex + 1,
-        isFeatured: nextIndex === 0,
-      }));
+    const nextImages = normalizeGalleryImages(
+      galleryImages.filter((_, i) => i !== index)
+    );
     setGalleryImages(nextImages);
     toast.success("Image removed");
   };
 
   const handleGalleryReorder = (images: ProductImage[]) => {
-    setGalleryImages(
-      images.map((img, index) => ({
-        ...img,
-        sortOrder: index + 1,
-        isFeatured: index === 0,
-      }))
-    );
+    setGalleryImages(normalizeGalleryImages(images));
   };
 
   // Flatten categories for select — exclude parent-less entries if needed
@@ -290,7 +325,9 @@ export default function ProductForm({
               </div>
               <StatusBadge status={statusValue} />
               {errors.status && (
-                <p className="text-destructive text-sm">{errors.status.message}</p>
+                <p className="text-destructive text-sm">
+                  {errors.status.message}
+                </p>
               )}
             </section>
 
@@ -305,7 +342,9 @@ export default function ProductForm({
                   className={fieldClass("name")}
                 />
                 {errors.name && (
-                  <p className="text-destructive text-sm">{errors.name.message}</p>
+                  <p className="text-destructive text-sm">
+                    {errors.name.message}
+                  </p>
                 )}
               </div>
 
@@ -314,13 +353,17 @@ export default function ProductForm({
                 <Input
                   id="slug"
                   {...register("slug", {
-                    onChange: () => { slugManuallyEdited.current = true; },
+                    onChange: () => {
+                      slugManuallyEdited.current = true;
+                    },
                   })}
                   placeholder="asi-booster-tea-hazelnut"
                   className={fieldClass("slug")}
                 />
                 {errors.slug && (
-                  <p className="text-destructive text-sm">{errors.slug.message}</p>
+                  <p className="text-destructive text-sm">
+                    {errors.slug.message}
+                  </p>
                 )}
               </div>
 
@@ -333,7 +376,9 @@ export default function ProductForm({
                   className={fieldClass("sku")}
                 />
                 {errors.sku && (
-                  <p className="text-destructive text-sm">{errors.sku.message}</p>
+                  <p className="text-destructive text-sm">
+                    {errors.sku.message}
+                  </p>
                 )}
               </div>
 
@@ -347,7 +392,9 @@ export default function ProductForm({
                   className={fieldClass("description")}
                 />
                 {errors.description && (
-                  <p className="text-destructive text-sm">{errors.description.message}</p>
+                  <p className="text-destructive text-sm">
+                    {errors.description.message}
+                  </p>
                 )}
               </div>
             </section>
@@ -364,14 +411,18 @@ export default function ProductForm({
                   className={fieldClass("basePrice")}
                 />
                 {errors.basePrice && (
-                  <p className="text-destructive text-sm">{errors.basePrice.message}</p>
+                  <p className="text-destructive text-sm">
+                    {errors.basePrice.message}
+                  </p>
                 )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="discountPrice">
                   Harga diskon (Rp)
-                  <span className="ml-1 text-xs text-muted-foreground">— opsional, yang ditampilkan ke customer</span>
+                  <span className="text-muted-foreground ml-1 text-xs">
+                    — opsional, yang ditampilkan ke customer
+                  </span>
                 </Label>
                 <Input
                   id="discountPrice"
@@ -382,7 +433,9 @@ export default function ProductForm({
                   className={fieldClass("discountPrice")}
                 />
                 {errors.discountPrice && (
-                  <p className="text-destructive text-sm">{errors.discountPrice.message}</p>
+                  <p className="text-destructive text-sm">
+                    {errors.discountPrice.message}
+                  </p>
                 )}
               </div>
 
@@ -396,7 +449,9 @@ export default function ProductForm({
                   className={fieldClass("weight")}
                 />
                 {errors.weight && (
-                  <p className="text-destructive text-sm">{errors.weight.message}</p>
+                  <p className="text-destructive text-sm">
+                    {errors.weight.message}
+                  </p>
                 )}
               </div>
 
@@ -410,7 +465,9 @@ export default function ProductForm({
                   className={fieldClass("stock")}
                 />
                 {errors.stock && (
-                  <p className="text-destructive text-sm">{errors.stock.message}</p>
+                  <p className="text-destructive text-sm">
+                    {errors.stock.message}
+                  </p>
                 )}
               </div>
 
@@ -442,29 +499,24 @@ export default function ProductForm({
 
           {/* Image sidebar */}
           <div className="space-y-6 xl:sticky xl:top-6">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">
-                Gambar Produk
-              </Label>
-              <p className="text-xs text-muted-foreground">
-                Upload gambar lalu klik "Add to Gallery". Gambar pertama otomatis jadi featured.
-              </p>
-            </div>
             <ImageUploader
               value={imageValue}
               onChange={(v) => setImageValue(v)}
               onUploadingChange={setImageUploading}
               onSubmit={handleImageSubmit}
+              mainImageExists={galleryImages.some(
+                (img) => img.imageType === "main"
+              )}
             />
-            {galleryImages.length > 0 && (
-              <ProductGallery
-                images={galleryImages}
-                onDelete={(index) => handleImageDelete(index)}
-                onReorder={handleGalleryReorder}
-              />
-            )}
           </div>
         </div>
+
+        <ProductGallery
+          images={galleryImages}
+          className="mt-8"
+          onDelete={(index) => handleImageDelete(index)}
+          onReorder={handleGalleryReorder}
+        />
 
         {isEdit && (
           <div className="flex justify-start">
