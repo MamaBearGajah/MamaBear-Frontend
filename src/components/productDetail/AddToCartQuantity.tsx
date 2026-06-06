@@ -8,6 +8,7 @@ import { ProductVariant } from '@/types';
 import {ShoppingCart} from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { toast } from "sonner";
+import WishlistButton from '../cart/WishilistButton';
 
 interface AddToCartQuantityProps {
   price: number;
@@ -96,7 +97,8 @@ export default function AddToCartQuantity({ price, product, variant }: AddToCart
                         Add To Cart
                 </div>
                 <div className='border ml-3 rounded-full cursor-pointer p-3 hover:shadow-lg transition transition-all duration-300 duration-300' onClick={AddToFavourite}>
-                        <img className='w-[20px]' src="/heart.svg"></img>
+                        {/* <img className='w-[20px]' src="/heart.svg"></img> */}
+                        <WishlistButton productId={product.id} />
                 </div>
             </div>
             <br></br>
