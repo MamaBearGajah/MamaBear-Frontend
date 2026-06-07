@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import CartItem from "../../../components/cart/CartItem";
 import CartSummary from "../../../components/cart/CartSummary";
 import EmptyCart from "../../../components/cart/EmptyCart";
+// import { useCheckout } from "@/context/CheckoutContext";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/hooks/useCart";
 import {
@@ -22,6 +23,7 @@ const CartPage = () => {
   const { state: authState } = useAuth();
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [promoCode, setPromoCode] = useState("");
+  // const { state: checkoutState, setShipping, nextStep } = useCheckout();
   const [promoApplied, setPromoApplied] = useState(false);
   const [promoError, setPromoError] = useState("");
 
@@ -202,6 +204,7 @@ const CartPage = () => {
           {/* Order summary */}
           <div>
             <CartSummary
+              selectedItems={selectedItems}
               subtotal={selectedSubtotal}
               itemCount={selectedCount}
               discount={discount}
