@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
+import { CheckoutProvider } from "@/context/CheckoutContext";
 import Script from "next/script";
 
 const quicksand = localFont({
@@ -51,6 +52,7 @@ export default function RootLayout({
     >
       <AuthProvider>
         <CartProvider>
+          <CheckoutProvider>
           <body className="min-h-screen">
             {children}
             {gaId && (
@@ -60,6 +62,7 @@ export default function RootLayout({
               />
             )}
           </body>
+          </CheckoutProvider>
         </CartProvider>
       </AuthProvider>
     </html>

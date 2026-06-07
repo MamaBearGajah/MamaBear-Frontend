@@ -9,7 +9,8 @@ function OrderSummary() {
   const { state } = useCart();
   const { state: checkoutState } = useCheckout();
   const { method } = checkoutState;
-  const { items } = state;
+  // const { items } = state;
+  const {items} = checkoutState;
   const discount = 0;
   const subtotal =
     items.reduce(

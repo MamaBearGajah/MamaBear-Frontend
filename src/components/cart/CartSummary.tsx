@@ -3,9 +3,12 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowRight, Lock, Tag, Ticket } from "lucide-react";
+import { useCheckout } from "@/context/CheckoutContext";
 import { Button } from "@/components/ui/button";
+import { CheckoutItem } from "@/types";
 
 interface CartSummaryProps {
+  selectedItems: any[];
   subtotal: number;
   itemCount: number;
   discount: number;
@@ -20,6 +23,7 @@ interface CartSummaryProps {
 }
 
 export default function CartSummary({
+  selectedItems,
   subtotal,
   itemCount,
   discount,
@@ -34,6 +38,7 @@ export default function CartSummary({
 }: CartSummaryProps) {
   const PAYMENT_METHODS = ["BCA", "Mandiri", "GoPay", "OVO", "Dana", "QRIS"];
   const hasSelection = itemCount > 0;
+  const { state: checkoutState, postItems, setShipping, nextStep } = useCheckout();
 
   return (
     <div className="sticky top-5 rounded-[22px] border border-[#F6B8CB] bg-white p-6 shadow-sm">
@@ -113,6 +118,7 @@ export default function CartSummary({
         <Link href={checkoutHref ?? "/checkout/info"}>
           <Button
             disabled={!hasSelection}
+            onClick={() =>{postItems(selectedItems);}}
             className={`h-12 w-full rounded-full bg-[var(--mamabear-dark-pink)] text-base font-semibold text-white hover:bg-[var(--mamabear-dark-pink)]/90 ${!hasSelection ? "cursor-not-allowed opacity-50 hover:bg-[var(--mamabear-dark-pink)]" : ""}`}
           >
             Proceed to Checkout <ArrowRight className="size-5" />

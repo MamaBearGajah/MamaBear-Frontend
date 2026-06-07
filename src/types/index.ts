@@ -208,6 +208,22 @@ export interface CartItem {
   image: string;
 }
 
+export interface CheckoutItem {
+  id: string;
+  productId: string;
+  variantId?: string;
+  categoryName?: string;
+  variantName?: string;
+  variantValue?: string;
+  variantLabel?: string;
+  quantity: number;
+  name: string;
+  basePrice: number;
+  discountPrice?: number;
+  image: string;
+
+}
+
 export interface CartItemVariant {
   id: string;
   productId: string;
