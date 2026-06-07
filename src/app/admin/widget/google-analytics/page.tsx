@@ -29,7 +29,7 @@ export default function AnalyticsSettings() {
 
       <button
         onClick={save}
-        className="mt-4 rounded bg-black px-4 py-2 text-white"
+        className="mt-4 rounded bg-dark-pink px-4 py-2 text-white"
       >
         Save
       </button>
