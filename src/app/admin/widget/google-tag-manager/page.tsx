@@ -40,7 +40,7 @@ export default function GoogleTagManagerWidget() {
 
       <button
         onClick={handleSave}
-        className="mt-4 rounded-md bg-black px-4 py-2 text-white"
+        className="mt-4 rounded-md bg-dark-pink px-4 py-2 text-white"
       >
         Save
       </button>
