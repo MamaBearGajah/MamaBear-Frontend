@@ -34,6 +34,7 @@ const CheckoutPageMethod = () => {
     setError(false);
     setMethod(shipping);
     nextStep();
+    clearCheckout();
     // router.push("/checkout/review");
     router.push("/payment");
   };

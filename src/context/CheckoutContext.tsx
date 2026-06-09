@@ -231,23 +231,25 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   }
 
   const postItems = (selected: CheckoutItem[]) => {
-    setItems((prev) => {
-      const map = new Map(prev.map((item) => [item.id, { ...item }]));
 
-      for (const incoming of selected) {
-        if (map.has(incoming.id)) {
-          const existing = map.get(incoming.id)!;
-          map.set(incoming.id, {
-            ...existing,
-            quantity: existing.quantity + incoming.quantity,
-          });
-        } else {
-          map.set(incoming.id, { ...incoming });
-        }
-      }
+      setItems(() => selected);
+    // setItems((prev) => {
+    //   const map = new Map(prev.map((item) => [item.id, { ...item }]));
 
-      return Array.from(map.values());
-    });
+    //   for (const incoming of selected) {
+    //     if (map.has(incoming.id)) {
+    //       const existing = map.get(incoming.id)!;
+    //       map.set(incoming.id, {
+    //         ...existing,
+    //         quantity: existing.quantity + incoming.quantity,
+    //       });
+    //     } else {
+    //       map.set(incoming.id, { ...incoming });
+    //     }
+    //   }
+
+    //   return Array.from(map.values());
+    // });
   };
 
   /** DELETE — remove one item by id. */
