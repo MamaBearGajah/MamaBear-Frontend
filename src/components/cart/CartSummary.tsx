@@ -122,7 +122,7 @@ export default function CartSummary({
           disabled={!hasSelection}
           onClick={() => {
             postItems(selectedItems);
-            removeSelectedItems();
+            // removeSelectedItems();
             router.push(checkoutHref ?? "/checkout/info");
           }}
           className={`h-12 w-full rounded-full bg-[var(--mamabear-dark-pink)] text-base font-semibold text-white hover:bg-[var(--mamabear-dark-pink)]/90 ${!hasSelection ? "cursor-not-allowed opacity-50" : ""}`}
