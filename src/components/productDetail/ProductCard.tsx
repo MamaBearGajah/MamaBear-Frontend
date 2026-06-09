@@ -8,6 +8,7 @@ import { Product } from "@/types";
 import Stars from "./Stars";
 import StructuredSnippet from "./StructuredSnippet";
 import { ProductVariant } from "@/types";
+import ProductDescription from "./ProductDescription";
 import ShareThisProduct from "./ShareThisProduct";
 import KeyBenefit from "./KeyBenefit";
 import {
@@ -167,7 +168,7 @@ export default function ProductCard({
                 )
               }
             </p>
-            <p className='mt-2 mb-2 text-sm text-gray-500'>{productDescription}</p>
+            <p className='mt-2 mb-2 text-sm text-gray-500'><ProductDescription productDescription={productDescription}></ProductDescription></p>
             <p><span className='text-[var(--mamabear-dark-pink)] font-bold'>{productVariantData[0].name}</span></p>
             <div className='mt-3 mb-2'>
           {
