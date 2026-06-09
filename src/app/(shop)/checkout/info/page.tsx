@@ -14,7 +14,7 @@ import { shippingApi } from "../../../../lib/api/shipping";
 const CheckoutPageInfo = () => {
   const { state, clearCart } = useCart();
   const { items, subtotal } = state;
-  const { state: checkoutState, setShipping, nextStep } = useCheckout();
+  const { state: checkoutState, setShipping, nextStep, clearCheckout } = useCheckout();
   const router = useRouter();
 
   const [provinces, setProvinces] = useState([]);
@@ -73,6 +73,22 @@ const CheckoutPageInfo = () => {
       });
     }
   };
+
+
+  // =========================
+  // BACK BUTTON TO CART
+  // =========================
+    useEffect(() => {
+    const handlePopState = () => {
+      clearCheckout();
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [clearCheckout]);
 
   // =========================
   // PLACE ORDER

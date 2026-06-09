@@ -14,12 +14,12 @@ const DEV_FALLBACK_ORDER_ID = "ORD-2026-8921";
 
 const PaymentPage = () => {
   const { state, clearCart } = useCart();
-  const router = useRouter();
+  // const router = useRouter();
   const router = useRouter();
   const { items, subtotal } = state;
 
-  const [method, setMethod] = useState<PaymentMethod>("gopay");
-  const [gateway, setGateway] = useState<"xendit" | "midtrans">("xendit");
+  // const [method, setMethod] = useState<PaymentMethod>("gopay");
+  // const [gateway, setGateway] = useState<"xendit" | "midtrans">("xendit");
   const [method, setMethod] = useState<PaymentMethod>("gopay");
   const [gateway, setGateway] = useState<"xendit" | "midtrans">("xendit");
   const [loading, setLoading] = useState(false);
@@ -46,7 +46,8 @@ const PaymentPage = () => {
       }
 
       router.push(
-        `/order-success?orderId=${encodeURIComponent(result.orderId)}`,
+        // `/order-success?orderId=${encodeURIComponent(result.orderId)}`,
+        `/checkout/review`,
       );
     } catch (err) {
       console.error(err);

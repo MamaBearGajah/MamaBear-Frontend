@@ -4,12 +4,12 @@ import { Truck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCheckout } from "@/context/CheckoutContext";
 import OrderSummary from "@/components/checkout/OrderSummary";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 const CheckoutPageMethod = () => {
   const router = useRouter();
-  const { state: checkoutState, prevStep, nextStep, setMethod } = useCheckout();
+  const { state: checkoutState, prevStep, nextStep, setMethod, clearCheckout } = useCheckout();
 
   const [shipping, setShipping] = useState({
     courier: checkoutState?.method?.courier ?? "",
@@ -34,8 +34,11 @@ const CheckoutPageMethod = () => {
     setError(false);
     setMethod(shipping);
     nextStep();
-    router.push("/checkout/review");
+    // router.push("/checkout/review");
+    router.push("/payment");
   };
+
+
 
   const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = JSON.parse(e.target.value);

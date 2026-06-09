@@ -178,6 +178,8 @@ function readFromStorage(): CheckoutItem[] {
   }
 }
 
+
+
 function writeToStorage(items: CheckoutItem[]): void {
   if (typeof window === "undefined") return;
   try {
@@ -218,6 +220,16 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
    * - Existing item (same id) → increment quantity.
    * - New item → append.
    */
+
+    function removeFromStorage(): void {
+    try {
+      localStorage.removeItem(LS_KEY);
+      console.log("[CheckoutContext] Cleared localStorage key.");
+    } catch {
+      console.error("[CheckoutContext] Failed to remove localStorage key.");
+    }
+  }
+
   const postItems = (selected: CheckoutItem[]) => {
     setItems((prev) => {
       const map = new Map(prev.map((item) => [item.id, { ...item }]));
@@ -275,6 +287,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   /** Full reset — clears items, shipping, method, step, and localStorage. */
   const clearCheckout = () => {
     setState(initialState);
+    localStorage.removeItem(LS_KEY);
     if (typeof window !== "undefined") localStorage.removeItem(LS_KEY);
   };
 
@@ -291,6 +304,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
         nextStep,
         prevStep,
         clearCheckout,
+
       }}
     >
       {children}
