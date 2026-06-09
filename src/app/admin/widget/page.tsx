@@ -29,18 +29,18 @@ const widgets: Widget[] = [
     icon: Tag,
     color: "bg-yellow-500",
   },
-  {
-    title: "Google Ads",
-    description: "Track conversions and ad performance",
-    icon: Megaphone,
-    color: "bg-red-500",
-  },
-  {
-    title: "Facebook Pixel",
-    description: "Measure Meta ads and retarget users",
-    icon: Drill,
-    color: "bg-blue-600",
-  },
+  // {
+  //   title: "Google Ads",
+  //   description: "Track conversions and ad performance",
+  //   icon: Megaphone,
+  //   color: "bg-red-500",
+  // },
+  // {
+  //   title: "Facebook Pixel",
+  //   description: "Measure Meta ads and retarget users",
+  //   icon: Drill,
+  //   color: "bg-blue-600",
+  // },
 ];
 
 export default function WidgetOptions() {

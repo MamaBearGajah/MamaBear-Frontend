@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Lock, Tag, Ticket } from "lucide-react";
 import { useCheckout } from "@/context/CheckoutContext";
@@ -20,6 +21,7 @@ interface CartSummaryProps {
   onPromoCodeChange: (value: string) => void;
   onApplyPromo: () => void;
   checkoutHref?: string;
+  removeSelectedItems: () => void;
 }
 
 export default function CartSummary({
@@ -35,11 +37,12 @@ export default function CartSummary({
   onPromoCodeChange,
   onApplyPromo,
   checkoutHref,
+  removeSelectedItems,
 }: CartSummaryProps) {
   const PAYMENT_METHODS = ["BCA", "Mandiri", "GoPay", "OVO", "Dana", "QRIS"];
   const hasSelection = itemCount > 0;
   const { state: checkoutState, postItems, setShipping, nextStep } = useCheckout();
-
+  const router = useRouter();
   return (
     <div className="sticky top-5 rounded-[22px] border border-[#F6B8CB] bg-white p-6 shadow-sm">
       <h2
@@ -115,15 +118,17 @@ export default function CartSummary({
       </div>
 
       <div className="mt-6">
-        <Link href={checkoutHref ?? "/checkout/info"}>
-          <Button
-            disabled={!hasSelection}
-            onClick={() =>{postItems(selectedItems);}}
-            className={`h-12 w-full rounded-full bg-[var(--mamabear-dark-pink)] text-base font-semibold text-white hover:bg-[var(--mamabear-dark-pink)]/90 ${!hasSelection ? "cursor-not-allowed opacity-50 hover:bg-[var(--mamabear-dark-pink)]" : ""}`}
-          >
-            Proceed to Checkout <ArrowRight className="size-5" />
-          </Button>
-        </Link>
+        <Button
+          disabled={!hasSelection}
+          onClick={() => {
+            postItems(selectedItems);
+            removeSelectedItems();
+            router.push(checkoutHref ?? "/checkout/info");
+          }}
+          className={`h-12 w-full rounded-full bg-[var(--mamabear-dark-pink)] text-base font-semibold text-white hover:bg-[var(--mamabear-dark-pink)]/90 ${!hasSelection ? "cursor-not-allowed opacity-50" : ""}`}
+        >
+          Proceed to Checkout <ArrowRight className="size-5" />
+        </Button>
 
         <p className="mt-3 flex items-center justify-center gap-2 text-xs text-[#8D6B5B]">
           <Lock className="size-3 text-[#E3A63D]" />

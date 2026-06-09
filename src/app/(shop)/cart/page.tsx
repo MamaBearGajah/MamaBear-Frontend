@@ -1,5 +1,5 @@
 "use client";
-
+// import { useRouter } from "next/navigation";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import CartItem from "../../../components/cart/CartItem";
@@ -8,6 +8,7 @@ import EmptyCart from "../../../components/cart/EmptyCart";
 // import { useCheckout } from "@/context/CheckoutContext";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/hooks/useCart";
+
 import {
   ArrowRight,
   ArrowLeft,
@@ -17,6 +18,8 @@ import {
   Shield,
   RotateCcw,
 } from "lucide-react";
+
+
 
 const CartPage = () => {
   const { state, itemCount, removeItem, updateQuantity, clearCart } = useCart();
@@ -35,10 +38,17 @@ const CartPage = () => {
   const selectedItems = items.filter((item) =>
     selectedItemIds.includes(item.id)
   );
+
+  const removeSelected = () => {
+    setSelectedItemIds([]);
+  }
+
   const selectedSubtotal = selectedItems.reduce((total, item) => {
     const price = item.discountPrice ?? item.basePrice;
     return total + price * item.quantity;
   }, 0);
+
+  
 
   const selectedCount = selectedItems.length;
   const discount = promoApplied ? selectedSubtotal * 0.15 : 0;
@@ -68,6 +78,7 @@ const CartPage = () => {
     clearCart();
     setSelectedItemIds([]);
   };
+
 
   const handleApplyPromo = () => {
     if (promoCode.toUpperCase() === "MAMABEAR15") {
@@ -216,6 +227,7 @@ const CartPage = () => {
               onPromoCodeChange={setPromoCode}
               onApplyPromo={handleApplyPromo}
               checkoutHref={checkoutHref}
+              removeSelectedItems={removeSelected}
             />
           </div>
         </div>

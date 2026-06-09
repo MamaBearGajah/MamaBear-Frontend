@@ -116,20 +116,7 @@ export default function ReviewCard({navValue, productId, product}:{navValue:stri
             <br></br>
             <p className=' text-gray-400'>{product.description}</p>
         </div>)
-       
-
-    case "Ingredients":
-        return(
-        <div className='flex flex-col justify-start items-start md:w-[60%] md:h-[60%]'>
-            {product.ingredients ?? "No ingredients information available."}
-        </div>)
-        
-    case "How To Use":
-        return(
-        <div className='flex flex-col justify-start items-start md:w-[60%] md:h-[60%]'>
-            
-            This is the How To Use
-        </div>)
+    
         
       case "Review":
         return(

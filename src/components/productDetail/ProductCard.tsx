@@ -243,7 +243,7 @@ export default function ProductCard({
               );
             })}
               <br></br><br></br>
-              <KeyBenefit weight={productWeight}/>
+              <KeyBenefit productWeight={productWeight}/>
             </div>
 
             {/* <AddToCartQuantity price={Number(productDiscountPrice)} product={fetchedProduct}/> */}
