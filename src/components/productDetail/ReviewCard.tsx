@@ -4,6 +4,7 @@ import { Product, Review } from '@/types';
 import {reviewsApi, getAllReviews}  from '../../lib/api/reviews';
 import Stars from '@/components/productDetail/Stars'
 import getDaysAgo from './GetDaysAgo';
+import ProductDescription from './ProductDescription';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter, CardAction } from '../ui/card';
 
 const mockReviews: Review[] = [
@@ -114,7 +115,7 @@ export default function ReviewCard({navValue, productId, product}:{navValue:stri
         <div className='flex flex-col justify-start items-start mt-2 md:w-[60%] md:h-[60%]'>
             <p className="text-left font-bold">{product.name}</p>
             <br></br>
-            <p className=' text-gray-400'>{product.description}</p>
+            <p className=' text-gray-400'><ProductDescription productDescription={product.description}></ProductDescription></p>
         </div>)
     
         
