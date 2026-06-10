@@ -44,7 +44,7 @@ export default function ProductsPageClient(props: ProductsPageClientProps) {
   return (
     <Suspense
       fallback={
-        <div className="py-8 text-center text-sm text-muted-foreground">Memuat…</div>
+        <div className="py-8 text-center h-[100vh] text-sm text-muted-foreground">Memuat…</div>
       }
     >
       <ProductsPageContent {...props} />

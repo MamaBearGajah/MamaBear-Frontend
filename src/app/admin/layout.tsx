@@ -32,9 +32,9 @@ export default function AdminLayout({
 
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-      <div className="bg-background flex h-screen overflow-hidden">
+      <div className="bg-background flex h-full overflow-hidden">
         <AdminSidebar />
-        <main className="bg-background flex min-w-0 flex-1 flex-col overflow-auto">
+        <main className="bg-background flex min-w-0 flex-1 flex-col overflow-auto min-h-screen ">
           {children}
         </main>
       </div>
