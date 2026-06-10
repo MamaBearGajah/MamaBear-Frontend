@@ -6,8 +6,7 @@ import { useCheckout } from "@/context/CheckoutContext";
 import OrderSummary from "@/components/checkout/OrderSummary";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { shippingApi } from "../../../../lib/api/shipping";
-import { useCart } from "../../../../context/CartContext";
+import { shippingApi } from "@/lib/api/shipping";
 
 interface Shipping {
   courier: string;
@@ -18,14 +17,7 @@ interface Shipping {
 
 const CheckoutPageMethod = () => {
   const router = useRouter();
-  const { state: cartState } = useCart();
-  const {
-    state: checkoutState,
-    prevStep,
-    nextStep,
-    setMethod,
-    clearCheckout,
-  } = useCheckout();
+  const { state: checkoutState, prevStep, setMethod } = useCheckout();
   const ORIGIN_CITY_ID = "577";
 
   const [shippingOptions, setShippingOptions] = useState<Shipping[]>([]);
@@ -111,11 +103,7 @@ const CheckoutPageMethod = () => {
       return;
     }
     setError(false);
-    console.log(checkoutState);
-    // nextStep();
-    // clearCheckout();
-    // router.push("/checkout/review");
-    // router.push("/payment");
+    router.push("/payment");
   };
 
   const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
