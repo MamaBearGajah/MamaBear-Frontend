@@ -79,12 +79,14 @@
 //   return ctx;
 // }
 
-
-
-
-
 "use client";
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -104,19 +106,20 @@ export interface CheckoutItem {
 }
 
 interface ShippingInfo {
-  fullName: string;
+  label: string;
+  receiverName: string;
   phone: string;
-  province: string;
-  city: string;
+  provinceId: string;
+  cityId: string;
   postalCode: string;
-  streetAddress: string;
+  address: string;
   deliveryNotes?: string | null;
 }
 
 interface ShippingMethod {
-  courier: string;     // e.g. "JNE"
-  service: string;     // e.g. "REG"
-  estimatedDays: string; // e.g. "2-3 days"
+  courier: string; // e.g. "JNE"
+  service: string; // e.g. "REG"
+  etd: string; // e.g. "2-3 days"
   cost: number;
 }
 
@@ -178,8 +181,6 @@ function readFromStorage(): CheckoutItem[] {
   }
 }
 
-
-
 function writeToStorage(items: CheckoutItem[]): void {
   if (typeof window === "undefined") return;
   try {
@@ -221,7 +222,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
    * - New item → append.
    */
 
-    function removeFromStorage(): void {
+  function removeFromStorage(): void {
     try {
       localStorage.removeItem(LS_KEY);
       console.log("[CheckoutContext] Cleared localStorage key.");
@@ -231,8 +232,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   }
 
   const postItems = (selected: CheckoutItem[]) => {
-
-      setItems(() => selected);
+    setItems(() => selected);
     // setItems((prev) => {
     //   const map = new Map(prev.map((item) => [item.id, { ...item }]));
 
@@ -258,10 +258,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   };
 
   /** UPDATE — patch one item's fields (quantity, price, name, …). */
-  const updateItem = (
-    id: string,
-    patch: Partial<Omit<CheckoutItem, "id">>
-  ) => {
+  const updateItem = (id: string, patch: Partial<Omit<CheckoutItem, "id">>) => {
     setItems((prev) =>
       prev.map((item) => (item.id === id ? { ...item, ...patch } : item))
     );
@@ -306,7 +303,6 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
         nextStep,
         prevStep,
         clearCheckout,
-
       }}
     >
       {children}
@@ -319,6 +315,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 /** Typed hook — throws if used outside <CheckoutProvider>. */
 export function useCheckout() {
   const ctx = useContext(CheckoutContext);
-  if (!ctx) throw new Error("useCheckout must be used inside <CheckoutProvider>");
+  if (!ctx)
+    throw new Error("useCheckout must be used inside <CheckoutProvider>");
   return ctx;
 }
