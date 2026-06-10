@@ -53,7 +53,7 @@ const CheckoutPageReview = () => {
       }
 
       router.push(
-        `/order-success?orderId=${encodeURIComponent(result.orderId)}`,
+        `/order-success?orderId=${encodeURIComponent(result.orderId)}`
       );
     } catch (error) {
       console.error(error);
@@ -61,7 +61,7 @@ const CheckoutPageReview = () => {
       clearCart();
       clearCheckout();
       router.push(
-        `/order-success?orderId=${encodeURIComponent(DEV_FALLBACK_ORDER_ID)}`,
+        `/order-success?orderId=${encodeURIComponent(DEV_FALLBACK_ORDER_ID)}`
       );
     } finally {
       setLoading(false);
@@ -116,7 +116,7 @@ const CheckoutPageReview = () => {
               </div>
               <div className="flex flex-col text-sm text-gray-600">
                 <span>{method?.courier || "POS Indonesia"}</span>
-                <span>{method?.estimatedDays || "4-6 days"}</span>
+                <span>{method?.etd || "4-6 days"}</span>
                 <span className="mt-1 font-medium text-pink-600">
                   {method?.cost ? safeFormatPrice(method.cost) : "Rp 9.000"}
                 </span>
