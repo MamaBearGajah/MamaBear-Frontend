@@ -39,14 +39,9 @@ interface City {
 }
 
 const CheckoutPageInfo = () => {
-  const { state, clearCart } = useCart();
-  const { items, subtotal } = state;
-  const {
-    state: checkoutState,
-    setShipping,
-    nextStep,
-    clearCheckout,
-  } = useCheckout();
+  const { state } = useCart();
+  const { items } = state;
+  const { state: checkoutState, setShipping, clearCheckout } = useCheckout();
   const router = useRouter();
 
   const [provinces, setProvinces] = useState<Province[]>([]);
@@ -266,9 +261,7 @@ const CheckoutPageInfo = () => {
       }
     }
 
-    console.log(form);
     setShipping({ ...form, deliveryNotes: notes });
-    nextStep();
     router.push("/checkout/method");
   };
 
