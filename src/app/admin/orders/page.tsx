@@ -54,22 +54,7 @@ export default async function AdminOrdersPage({
   if (q) listParams.q = q;
 
   let ordersData: Order[] = [];
-  let meta = { page: 1, limit: 20, totalItems: 0, totalPages: 1 };
-
-  // try {
-  //   // const res = await getOrderList
-  //   const res = await adminOrdersApi.getAll({ params: listParams });
-  //   console.log(res);
-  //   ordersData = res.data ?? [];
-  //   meta = res.meta ?? {
-  //     page: 1,
-  //     limit: 20,
-  //     totalItems: ordersData.length,
-  //     totalPages: 1,
-  //   };
-  // } catch {
-  //   // Gracefully degrade — table will render empty state
-  // }
+  let meta = { page: 1, limit: 20, total: 0, totalPages: 1 };
 
   const { cookies } = await import("next/headers");
   const cookieStore = await cookies();
