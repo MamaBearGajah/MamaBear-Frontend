@@ -22,9 +22,9 @@ function ordersRequestConfig(options?: OrdersRequestOptions) {
 
 export async function getOrderList(
   params: OrderListParams = {},
-  options?: OrdersRequestOptions,
+  options?: OrdersRequestOptions
 ): Promise<ApiResponse<Order[]>> {
-  const { data } = await apiClient.get<ApiResponse<Order[]>>("/orders", {
+  const { data } = await apiClient.get<ApiResponse<Order[]>>("/orders/admin", {
     params,
     ...ordersRequestConfig(options),
   });
@@ -37,7 +37,7 @@ export async function getOrderList(
 
 export async function getOrderById(
   id: string,
-  options?: OrdersRequestOptions,
+  options?: OrdersRequestOptions
 ): Promise<ApiResponse<Order>> {
   const { data } = await apiClient.get<ApiResponse<unknown>>(`/orders/${id}`, {
     ...ordersRequestConfig(options),
@@ -51,24 +51,24 @@ export async function getOrderById(
 
 export async function createOrder(
   payload: CreateOrderPayload,
-  options?: OrdersRequestOptions,
+  options?: OrdersRequestOptions
 ): Promise<ApiResponse<CreateOrderResult>> {
   const { data } = await apiClient.post<ApiResponse<CreateOrderResult>>(
     "/orders",
     payload,
-    ordersRequestConfig(options),
+    ordersRequestConfig(options)
   );
   return normalizeApiResponse<CreateOrderResult>(data);
 }
 
 export async function cancelOrder(
   id: string,
-  options?: OrdersRequestOptions,
+  options?: OrdersRequestOptions
 ): Promise<ApiResponse<Order>> {
   const { data } = await apiClient.post<ApiResponse<unknown>>(
     `/orders/${id}/cancel`,
     undefined,
-    ordersRequestConfig(options),
+    ordersRequestConfig(options)
   );
   const normalized = normalizeApiResponse<unknown>(data);
   return {
