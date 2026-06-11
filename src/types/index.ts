@@ -376,6 +376,38 @@ export interface CategoryListParams {
   parentId?: string;
 }
 
+export type BlogStatus = "draft" | "published" | "cancelled";
+
+export interface BlogList {
+  id: string;     
+  authorId: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  coverImage: string;
+  content:string;
+  status: BlogStatus;
+  viewCount: number;
+  publishedAt: Date;
+  createdAt:   Date;
+  updatedAt:   Date;
+  author: User;
+}
+
+export interface BlogListParams{
+  page?:number;
+  limit?:number;
+}
+
+export interface BlogCreateListParams{
+  title:string;
+  authorId: string;
+  slug:string;
+  content: string;
+  excerpt: string;
+  coverImage: string;
+  status: BlogStatus;
+}
 export interface SearchSuggestion {
   id: string;
   name: string;

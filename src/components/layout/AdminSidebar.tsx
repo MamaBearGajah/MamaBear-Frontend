@@ -16,6 +16,7 @@ import {
   Menu,
   X,
   BarChart3,
+  Newspaper,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { clearSession } from "@/lib/auth/clear-session";
@@ -43,6 +44,7 @@ const mainNav: NavItem[] = [
   { label: "Kategori", href: "/admin/categories", icon: Tags, disabled: true },
   { label: "Laporan", href: "/admin/reports", icon: BarChart3, disabled: true },
   { label: "Widgets", href: "/admin/widget", icon: Drill, disabled: false },
+  { label: "Articles", href: "/admin/articles", icon: Newspaper, disabled: false },
   { label: "Banner", href: "/admin/HomeBanner", icon: MonitorCog, disabled: true },
   {
     label: "Settings",
