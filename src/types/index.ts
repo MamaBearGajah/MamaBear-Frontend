@@ -221,7 +221,6 @@ export interface CheckoutItem {
   basePrice: number;
   discountPrice?: number;
   image: string;
-
 }
 
 export interface CartItemVariant {
@@ -285,12 +284,15 @@ export interface Order {
   paymentProvider?: "xendit" | "midtrans";
   items: OrderItem[];
   createdAt: string;
+  /** Populated by admin endpoints when the API joins user info */
+  user?: { name: string; email?: string };
 }
 
 export interface OrderListParams {
   page?: number;
   limit?: number;
   status?: Order["status"];
+  q?: string;
 }
 
 export interface CreateOrderPayload {
@@ -331,7 +333,7 @@ export interface Category {
   slug: string;
   description?: string;
   imageUrl?: string;
-  sortOrder?: number;   // ← tambah ini: dari backend, untuk urutan tampil
+  sortOrder?: number; // ← tambah ini: dari backend, untuk urutan tampil
   isActive: boolean;
   productCount?: number;
 }
