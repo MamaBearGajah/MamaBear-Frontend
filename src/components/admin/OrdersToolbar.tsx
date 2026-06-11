@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/useDebounce";
 import { cn } from "@/lib/utils";
-import type { Order } from "@/types";
+import type { Order, PaginationMeta } from "@/types";
 
 type OrderStatus = Order["status"] | "all";
 
@@ -20,13 +20,6 @@ const STATUS_TABS: { value: OrderStatus; label: string }[] = [
   { value: "delivered", label: "Delivered" },
   { value: "cancelled", label: "Cancelled" },
 ];
-
-interface PaginationMeta {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-}
 
 interface OrdersToolbarProps {
   meta: PaginationMeta;
@@ -73,7 +66,7 @@ export default function OrdersToolbar({
       {/* Top row: count + export */}
       <div className="flex items-center justify-between">
         <h2 className="font-heading text-foreground text-lg font-semibold">
-          Orders ({meta.total})
+          Total Pesanan ({meta.total})
         </h2>
         <Button
           type="button"

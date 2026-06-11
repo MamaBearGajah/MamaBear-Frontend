@@ -4,16 +4,9 @@ import { Suspense } from "react";
 import OrdersToolbar from "@/components/admin/OrdersToolbar";
 import OrdersTable from "@/components/admin/OrdersTable";
 import Pagination from "@/components/shared/Pagination";
-import type { Order } from "@/types";
+import type { Order, PaginationMeta } from "@/types";
 
 type OrderStatus = Order["status"] | "all";
-
-interface PaginationMeta {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-}
 
 interface OrdersPageClientProps {
   orders: Order[];
@@ -30,7 +23,9 @@ function OrdersPageContent({
     <>
       <OrdersToolbar meta={meta} activeStatus={activeStatus} />
       <OrdersTable orders={orders} />
-      <div className="mt-6">{/* <Pagination meta={meta} /> */}</div>
+      <div className="mt-6">
+        <Pagination meta={meta} />
+      </div>
     </>
   );
 }
