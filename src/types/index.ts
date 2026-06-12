@@ -343,6 +343,37 @@ export interface PaginationMeta {
   totalPages: number;
 }
 
+/** YYYY-MM-DD date filter for admin reports (API Contract §2.17). */
+export interface ReportDateRange {
+  from: string;
+  to: string;
+}
+
+export interface ReportQueryParams extends ReportDateRange {
+  limit?: number;
+}
+
+export interface SalesReportSummary {
+  from: string;
+  to: string;
+  totalSales: number;
+  orderCount: number;
+  avgOrderValue: number;
+}
+
+export interface TopProductReport {
+  productId: string;
+  name: string;
+  qty: number;
+  revenue: number;
+}
+
+export interface TopCategoryReport {
+  categoryId: string;
+  name: string;
+  revenue: number;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
