@@ -389,8 +389,8 @@ export interface BlogList {
   status: BlogStatus;
   viewCount: number;
   publishedAt: Date;
-  createdAt:   Date;
-  updatedAt:   Date;
+  createdAt:   Date|string;
+  updatedAt:   Date|string;
   author: User;
 }
 
