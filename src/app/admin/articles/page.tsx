@@ -199,7 +199,7 @@ const MOCK_USERS: User[] = [
     }
   };
 
-const handleUpdateBlog = async () => {
+const handleUpdateBlog = async (selectedBlogId:string) => {
   if (!selectedBlogId) return;
 
   try {
@@ -213,7 +213,7 @@ const handleUpdateBlog = async () => {
       status,
     };
 
-    await updateBlog(blogId, payload);
+    await updateBlog(selectedBlogId, payload);
 
     alert("Blog updated successfully");
 
@@ -317,7 +317,7 @@ const handleUpdateBlog = async () => {
 
                   <button
                     type="button"
-                    onClick={() => handleUpdateBlog(item.id)}
+                    onClick={() => handleUpdateBlog(selectedBlogId)}
                     className="px-4 py-2 bg-blue-600 text-white rounded"
                   >
                     Update Blog
