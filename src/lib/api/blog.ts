@@ -1,6 +1,6 @@
 import { apiClient} from "./client";
 import axios from "axios";
-import { BlogList, BlogListParams, BlogCreateListParams, ApiResponse } from "@/types";
+import { BlogList, BlogListParams, BlogCreateListParams, BlogUpdateListParams, ApiResponse } from "@/types";
 
 
 export async function getAllBlogs(
@@ -41,9 +41,9 @@ export async function createBlog(
 
 export async function updateBlog(
   id: string,
-  payload: BlogCreateListParams
-): Promise<BlogCreateListParams> {
-  const { data } = await apiClient.put<ApiResponse<BlogList>>(
+  payload: BlogUpdateListParams
+): Promise<BlogUpdateListParams> {
+  const { data } = await apiClient.patch<ApiResponse<BlogList>>(
     `/blog/${id}`,
     payload
   );
@@ -51,7 +51,7 @@ export async function updateBlog(
 }
 
 
-export async function deleteProduct(
+export async function deleteBlog(
   id: string,
 ): Promise<void> {
   await apiClient.delete(`/blog/${id}`, {

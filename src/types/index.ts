@@ -408,6 +408,16 @@ export interface BlogCreateListParams{
   coverImage: string;
   status: BlogStatus;
 }
+
+export interface BlogUpdateListParams{
+  title?:string;
+  authorId?: string;
+  slug?:string;
+  content?: string;
+  excerpt?: string;
+  coverImage?: string;
+  status?: BlogStatus;
+}
 export interface SearchSuggestion {
   id: string;
   name: string;
