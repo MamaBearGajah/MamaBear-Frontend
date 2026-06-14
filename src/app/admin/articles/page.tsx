@@ -22,6 +22,7 @@ export default function CreateBlogForm() {
   const [selectedBlogId, setSelectedBlogId] = useState<string | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [openUpdateModal, setOpenUpdateModal] = useState(false);
+  const [openCreateModal, setOpenCreateModal] = useState(false);
   const [blogId, setBlogId] = useState('blog id')
   const [title, setTitle] = useState('blog title');
   const [authorId, setauthorId] = useState('art-1');
@@ -318,7 +319,7 @@ const handleUpdateBlog = async (selectedBlogId:string) => {
                   <button
                     type="button"
                     onClick={() => handleUpdateBlog(selectedBlogId)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded"
+                    className="px-4 py-2 bg-dark-pink text-white rounded"
                   >
                     Update Blog
                   </button>
@@ -328,7 +329,12 @@ const handleUpdateBlog = async (selectedBlogId:string) => {
           </div>
         )
       }
-      <h1>Create Blog</h1>
+        <button 
+          type='button'
+          className='border-2' 
+          onClick={() => setOpenCreateModal((prev)=>!prev)}>
+            Create New Blog
+        </button>
         {blog && blog.length > 0 ? (
                 blog.map((item) => (
 
@@ -419,87 +425,206 @@ const handleUpdateBlog = async (selectedBlogId:string) => {
 
 
 
+       {openCreateModal && (
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+    onClick={() => setOpenCreateModal(false)}
+  >
+    <div
+      className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">
+          Create New Blog
+        </h2>
 
-      <input
-        placeholder="Title"
-        value={form.title}
-        onChange={(e) =>
-          setForm({ ...form, title: e.target.value })
-        }
-        className='border-2'
-      />
+        <button
+          type="button"
+          onClick={() => setOpenCreateModal(false)}
+          className="text-gray-400 bg-dark-pink hover:text-gray-600 text-xl"
+        >
+          ✕
+        </button>
+      </div>
 
-   
-      <input
-        placeholder="Slug"
-        value={form.slug}
-        onChange={(e) =>
-          setForm({ ...form, slug: e.target.value })
-        }
-      />
-
-
-      <select
-        value={form.authorId}
-        onChange={(e) =>
-          setForm({ ...form, authorId: e.target.value })
-        }
+      <form
+        className="space-y-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
       >
-        <option value="">Select Author</option>
+        <div>
+          <label
+            htmlFor="createtitle"
+            className="block mb-1 text-sm font-medium text-gray-700"
+          >
+            Title
+          </label>
+          <input
+            id="createtitle"
+            type="text"
+            value={form.title}
+            onChange={(e) =>
+              setForm({ ...form, title: e.target.value })
+            }
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter blog title"
+          />
+        </div>
 
-        {users.map((user) => (
-          <option key={user.id} value={user.id}>
-            {user.name} ({user.email})
-          </option>
-        ))}
-      </select>
+        <div>
+          <label
+            htmlFor="createslug"
+            className="block mb-1 text-sm font-medium text-gray-700"
+          >
+            Slug
+          </label>
+          <input
+            id="createslug"
+            type="text"
+            value={form.slug}
+            onChange={(e) =>
+              setForm({ ...form, slug: e.target.value })
+            }
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="my-blog-post"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="createauthorid"
+            className="block mb-1 text-sm font-medium text-gray-700"
+          >
+            Author
+          </label>
+
+          <select
+            id="createauthorid"
+            value={form.authorId}
+            onChange={(e) =>
+              setForm({ ...form, authorId: e.target.value })
+            }
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Select Author</option>
+
+            {users?.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.name} ({user.email})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label
+            htmlFor="createexcerpt"
+            className="block mb-1 text-sm font-medium text-gray-700"
+          >
+            Excerpt
+          </label>
+
+          <textarea
+            id="createexcerpt"
+            rows={3}
+            value={form.excerpt}
+            onChange={(e) =>
+              setForm({ ...form, excerpt: e.target.value })
+            }
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Short description..."
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="createcontent"
+            className="block mb-1 text-sm font-medium text-gray-700"
+          >
+            Content
+          </label>
+
+          <textarea
+            id="createcontent"
+            rows={8}
+            value={form.content}
+            onChange={(e) =>
+              setForm({ ...form, content: e.target.value })
+            }
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Write your content here..."
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="createcoverimage"
+            className="block mb-1 text-sm font-medium text-gray-700"
+          >
+            Cover Image URL
+          </label>
+
+          <input
+            id="createcoverimage"
+            type="text"
+            value={form.coverImage}
+            onChange={(e) =>
+              setForm({ ...form, coverImage: e.target.value })
+            }
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="https://..."
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="createstatus"
+            className="block mb-1 text-sm font-medium text-gray-700"
+          >
+            Status
+          </label>
+
+          <select
+            id="createstatus"
+            value={form.status}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                status: e.target.value as any,
+              })
+            }
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="draft">Draft</option>
+            <option value="published">Published</option>
+          </select>
+        </div>
+
+        <div className="flex justify-end gap-3 pt-4">
+          <button
+            type="button"
+            onClick={() => setOpenCreateModal(false)}
+            className="px-4 py-2 border bg-dark-pink border-gray-300 rounded-lg hover:bg-gray-100"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            className="px-5 py-2 bg-dark-pink text-white rounded-lg hover:bg-blue-700"
+          >
+            Create Blog
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
 
 
-      <textarea
-        placeholder="Excerpt"
-        value={form.excerpt}
-        onChange={(e) =>
-          setForm({ ...form, excerpt: e.target.value })
-        }
-      />
-
-
-      <textarea
-        placeholder="Content"
-        value={form.content}
-        onChange={(e) =>
-          setForm({ ...form, content: e.target.value })
-        }
-      />
-
-
-      <input
-        placeholder="Cover Image"
-        value={form.coverImage}
-        onChange={(e) =>
-          setForm({ ...form, coverImage: e.target.value })
-        }
-      />
-
-
-      <select
-        value={form.status}
-        onChange={(e) =>
-          setForm({
-            ...form,
-            status: e.target.value as any,
-          })
-        }
-      >
-        <option value="draft">Draft</option>
-        <option value="published">Published</option>
-        <option value="cancelled">Cancelled</option>
-      </select>
-
-
-      <button onClick={handleSubmit}>
-        Create Blog
-      </button>
     </div>
   );
 }
