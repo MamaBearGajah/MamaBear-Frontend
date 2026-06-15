@@ -60,21 +60,21 @@ export function proxy(request: NextRequest) {
   }
 
   // 3. auth user cant go to auth if already login
-  if (isAuthRoute) {
-    if (isAuthenticated) {
-      if (userRole === "admin" || userRole === "super_admin") {
-        return NextResponse.redirect(new URL("/admin", request.url));
-      }
-      return NextResponse.redirect(new URL("/", request.url));
-    }
-  }
+  // if (isAuthRoute) {
+  //   if (isAuthenticated) {
+  //     if (userRole === "admin" || userRole === "super_admin") {
+  //       return NextResponse.redirect(new URL("/admin", request.url));
+  //     }
+  //     return NextResponse.redirect(new URL("/", request.url));
+  //   }
+  // }
 
-  // 4. admins can ONLY access admin routes
-  if (isAuthenticated && (userRole === "admin" || userRole === "super_admin")) {
-    if (!isAdminRoute && !isAuthRoute) {
-      return NextResponse.redirect(new URL("/admin", request.url));
-    }
-  }
+  // // 4. admins can ONLY access admin routes
+  // if (isAuthenticated && (userRole === "admin" || userRole === "super_admin")) {
+  //   if (!isAdminRoute && !isAuthRoute) {
+  //     return NextResponse.redirect(new URL("/admin", request.url));
+  //   }
+  // }
 
   return NextResponse.next();
 }
