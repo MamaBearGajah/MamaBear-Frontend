@@ -20,7 +20,16 @@ const PaymentPage = () => {
   // const router = useRouter();
   const router = useRouter();
   const { state: checkoutState, setShipping, clearCheckout, subtotal } = useCheckout();
-  const { items} = checkoutState;
+  const { items, method:shippingmethod } = checkoutState;
+  console.log("items", items)
+
+  console.log("checkoutState", checkoutState)
+
+  console.log("shippingmethod", shippingmethod)
+
+  const shippingCost = checkoutState.method?.cost ?? 0;
+
+  console.log("shippingCost", shippingCost)
 
 
   // const [method, setMethod] = useState<PaymentMethod>("gopay");
@@ -31,7 +40,7 @@ const PaymentPage = () => {
 
   // const discount = subtotal * 0.15;
   const discount = 0
-  const shipping = subtotal >= 200000 ? 0 : 15000;
+  const shipping = shippingmethod?.cost ?? 0;
   const total = subtotal - discount + shipping;
 
 const handlePayment = async () => {
@@ -40,7 +49,7 @@ const handlePayment = async () => {
 
     const orderId = `ORD-${Date.now()}`;
 
-    const response = await fetch("/api/payment/create", {
+    const response = await fetch("../lib/api/payment/create", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

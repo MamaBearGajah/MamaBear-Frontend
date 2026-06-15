@@ -19,6 +19,7 @@ const CheckoutPageMethod = () => {
   const router = useRouter();
   const { state: checkoutState, prevStep, setMethod } = useCheckout();
   const ORIGIN_CITY_ID = "577";
+  const { method } = checkoutState;
 
   const [shippingOptions, setShippingOptions] = useState<Shipping[]>([]);
   const [selectedShipping, setSelectedShipping] = useState<Shipping | null>(
@@ -112,6 +113,9 @@ const CheckoutPageMethod = () => {
     setMethod(value); // Update context synchronously for the Order Summary
     setError(false);
   };
+
+  console.log("method", method)
+  console.log("state", )
 
   return (
     <div className="min-h-screen bg-pink-50 px-4 py-10">
