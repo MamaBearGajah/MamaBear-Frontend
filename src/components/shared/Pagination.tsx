@@ -24,19 +24,19 @@ export default function Pagination({ meta }: PaginationProps) {
 
   return (
     <nav
-      className="flex items-center justify-between border-t border-border pt-4"
+      className="border-border flex items-center justify-between border-t pt-4"
       aria-label="Pagination"
     >
-      <p className="text-sm text-muted-foreground">
-        Page {meta.page} of {meta.totalPages} ({meta.totalItems} products)
+      <p className="text-muted-foreground text-sm">
+        Page {meta.page} of {meta.totalPages} ({meta.total} products)
       </p>
       <div className="flex gap-2">
         <Link
           href={buildHref(Math.max(1, meta.page - 1))}
           aria-disabled={meta.page <= 1}
           className={cn(
-            "inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-sm transition-colors hover:bg-muted",
-            meta.page <= 1 && "pointer-events-none opacity-40",
+            "border-border hover:bg-muted inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm transition-colors",
+            meta.page <= 1 && "pointer-events-none opacity-40"
           )}
         >
           <ChevronLeft className="size-4" />
@@ -46,8 +46,8 @@ export default function Pagination({ meta }: PaginationProps) {
           href={buildHref(Math.min(meta.totalPages, meta.page + 1))}
           aria-disabled={meta.page >= meta.totalPages}
           className={cn(
-            "inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-sm transition-colors hover:bg-muted",
-            meta.page >= meta.totalPages && "pointer-events-none opacity-40",
+            "border-border hover:bg-muted inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm transition-colors",
+            meta.page >= meta.totalPages && "pointer-events-none opacity-40"
           )}
         >
           Next
