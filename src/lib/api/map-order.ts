@@ -73,6 +73,7 @@ function mapOrderItem(row: unknown, index: number): OrderItem {
 export function mapOrderFromApi(raw: unknown): Order {
   const row = (raw ?? {}) as Record<string, unknown>;
   const itemsRaw = Array.isArray(row.items) ? row.items : [];
+  const userRaw = row.user as Record<string, unknown> | undefined;
 
   return {
     id: String(row.id ?? row.orderId ?? ""),
@@ -102,6 +103,12 @@ export function mapOrderFromApi(raw: unknown): Order {
         : undefined,
     items: itemsRaw.map(mapOrderItem),
     createdAt: String(row.createdAt ?? row.date ?? new Date().toISOString()),
+    user: userRaw?.name
+      ? {
+          name: String(userRaw.name),
+          email: userRaw.email ? String(userRaw.email) : undefined,
+        }
+      : undefined,
   };
 }
 

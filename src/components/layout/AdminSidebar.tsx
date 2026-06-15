@@ -34,12 +34,7 @@ const mainNav: NavItem[] = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Produk", href: "/admin/products", icon: Package },
   { label: "Variants", href: "/admin/variants", icon: Package },
-  {
-    label: "Pesanan",
-    href: "/admin/orders",
-    icon: ShoppingCart,
-    disabled: true,
-  },
+  { label: "Pesanan", href: "/admin/orders", icon: ShoppingCart },
   { label: "Pelanggan", href: "/admin/customers", icon: Users, disabled: true },
   { label: "Kategori", href: "/admin/categories", icon: Tags, disabled: true },
   { label: "Laporan", href: "/admin/reports", icon: BarChart3, disabled: true },
@@ -138,7 +133,7 @@ export default function AdminSidebar() {
       {/* Mobile Menu Button */}
       <button
         onClick={() => setOpen(true)}
-        className="fixed left-4 top-4 z-40 rounded-md bg-[var(--mamabear-brown)] p-2 text-white shadow-lg md:hidden"
+        className="fixed top-4 left-4 z-40 rounded-md bg-[var(--mamabear-brown)] p-2 text-white shadow-lg md:hidden"
       >
         <Menu className="h-6 w-6" />
       </button>
@@ -174,16 +169,11 @@ export default function AdminSidebar() {
               <p className="font-heading truncate text-sm font-semibold">
                 mamabear
               </p>
-              <p className="truncate text-xs text-white/75">
-                Admin Panel
-              </p>
+              <p className="truncate text-xs text-white/75">Admin Panel</p>
             </div>
           </div>
 
-          <button
-            onClick={() => setOpen(false)}
-            className="md:hidden"
-          >
+          <button onClick={() => setOpen(false)} className="md:hidden">
             <X className="h-5 w-5" />
           </button>
         </div>
