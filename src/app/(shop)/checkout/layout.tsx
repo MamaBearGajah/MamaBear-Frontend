@@ -26,7 +26,7 @@ export default function CheckoutLayout({
             <ChevronRight size={12} />
             <span className="text-pink-600">Checkout</span>
           </div>
-          <StepperHeader /> {/* your stepper UI */}
+          {/* <StepperHeader /> your stepper UI */}
           {children}
         </CheckoutProvider>
       </div>
