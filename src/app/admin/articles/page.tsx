@@ -7,7 +7,7 @@ import {getAllBlogs, updateBlog, deleteBlog} from "@/lib/api/blog";
 import { User, BlogCreateListParams, BlogUpdateListParams, BlogList } from "@/types";
 import { mockBlogs } from "@/lib/blog/articlesData";
 import { apiClient } from "@/lib/api/client";
-import { CalendarDays, Eye, FileText, Pencil, Trash2, User, User, User } from "lucide-react";
+import { CalendarDays, Eye, FileText, Pencil, Trash2, User, User, User, Newspaper } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -230,109 +230,151 @@ const handleUpdateBlog = async (selectedBlogId:string) => {
 
   return (
     <div style={{ padding: 20 }}>
-      {
-        openUpdateModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="bg-white p-6 rounded-lg w-full max-w-lg">
-              <h2 className="text-xl font-bold mb-4">
-                Update Blog
-              </h2>
+{
+  openUpdateModal && (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      onClick={() => setOpenUpdateModal(false)}
+    >
+      <div
+        className="bg-white p-6 rounded-xl w-full max-w-lg shadow-xl relative"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close button */}
+        <button
+          type="button"
+          onClick={() => setOpenUpdateModal(false)}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-xl font-bold"
+        >
+          ✕
+        </button>
 
-              <form className="space-y-3">
+        <h2 className="text-xl font-bold mb-4">
+          Update Blog
+        </h2>
 
-                <label htmlFor="title">Title</label>
-                <input
-                  type="text"
-                  id="title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full border p-2 rounded"
-                />
-
-                <label htmlFor="authorId">Author ID</label>
-                <input
-                  type="text"
-                  id="authorId"
-                  value={authorId}
-                  onChange={(e) => setAuthorId(e.target.value)}
-                  className="w-full border p-2 rounded"
-                />
-
-                <label htmlFor="slug">Slug</label>
-                <input
-                  type="text"
-                  id="slug"
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value)}
-                  className="w-full border p-2 rounded"
-                />
-
-                <label htmlFor="excerpt">Excerpt</label>
-                <input
-                  type="text"
-                  id="excerpt"
-                  value={excerpt}
-                  onChange={(e) => setExcerpt(e.target.value)}
-                  className="w-full border p-2 rounded"
-                />
-
-                <label htmlFor="coverImage">Cover Image</label>
-                <input
-                  type="text"
-                  id="coverImage"
-                  value={coverImage}
-                  onChange={(e) => setCoverImage(e.target.value)}
-                  className="w-full border p-2 rounded"
-                />
-
-                <label htmlFor="content">Content</label>
-                <textarea
-                  id="content"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  className="w-full border p-2 rounded"
-                  rows={8}
-                />
-
-                <label htmlFor="status">Status</label>
-                <select
-                  id="status"
-                  value={status}
-                  onChange={(e) =>
-                    setStatus(e.target.value as "draft" | "published")
-                  }
-                  className="w-full border p-2 rounded"
-                >
-                  <option value="draft">Draft</option>
-                  <option value="published">Published</option>
-                </select>
-
-                <div className="flex gap-2 justify-end pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setOpenUpdateModal(false)}
-                    className="px-4 py-2 border rounded"
-                  >
-                    Cancel
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleUpdateBlog(selectedBlogId)}
-                    className="px-4 py-2 bg-dark-pink text-white rounded"
-                  >
-                    Update Blog
-                  </button>
-                </div>
-              </form>
-            </div>
+        <form className="space-y-3">
+          <div>
+            <label htmlFor="title" className="block mb-1 font-medium">
+              Title
+            </label>
+            <input
+              type="text"
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full border p-2 rounded"
+            />
           </div>
-        )
-      }
+
+          <div>
+            <label htmlFor="authorId" className="block mb-1 font-medium">
+              Author ID
+            </label>
+            <input
+              type="text"
+              id="authorId"
+              value={authorId}
+              onChange={(e) => setAuthorId(e.target.value)}
+              className="w-full border p-2 rounded"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="slug" className="block mb-1 font-medium">
+              Slug
+            </label>
+            <input
+              type="text"
+              id="slug"
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
+              className="w-full border p-2 rounded"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="excerpt" className="block mb-1 font-medium">
+              Excerpt
+            </label>
+            <input
+              type="text"
+              id="excerpt"
+              value={excerpt}
+              onChange={(e) => setExcerpt(e.target.value)}
+              className="w-full border p-2 rounded"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="coverImage" className="block mb-1 font-medium">
+              Cover Image
+            </label>
+            <input
+              type="text"
+              id="coverImage"
+              value={coverImage}
+              onChange={(e) => setCoverImage(e.target.value)}
+              className="w-full border p-2 rounded"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="content" className="block mb-1 font-medium">
+              Content
+            </label>
+            <textarea
+              id="content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="w-full border p-2 rounded"
+              rows={8}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="status" className="block mb-1 font-medium">
+              Status
+            </label>
+            <select
+              id="status"
+              value={status}
+              onChange={(e) =>
+                setStatus(e.target.value as "draft" | "published")
+              }
+              className="w-full border p-2 rounded"
+            >
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+            </select>
+          </div>
+
+          <div className="flex gap-2 justify-end pt-4">
+            <button
+              type="button"
+              onClick={() => setOpenUpdateModal(false)}
+              className="px-4 py-2 border rounded hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleUpdateBlog(selectedBlogId)}
+              className="px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700"
+            >
+              Update Blog
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
         <button 
           type='button'
-          className='border-2' 
-          onClick={() => setOpenCreateModal((prev)=>!prev)}>
+          className=' flex justify-center items-center mr-3 gap-3 border-2 p-2 m-3 bg-dark-pink hover:opacity-80 cursor-pointer transition duration-300 rounded-md' 
+          onClick={() => setOpenCreateModal((prev)=>!prev)}><Newspaper size={20}></Newspaper>
             Create New Blog
         </button>
         {blog && blog.length > 0 ? (
