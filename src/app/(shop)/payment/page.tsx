@@ -7,6 +7,7 @@ import { useCart } from "@/hooks/useCart";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import PaymentSelector, { PaymentMethod } from "@/components/checkout/PaymentSelector";
+import { useCheckout } from "@/context/CheckoutContext";
 import { safeFormatPrice } from "@/lib/utils";
 import { placeShopOrder } from "@/lib/shop/place-order";
 
@@ -16,7 +17,9 @@ const PaymentPage = () => {
   const { state, clearCart } = useCart();
   // const router = useRouter();
   const router = useRouter();
-  const { items, subtotal } = state;
+  const { state: checkoutState, setShipping, clearCheckout, subtotal } = useCheckout();
+  const { items} = checkoutState;
+
 
   // const [method, setMethod] = useState<PaymentMethod>("gopay");
   // const [gateway, setGateway] = useState<"xendit" | "midtrans">("xendit");
@@ -24,7 +27,8 @@ const PaymentPage = () => {
   const [gateway, setGateway] = useState<"xendit" | "midtrans">("xendit");
   const [loading, setLoading] = useState(false);
 
-  const discount = subtotal * 0.15;
+  // const discount = subtotal * 0.15;
+  const discount = 0
   const shipping = subtotal >= 200000 ? 0 : 15000;
   const total = subtotal - discount + shipping;
 

@@ -132,6 +132,7 @@ interface CheckoutState {
 
 interface CheckoutContextType {
   state: CheckoutState;
+  subtotal: number;
 
   // ── Item methods ──────────────────────────────────────────────────────────
   /** Append all items from a `selected` array that are not already in the cart.
@@ -216,6 +217,17 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  function calculateSubtotal(items: CheckoutItem[]) {
+    return items.reduce((sum, item) => {
+      const price = item.discountPrice ?? item.basePrice;
+      return sum + price * item.quantity;
+    }, 0);
+  }
+
+  const subtotal = calculateSubtotal(state.items);
+
+
+
   /**
    * POST — merge a `selected` array into the cart.
    * - Existing item (same id) → increment quantity.
@@ -294,6 +306,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     <CheckoutContext.Provider
       value={{
         state,
+        subtotal,
         postItems,
         deleteItem,
         updateItem,
