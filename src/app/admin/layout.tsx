@@ -1,7 +1,8 @@
 "use client";
-import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { ThemeProvider } from "next-themes";
+import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
+import SuperAdminRouteGuard from "@/components/admin/SuperAdminRouteGuard";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { useAuth } from "../../context/AuthContext";
@@ -34,8 +35,11 @@ export default function AdminLayout({
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
       <div className="bg-background flex h-full overflow-hidden">
         <AdminSidebar />
-        <main className="bg-background flex min-w-0 flex-1 flex-col overflow-auto min-h-screen">
-          {children}
+        <main className="bg-background flex min-h-screen min-w-0 flex-1 flex-col overflow-auto">
+          <div className="sticky top-0 z-10 border-b border-[#F1E9EB] bg-background/95 px-4 py-3 backdrop-blur sm:px-6 lg:px-8">
+            <AdminBreadcrumb />
+          </div>
+          <SuperAdminRouteGuard>{children}</SuperAdminRouteGuard>
         </main>
       </div>
       <Toaster richColors position="top-right" />
