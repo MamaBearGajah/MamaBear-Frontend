@@ -4,53 +4,22 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   ExternalLink,
-  LayoutDashboard,
   LogOut,
-  Package,
-  Settings,
-  ShoppingCart,
-  Tags,
-  Users,
-  Drill,
-  MonitorCog,
   Menu,
   X,
   BarChart3,
   Newspaper,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useMemo, useState } from "react";
+
+import { useAuth } from "@/context/AuthContext";
+import { getAdminNavForRole, type AdminNavItem } from "@/config/admin-nav";
 import { clearSession } from "@/lib/auth/clear-session";
-import { useState } from "react";
+import { cn } from "@/lib/utils";
+import type { UserRole } from "@/types";
 
-type NavItem = {
-  label: string;
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
-  disabled?: boolean;
-  external?: boolean;
-};
-
-const mainNav: NavItem[] = [
-  { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { label: "Produk", href: "/admin/products", icon: Package },
-  { label: "Variants", href: "/admin/variants", icon: Package },
-  { label: "Pesanan", href: "/admin/orders", icon: ShoppingCart },
-  { label: "Pelanggan", href: "/admin/customers", icon: Users, disabled: true },
-  { label: "Kategori", href: "/admin/categories", icon: Tags, disabled: true },
-  { label: "Laporan", href: "/admin/reports", icon: BarChart3, disabled: true },
-  { label: "Widgets", href: "/admin/widget", icon: Drill, disabled: false },
-  { label: "Articles", href: "/admin/articles", icon: Newspaper, disabled: false },
-  { label: "Banner", href: "/admin/HomeBanner", icon: MonitorCog, disabled: true },
-  {
-    label: "Settings",
-    href: "/admin/settings",
-    icon: Settings,
-    disabled: true,
-  },
-];
-
-const footerNav: NavItem[] = [
-  { label: "View Store", href: "/", icon: ExternalLink, external: true },
+const footerNav = [
+  { label: "View Store", href: "/", icon: ExternalLink, external: true as const },
 ];
 
 function NavLink({
@@ -58,7 +27,7 @@ function NavLink({
   pathname,
   onClick,
 }: {
-  item: NavItem;
+  item: AdminNavItem;
   pathname: string;
   onClick?: () => void;
 }) {
@@ -73,7 +42,7 @@ function NavLink({
     isActive
       ? "rounded-l-full bg-[var(--mamabear-dark-pink)] text-white"
       : "text-white/85 hover:bg-white/10 hover:text-white",
-    item.disabled && "pointer-events-none cursor-not-allowed opacity-45"
+    item.disabled && "pointer-events-none cursor-not-allowed opacity-45",
   );
 
   const content = (
@@ -91,20 +60,6 @@ function NavLink({
     );
   }
 
-  if (item.external) {
-    return (
-      <a
-        href={item.href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={className}
-        onClick={onClick}
-      >
-        {content}
-      </a>
-    );
-  }
-
   return (
     <Link
       href={item.href}
@@ -117,10 +72,35 @@ function NavLink({
   );
 }
 
+function FooterLink({
+  item,
+  onClick,
+}: {
+  item: (typeof footerNav)[number];
+  onClick?: () => void;
+}) {
+  return (
+    <a
+      href={item.href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={onClick}
+      className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-white/85 transition-colors hover:bg-white/10 hover:text-white"
+    >
+      <item.icon className="size-5 shrink-0" aria-hidden />
+      <span>{item.label}</span>
+    </a>
+  );
+}
+
 export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { state } = useAuth();
   const [open, setOpen] = useState(false);
+
+  const role = (state.user?.role ?? "admin") as UserRole;
+  const mainNav = useMemo(() => getAdminNavForRole(role), [role]);
 
   const handleLogout = async () => {
     await clearSession();
@@ -130,32 +110,31 @@ export default function AdminSidebar() {
 
   return (
     <>
-      {/* Mobile Menu Button */}
       <button
+        type="button"
         onClick={() => setOpen(true)}
-        className="fixed top-4 left-4 z-40 rounded-md bg-[var(--mamabear-brown)] p-2 text-white shadow-lg md:hidden"
+        className="fixed left-4 top-4 z-40 rounded-md bg-[var(--mamabear-brown)] p-2 text-white shadow-lg md:hidden"
+        aria-label="Open admin menu"
       >
         <Menu className="h-6 w-6" />
       </button>
 
-      {/* Mobile Backdrop */}
       {open && (
         <div
           className="fixed inset-0 z-40 bg-black/50 md:hidden"
           onClick={() => setOpen(false)}
+          aria-hidden
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-[var(--mamabear-brown)] text-white transition-transform duration-300 ease-in-out",
           open ? "translate-x-0" : "-translate-x-full",
-          "md:static md:w-64 md:translate-x-0"
+          "md:static md:w-64 md:translate-x-0",
         )}
         aria-label="Admin navigation"
       >
-        {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 px-5 py-6">
           <div className="flex items-center gap-3">
             <div
@@ -166,26 +145,30 @@ export default function AdminSidebar() {
             </div>
 
             <div className="min-w-0">
-              <p className="font-heading truncate text-sm font-semibold">
+              <p className="truncate font-heading text-sm font-semibold">
                 mamabear
               </p>
               <p className="truncate text-xs text-white/75">Admin Panel</p>
             </div>
           </div>
 
-          <button onClick={() => setOpen(false)} className="md:hidden">
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="md:hidden"
+            aria-label="Close admin menu"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Navigation */}
         <nav
           className="flex flex-1 flex-col gap-0.5 overflow-y-auto py-4"
           aria-label="Main"
         >
           {mainNav.map((item) => (
             <NavLink
-              key={item.label}
+              key={item.href}
               item={item}
               pathname={pathname}
               onClick={() => setOpen(false)}
@@ -193,13 +176,11 @@ export default function AdminSidebar() {
           ))}
         </nav>
 
-        {/* Footer */}
         <div className="border-t border-white/10 py-3">
           {footerNav.map((item) => (
-            <NavLink
+            <FooterLink
               key={item.label}
               item={item}
-              pathname={pathname}
               onClick={() => setOpen(false)}
             />
           ))}
