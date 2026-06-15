@@ -8,6 +8,7 @@ import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import PaymentSelector, { PaymentMethod } from "@/components/checkout/PaymentSelector";
 import { useCheckout } from "@/context/CheckoutContext";
+import QRCode from "react-qr-code";
 import { safeFormatPrice } from "@/lib/utils";
 import { placeShopOrder } from "@/lib/shop/place-order";
 
@@ -15,6 +16,7 @@ const DEV_FALLBACK_ORDER_ID = "ORD-2026-8921";
 
 const PaymentPage = () => {
   const { state, clearCart } = useCart();
+  const [paymentData, setPaymentData] = useState<any>(null);
   // const router = useRouter();
   const router = useRouter();
   const { state: checkoutState, setShipping, clearCheckout, subtotal } = useCheckout();
@@ -32,38 +34,71 @@ const PaymentPage = () => {
   const shipping = subtotal >= 200000 ? 0 : 15000;
   const total = subtotal - discount + shipping;
 
-  const handlePayment = async () => {
+const handlePayment = async () => {
+  try {
     setLoading(true);
 
-    try {
-      const result = await placeShopOrder({
-        courier: "jne",
-        service: "reg",
-        provider: gateway,
-      });
+    const orderId = `ORD-${Date.now()}`;
 
-      clearCart();
+    const response = await fetch("/api/payment/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        orderId,
+        amount: total,
+      }),
+    });
 
-      if (result.paymentUrl) {
-        window.location.href = result.paymentUrl;
-        return;
-      }
+    const data = await response.json();
 
-      router.push(
-        // `/order-success?orderId=${encodeURIComponent(result.orderId)}`,
-        `/checkout/review`,
-      );
-    } catch (err) {
-      console.error(err);
-      toast.info("Backend belum siap — menampilkan pesanan demo.");
-      clearCart();
-      router.push(
-        `/order-success?orderId=${encodeURIComponent(DEV_FALLBACK_ORDER_ID)}`,
-      );
-    } finally {
-      setLoading(false);
+    if (data.checkoutUrl) {
+      window.location.href = data.checkoutUrl;
+      return;
     }
-  };
+
+    toast.error("Failed to get payment URL");
+  } catch (error) {
+    console.error(error);
+    toast.error("Payment failed");
+  } finally {
+    setLoading(false);
+  }
+};
+
+  // const handlePayment = async () => {
+  //   setLoading(true);
+
+  //   try {
+  //     const result = await placeShopOrder({
+  //       courier: "jne",
+  //       service: "reg",
+  //       provider: gateway,
+  //     });
+
+  //     clearCart();
+
+  //     if (result.paymentUrl) {
+  //       window.location.href = result.paymentUrl;
+  //       return;
+  //     }
+
+  //     router.push(
+  //       // `/order-success?orderId=${encodeURIComponent(result.orderId)}`,
+  //       `/checkout/review`,
+  //     );
+  //   } catch (err) {
+  //     console.error(err);
+  //     toast.info("Backend belum siap — menampilkan pesanan demo.");
+  //     clearCart();
+  //     router.push(
+  //       `/order-success?orderId=${encodeURIComponent(DEV_FALLBACK_ORDER_ID)}`,
+  //     );
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   // EMPTY CART GUARD
   if (items.length === 0) {
@@ -81,6 +116,30 @@ const PaymentPage = () => {
 
   return (
     <div className="min-h-screen bg-pink-50 py-10 px-4">
+      {
+  paymentData?.payment_method?.qr_code?.qr_string && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-white p-8 rounded-2xl">
+
+        <h2 className="font-bold text-xl mb-4">
+          Scan to Pay
+        </h2>
+
+        <QRCode
+          value={
+            paymentData.payment_method.qr_code.qr_string
+          }
+        />
+
+        <p className="mt-4 text-center text-sm">
+          Scan using GoPay, OVO, Dana,
+          ShopeePay, Mobile Banking
+        </p>
+      </div>
+    </div>
+  )
+}
+      
       {loading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
           <div className="flex transform flex-col items-center gap-3 rounded-lg bg-white/95 px-6 py-8 shadow-lg">
@@ -216,7 +275,9 @@ const PaymentPage = () => {
             Secure payment simulation page
           </p>
         </div>
+        
       </div>
+      
     </div>
   );
 };
