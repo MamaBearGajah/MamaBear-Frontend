@@ -7,7 +7,7 @@ import {getAllBlogs, updateBlog, deleteBlog} from "@/lib/api/blog";
 import { User, BlogCreateListParams, BlogUpdateListParams, BlogList } from "@/types";
 import { mockBlogs } from "@/lib/blog/articlesData";
 import { apiClient } from "@/lib/api/client";
-import { CalendarDays, Eye, FileText, Pencil, Trash2, User, User, User, Newspaper } from "lucide-react";
+import { CalendarDays, Eye, FileText, Pencil, Trash2, User, User, User, Newspaper, Plus } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -371,12 +371,18 @@ const handleUpdateBlog = async (selectedBlogId:string) => {
     </div>
   )
 }
+<div className='flex justify-between items-center'>
+
+        Articles ({blog.length})
         <button 
           type='button'
-          className=' flex justify-center items-center mr-3 gap-3 border-2 p-2 m-3 bg-dark-pink hover:opacity-80 cursor-pointer transition duration-300 rounded-md' 
-          onClick={() => setOpenCreateModal((prev)=>!prev)}><Newspaper size={20}></Newspaper>
-            Create New Blog
+          className='text-white flex justify-center items-center mr-3 gap-3 border-2 p-2 m-3 bg-dark-pink hover:opacity-80 cursor-pointer transition duration-300 rounded-lg' 
+          onClick={() => setOpenCreateModal((prev)=>!prev)}><Plus size={20}></Plus>
+            Add Article
         </button>
+
+</div>
+
         {blog && blog.length > 0 ? (
                 blog.map((item) => (
 
