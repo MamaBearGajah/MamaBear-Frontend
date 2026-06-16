@@ -48,7 +48,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/orders",
     icon: ShoppingCart,
     roles: ["admin", "super_admin"],
-    disabled: true,
+    disabled: false,
   },
   {
     label: "Pelanggan",
