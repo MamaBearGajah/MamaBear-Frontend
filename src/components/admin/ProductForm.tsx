@@ -181,7 +181,9 @@ export default function ProductForm({
       try {
         const payload = {
           ...formValuesToPayload(data),
-          mainImage: imageValue?.imageUrl?.trim() || undefined,
+          mainImage: galleryImages.find(
+              (image) => image.imageType === "main"
+            )?.imageUrl,
           images: galleryImages.map((img) => ({
             id: img.id,
             imageUrl: img.imageUrl,
@@ -189,6 +191,7 @@ export default function ProductForm({
             imageType: img.imageType,
             isFeatured: img.isFeatured,
             sortOrder: img.sortOrder,
+  
           })),
         };
 
