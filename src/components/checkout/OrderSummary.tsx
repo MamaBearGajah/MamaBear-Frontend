@@ -8,10 +8,14 @@ import { useCheckout } from "../../context/CheckoutContext";
 function OrderSummary() {
   const { state } = useCart();
   const { state: checkoutState } = useCheckout();
-  const { method } = checkoutState;
+  const { method, discount } = checkoutState;
   // const { items } = state;
   const {items} = checkoutState;
-  const discount = 0;
+
+  console.log("items",items)
+
+  // const discount = items.discount;
+    console.log("discount", discount)
   const subtotal =
     items.reduce(
       (sum, item) =>

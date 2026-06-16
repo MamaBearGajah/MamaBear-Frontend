@@ -13,7 +13,7 @@ interface CartSummaryProps {
   subtotal: number;
   itemCount: number;
   discount: number;
-  shipping: number;
+  // shipping: number;
   finalTotal: number;
   promoCode: string;
   promoApplied: boolean;
@@ -29,7 +29,7 @@ export default function CartSummary({
   subtotal,
   itemCount,
   discount,
-  shipping,
+  // shipping,
   finalTotal,
   promoCode,
   promoApplied,
@@ -103,9 +103,14 @@ export default function CartSummary({
           <strong>Rp {subtotal.toLocaleString()}</strong>
         </div>
         <div className="flex items-center justify-between text-sm">
-          <span className="text-[#6C4735]">Shipping</span>
+          {/* <span className="text-[#6C4735]">Shipping</span>
           <strong className="text-[#00A651]">
             {shipping === 0 ? "FREE" : `Rp ${shipping.toLocaleString()}`}
+          </strong> */}
+
+          <span className="text-[#6C4735]">Discount</span>
+          <strong className="text-[#00A651]">
+            {discount === 0 ? "No Discount" : `Rp ${discount.toLocaleString()}`}
           </strong>
         </div>
 

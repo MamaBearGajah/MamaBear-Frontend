@@ -20,16 +20,16 @@ const PaymentPage = () => {
   // const router = useRouter();
   const router = useRouter();
   const { state: checkoutState, setShipping, clearCheckout, subtotal } = useCheckout();
-  const { items, method:shippingmethod } = checkoutState;
-  console.log("items", items)
+  const { items, method:shippingmethod, discount } = checkoutState;
+  // console.log("items", items)
 
-  console.log("checkoutState", checkoutState)
+  // console.log("checkoutState", checkoutState)
 
-  console.log("shippingmethod", shippingmethod)
+  // console.log("shippingmethod", shippingmethod)
 
-  const shippingCost = checkoutState.method?.cost ?? 0;
+  // const shippingCost = checkoutState.method?.cost ?? 0;
 
-  console.log("shippingCost", shippingCost)
+  // console.log("shippingCost", shippingCost)
 
 
   // const [method, setMethod] = useState<PaymentMethod>("gopay");
@@ -39,7 +39,7 @@ const PaymentPage = () => {
   const [loading, setLoading] = useState(false);
 
   // const discount = subtotal * 0.15;
-  const discount = 0
+  // const discount = 0
   const shipping = shippingmethod?.cost ?? 0;
   const total = subtotal - discount + shipping;
 

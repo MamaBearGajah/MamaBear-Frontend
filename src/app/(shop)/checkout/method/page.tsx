@@ -114,8 +114,8 @@ const CheckoutPageMethod = () => {
     setError(false);
   };
 
-  console.log("method", method)
-  console.log("state", )
+  // console.log("method", method)
+  // console.log("state", )
 
   return (
     <div className="min-h-screen bg-pink-50 px-4 py-10">

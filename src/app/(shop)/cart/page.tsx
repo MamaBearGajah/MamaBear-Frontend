@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import CartItem from "../../../components/cart/CartItem";
 import CartSummary from "../../../components/cart/CartSummary";
 import EmptyCart from "../../../components/cart/EmptyCart";
+import { useCheckout } from "@/context/CheckoutContext";
 // import { useCheckout } from "@/context/CheckoutContext";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/hooks/useCart";
@@ -29,6 +30,7 @@ const CartPage = () => {
   // const { state: checkoutState, setShipping, nextStep } = useCheckout();
   const [promoApplied, setPromoApplied] = useState(false);
   const [promoError, setPromoError] = useState("");
+  const { state: checkoutState, setDiscount } = useCheckout();
 
   const { items, subtotal, loading } = state;
   const checkoutHref = authState.user
@@ -52,10 +54,16 @@ const CartPage = () => {
 
   const selectedCount = selectedItems.length;
   const discount = promoApplied ? selectedSubtotal * 0.15 : 0;
-  const shipping =
-    selectedSubtotal > 0 ? (selectedSubtotal >= 200000 ? 0 : 15000) : 0;
+  console.log("discount",discount)
+  useEffect(() => {
+    setDiscount(discount);
+  }, [discount]);
+  // const shipping =
+  //   selectedSubtotal > 0 ? (selectedSubtotal >= 200000 ? 0 : 15000) : 0;
+  // const finalTotal =
+  //   selectedSubtotal > 0 ? selectedSubtotal - discount + shipping : 0;
   const finalTotal =
-    selectedSubtotal > 0 ? selectedSubtotal - discount + shipping : 0;
+    selectedSubtotal > 0 ? selectedSubtotal - discount:0;
 
   const handleToggleItemSelection = (itemId: string, checked: boolean) => {
     setSelectedItemIds((current) =>
@@ -219,7 +227,7 @@ const CartPage = () => {
               subtotal={selectedSubtotal}
               itemCount={selectedCount}
               discount={discount}
-              shipping={shipping}
+              // shipping={shipping}
               finalTotal={finalTotal}
               promoCode={promoCode}
               promoApplied={promoApplied}

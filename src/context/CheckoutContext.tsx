@@ -101,6 +101,7 @@ export interface CheckoutItem {
   name: string;
   basePrice: number;
   discountPrice?: number;
+  discount?:number;
   image: string;
 }
 
@@ -126,6 +127,7 @@ export interface CheckoutState {
   items: CheckoutItem[];
   shipping: ShippingInfo | null;
   method: ShippingMethod | null;
+  discount: number,
   step: number;
 }
 
@@ -143,6 +145,7 @@ interface CheckoutContextType {
 
   setShipping: (data: ShippingInfo) => void;
   setMethod: (data: ShippingMethod) => void;
+  setDiscount: (discount: number) => void;
 
   nextStep: () => void;
   prevStep: () => void;
@@ -156,6 +159,7 @@ const initialState: CheckoutState = {
   items: [],
   shipping: null,
   method: null,
+  discount:0,
   step: 1,
 };
 
@@ -259,6 +263,13 @@ export function CheckoutProvider({
     }));
   };
 
+  const setDiscount = (discount: number) => {
+    setState((prev) => ({
+      ...prev,
+      discount,
+    }));
+  };
+
   const nextStep = () => {
     setState((prev) => ({
       ...prev,
@@ -294,6 +305,7 @@ export function CheckoutProvider({
 
         setShipping,
         setMethod,
+        setDiscount,
 
         nextStep,
         prevStep,
