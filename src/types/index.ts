@@ -433,23 +433,41 @@ export interface BlogListParams{
 }
 
 export interface BlogCreateListParams{
+  // title:string;
+  // authorId: string;
+  // slug:string;
+  // content: string;
+  // excerpt: string;
+  // coverImage: string;
+  // status: BlogStatus;
+
   title:string;
-  authorId: string;
   slug:string;
-  content: string;
   excerpt: string;
   coverImage: string;
+  coverPublicId?: string
   status: BlogStatus;
+  content: string;
 }
 
+
+
 export interface BlogUpdateListParams{
+  // title?:string;
+  // authorId?: string;
+  // slug?:string;
+  // content?: string;
+  // excerpt?: string;
+  // coverImage?: string;
+  // status?: BlogStatus;
+
   title?:string;
-  authorId?: string;
   slug?:string;
-  content?: string;
   excerpt?: string;
   coverImage?: string;
+  coverPublicId?: string
   status?: BlogStatus;
+  content?: string;
 }
 export interface SearchSuggestion {
   id: string;

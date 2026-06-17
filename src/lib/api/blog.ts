@@ -8,7 +8,7 @@ export async function getAllBlogs(
   params: BlogListParams = {}
 ): Promise<BlogList[]> {
   const { data } = await apiClient.get(
-    `/blog`,
+    `/blog/admin/all`,
     {    
     params: params,    
     },
