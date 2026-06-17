@@ -59,6 +59,7 @@ const mockReviews: Review[] = [
 
 export default function ReviewCard({navValue, productId, product}:{navValue:string, productId:string, product: Product}) {
         const [reviews, setReviews] = useState<Review[]>([]);
+        const [usefulSent, setusefulSent] = useState(false);
         const [isOpen, setIsOpen] = useState(false);
         const limit = 5;
         const [page, setPage] = useState(1);
@@ -84,7 +85,7 @@ export default function ReviewCard({navValue, productId, product}:{navValue:stri
         }
 
         if (productId) fetchReviews();
-        }, [productId, page]);
+        }, [productId, page, usefulSent]);
 
         const nextPage = () => {
         if (page < meta.totalPages) {
@@ -99,15 +100,14 @@ export default function ReviewCard({navValue, productId, product}:{navValue:stri
         };
 
 
-    function addHelpfulVote(reviewId: string, isHelpful: boolean) {
-        reviewsApi.voteHelpful(productId, reviewId, isHelpful)
-        .then(response => {
-            console.log("Vote recorded:", response);
-        })
-        .catch(error => {
-            console.error("Error recording vote:", error);
-        });
-    }
+function addHelpfulVote(reviewId: string, isHelpful: boolean) {
+  reviewsApi
+    .voteHelpful(productId, reviewId, isHelpful)
+    .then(() => {
+      setusefulSent((prev) => !prev);
+    })
+    .catch(console.error);
+}
 
   switch (navValue){
     case "Description":
