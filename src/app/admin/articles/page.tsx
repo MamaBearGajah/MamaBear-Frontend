@@ -228,6 +228,7 @@ const MOCK_USERS: User[] = [
 
 const handleUpdateBlog = async (selectedBlogId:string) => {
   if (!selectedBlogId) return;
+  console.log("selectedBlogId", selectedBlogId)
 
   try {
     const payload: BlogUpdateListParams = {
@@ -263,7 +264,7 @@ const handleUpdateBlog = async (selectedBlogId:string) => {
       onClick={() => setOpenUpdateModal(false)}
     >
       <div
-        className="bg-white p-6 rounded-xl w-full max-w-lg shadow-xl relative"
+        className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
