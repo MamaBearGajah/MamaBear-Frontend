@@ -40,6 +40,17 @@ export async function getBlogById(
   return data.data;
 }
 
+export async function getBlogBySlug(
+  slug: string,
+): Promise<BlogList> {
+  const { data } = await apiClient.get<ApiResponse<BlogList>>(
+    `/blog/${slug}`,
+    {
+    }
+  );
+  return data.data;
+}
+
 
 export async function createBlog(
   payload: BlogCreateListParams,
