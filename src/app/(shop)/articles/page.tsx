@@ -283,6 +283,7 @@ useEffect(() => {
   async function fetchBlogs() {
     try {
       const result = await getAllBlogs();
+      console.log("result", result)
 
       if (
         Array.isArray(result) &&
@@ -305,6 +306,8 @@ useEffect(() => {
 
   fetchBlogs();
 }, []);
+
+console.log("blogs", blogs)
 
   const filteredBlogs = useMemo(() => {
     const query = search.toLowerCase();
