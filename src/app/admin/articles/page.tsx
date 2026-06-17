@@ -31,6 +31,7 @@ export default function CreateBlogForm() {
   const [excerpt, setExcerpt] = useState('blog excerpt');
   const [coverImage, setCoverImage] = useState('https://placehold.co/600x400')
   const [status, setStatus] = useState('draft');
+  const [formSent, setFormSent] = useState(false);
 
   const [updateForm, setUpdateForm] = useState<BlogUpdateListParams>({
     // title: "",
@@ -54,7 +55,6 @@ export default function CreateBlogForm() {
   })
 
 
-  
 
   const [form, setForm] = useState<BlogCreateListParams>({
     // title: "",
@@ -76,7 +76,6 @@ export default function CreateBlogForm() {
 
   const [blog, setBlog] = useState<BlogList[]>([]);
 
-useEffect(() => {
   async function fetchBlogs() {
     try {
       const fetchedBlogs = await getAllAdminBlogs();
@@ -96,12 +95,33 @@ useEffect(() => {
     }
   }
 
+
+useEffect(() => {
+  // async function fetchBlogs() {
+  //   try {
+  //     const fetchedBlogs = await getAllAdminBlogs();
+
+  //     if (
+  //       !Array.isArray(fetchedBlogs) ||
+  //       fetchedBlogs.length === 0
+  //     ) {
+  //       setBlog(mockBlogs);
+  //     } else {
+  //       setBlog(fetchedBlogs);
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+
+  //     setBlog(mockBlogs);
+  //   }
+  // }
+
   fetchBlogs();
 }, []);
 
 
 
-console.log("blog", blog)
+// console.log("blog", blog)
 
 
   
@@ -219,6 +239,9 @@ const MOCK_USERS: User[] = [
         status: "draft",
         content: "",
           });
+        await fetchBlogs();
+
+      // setFormSent((prev)=>!prev)
 
 
     } catch (err) {
@@ -228,7 +251,7 @@ const MOCK_USERS: User[] = [
 
 const handleUpdateBlog = async (selectedBlogId:string) => {
   if (!selectedBlogId) return;
-  console.log("selectedBlogId", selectedBlogId)
+  // console.log("selectedBlogId", selectedBlogId)
 
   try {
     const payload: BlogUpdateListParams = {
@@ -243,7 +266,12 @@ const handleUpdateBlog = async (selectedBlogId:string) => {
 
     await updateBlog(selectedBlogId, payload);
 
+    await fetchBlogs(); 
+
     alert("Blog updated successfully");
+
+    // await fetchBlogs();
+    // setFormSent((prev)=>!prev)
 
     setOpenUpdateModal(false);
   } catch (err) {
@@ -700,4 +728,8 @@ const handleUpdateBlog = async (selectedBlogId:string) => {
 
     </div>
   );
+}
+
+function fetchBlogs() {
+  throw new Error("Function not implemented.");
 }
