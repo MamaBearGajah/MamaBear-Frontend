@@ -114,7 +114,7 @@ export default function ProductCard({
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/product">Components</BreadcrumbLink>
+                <BreadcrumbLink href="/products">Products</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
