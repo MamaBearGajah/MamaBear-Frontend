@@ -107,6 +107,8 @@ export async function getCategoryProducts(
       ...(params.inStock === true && { inStock: true }),
       ...(params.minPrice != null && { minPrice: params.minPrice }),
       ...(params.maxPrice != null && { maxPrice: params.maxPrice }),
+      ...(params.variantName  && { variantName:  params.variantName }),
+      ...(params.variantValue && { variantValue: params.variantValue }),
     },
   });
 

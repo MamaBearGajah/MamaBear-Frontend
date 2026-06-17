@@ -12,14 +12,14 @@ export const variantFormSchema = z.object({
     .number()
     .int("Stok harus bilangan bulat")
     .min(0, "Stok minimal 0"),
+  weight: z
+    .union([z.literal(""), z.coerce.number().int().min(0, "Berat minimal 0")])
+    .optional(), // in grams, override product weight if different
+  sortOrder: z.coerce.number().int().min(0).default(0),
   imageUrl: z
     .union([z.literal(""), z.string().url("URL gambar tidak valid")])
     .optional(),
-  sku: z
-    .string()
-    // .min(3, "SKU minimal 3 karakter")
-    // .max(50, "SKU maksimal 50 karakter")
-    .optional(),
+  sku: z.string().optional(),
   isActive: z.boolean().default(true),
 });
 
@@ -33,6 +33,8 @@ export const variantFormDefaults: VariantFormInput = {
   discountPrice: "",
   priceAdjustment: 0,
   stock: 0,
+  weight: "",
+  sortOrder: 0,
   imageUrl: "",
   sku: "",
   isActive: true,
@@ -49,6 +51,11 @@ export function formValuesToPayload(values: VariantFormValues) {
         : values.discountPrice,
     priceAdjustment: values.priceAdjustment,
     stock: values.stock,
+    weight:
+      values.weight === "" || values.weight === undefined
+        ? undefined
+        : values.weight,
+    sortOrder: values.sortOrder,
     imageUrl: values.imageUrl?.trim() || undefined,
     sku: values.sku?.trim() === "" ? null : values.sku?.trim(),
     isActive: values.isActive,
@@ -62,6 +69,8 @@ export function variantToFormValues(variant: {
   discountPrice?: number | null;
   priceAdjustment?: number | null;
   stock: number;
+  weight?: number | null;
+  sortOrder?: number | null;
   imageUrl?: string | null;
   sku: string;
   isActive?: boolean | null;
@@ -73,6 +82,8 @@ export function variantToFormValues(variant: {
     discountPrice: variant.discountPrice ?? "",
     priceAdjustment: variant.priceAdjustment ?? 0,
     stock: variant.stock,
+    weight: variant.weight ?? "",
+    sortOrder: variant.sortOrder ?? 0,
     imageUrl: variant.imageUrl ?? "",
     sku: variant.sku,
     isActive: variant.isActive ?? true,
