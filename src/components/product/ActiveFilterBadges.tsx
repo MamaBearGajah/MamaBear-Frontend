@@ -81,7 +81,7 @@ export default function ActiveFilterBadges({
       key: "category",
       label: category.name,
       onRemove: () =>
-        updateFilter({ categoryId: null, categoryIds: null }),
+        updateFilter({ categoryId: null, categoryIds: null, variantName: null, variantValue: null }),
     });
   }
 
@@ -111,6 +111,17 @@ export default function ActiveFilterBadges({
     });
   }
 
+  // Variant filter chip
+  if (filters.variantValue) {
+    chips.push({
+      key: "variant",
+      label: filters.variantName
+        ? `${filters.variantName}: ${filters.variantValue}`
+        : filters.variantValue,
+      onRemove: () => updateFilter({ variantName: null, variantValue: null }),
+    });
+  }
+
   if (chips.length === 0) return null;
 
   return (
@@ -127,13 +138,15 @@ export default function ActiveFilterBadges({
           onRemove={chip.onRemove}
         />
       ))}
-      <button
-        type="button"
-        onClick={clearAllFilters}
-        className="text-xs font-medium text-dark-pink underline-offset-2 hover:underline"
-      >
-        Clear all
-      </button>
+      {chips.length > 1 && (
+        <button
+          type="button"
+          onClick={clearAllFilters}
+          className="text-xs font-medium text-dark-pink hover:underline"
+        >
+          Clear all
+        </button>
+      )}
     </div>
   );
 }

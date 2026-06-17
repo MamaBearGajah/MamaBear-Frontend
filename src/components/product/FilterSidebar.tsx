@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useState } from "react";
+import { Suspense, useState } from "react";
 import { Funnel, X } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { useShopFilters } from "@/hooks/useShopFilters";
 import { DEFAULT_PRICE_BOUNDS } from "@/lib/shop/product-list-params";
+import { cn } from "@/lib/utils";
 import type { Category, ShopPriceBounds } from "@/types";
 import CategoryTreeFilter from "./CategoryTreeFilter";
 import FilterSidebarSearch from "./FilterSidebarSearch";
@@ -20,11 +21,17 @@ import PriceRangeSlider from "./PriceRangeSlider";
 
 export type ShopFilterBasePath = "/products" | "/search";
 
+export interface VariantOption {
+  name: string;
+  value: string;
+}
+
 interface FilterSidebarProps {
   categories: Category[];
   categoryCounts: Record<string, number>;
   basePath: ShopFilterBasePath;
   priceBounds?: ShopPriceBounds;
+  variantOptions?: VariantOption[];
 }
 
 interface FilterPanelProps {
@@ -32,6 +39,7 @@ interface FilterPanelProps {
   categoryCounts: Record<string, number>;
   showSidebarSearch: boolean;
   priceBounds: ShopPriceBounds;
+  variantOptions?: VariantOption[];
   inStockId?: string;
   showCloseButton?: boolean;
   onClose?: () => void;
@@ -43,6 +51,7 @@ function FilterPanel({
   categoryCounts,
   showSidebarSearch,
   priceBounds,
+  variantOptions = [],
   inStockId = "in-stock-only",
   showCloseButton = false,
   onClose,
@@ -51,23 +60,43 @@ function FilterPanel({
   const { filters, updateFilter, clearAllFilters } = useShopFilters();
 
   const selectCategory = (categoryId: string | null) => {
-    updateFilter({ categoryId, categoryIds: null });
+    // Reset variant filter saat ganti kategori supaya tidak stuck
+    updateFilter({ categoryId, categoryIds: null, variantName: null, variantValue: null });
   };
 
-  const handlePriceChange = useCallback(
-    (min: number | null, max: number | null) => {
-      updateFilter({
-        minPrice: min != null ? String(min) : null,
-        maxPrice: max != null ? String(max) : null,
-      });
-    },
-    [updateFilter],
-  );
+  const handlePriceChange = (min: number | null, max: number | null) => {
+    updateFilter({
+      minPrice: min != null ? String(min) : null,
+      maxPrice: max != null ? String(max) : null,
+    });
+  };
+
+  const handleVariantClick = (name: string, value: string) => {
+    const isActive =
+      filters.variantName === name && filters.variantValue === value;
+
+    updateFilter({
+      variantName:  isActive ? null : name,
+      variantValue: isActive ? null : value,
+    });
+  };
 
   const handleClearAll = () => {
     clearAllFilters();
     onClearAll?.();
   };
+
+  // Group variants by name untuk tampilan yang lebih rapi
+  const groupedVariants = variantOptions.reduce<Record<string, string[]>>(
+    (acc, { name, value }) => {
+      if (!acc[name]) acc[name] = [];
+      if (!acc[name].includes(value)) acc[name].push(value);
+      return acc;
+    },
+    {},
+  );
+
+  const hasVariantFilter = !!(filters.variantName || filters.variantValue);
 
   return (
     <>
@@ -102,6 +131,7 @@ function FilterPanel({
         </div>
       )}
 
+      {/* Category */}
       <section className={showSidebarSearch ? "mt-6" : "mt-5"}>
         <h3 className="text-sm font-semibold text-brown">Category</h3>
         <div className="mt-3">
@@ -114,6 +144,7 @@ function FilterPanel({
         </div>
       </section>
 
+      {/* Price Range */}
       <section className="mt-6">
         <h3 className="text-sm font-semibold text-brown">Price Range</h3>
         <div className="mt-3 space-y-4">
@@ -131,6 +162,55 @@ function FilterPanel({
         </div>
       </section>
 
+      {/* Variant Filter — hanya tampil kalau ada data */}
+      {Object.keys(groupedVariants).length > 0 && (
+        <section className="mt-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-brown">Variant</h3>
+            {hasVariantFilter && (
+              <button
+                type="button"
+                onClick={() => updateFilter({ variantName: null, variantValue: null })}
+                className="text-xs text-dark-pink hover:underline"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
+          <div className="mt-3 space-y-3">
+            {Object.entries(groupedVariants).map(([name, values]) => (
+              <div key={name}>
+                <p className="mb-1.5 text-xs font-medium text-muted-foreground">{name}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {values.map((value) => {
+                    const isActive =
+                      filters.variantName === name &&
+                      filters.variantValue === value;
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => handleVariantClick(name, value)}
+                        className={cn(
+                          "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                          isActive
+                            ? "border-dark-pink bg-light-pink text-dark-pink"
+                            : "border-border bg-white text-brown hover:border-dark-pink hover:bg-light-pink/50",
+                        )}
+                      >
+                        {value}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* In Stock Only */}
       <section className="mt-6 flex items-center justify-between border-t border-border/80 pt-5">
         <Label htmlFor={inStockId} className="text-sm font-medium text-brown">
           In Stock Only
@@ -152,13 +232,14 @@ export default function FilterSidebar({
   categoryCounts,
   basePath,
   priceBounds = DEFAULT_PRICE_BOUNDS,
+  variantOptions = [],
 }: FilterSidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const showSidebarSearch = basePath === "/products";
 
   return (
     <>
-      {/* Mobile: trigger only — filter panel opens in modal */}
+      {/* Mobile trigger */}
       <div className="lg:hidden">
         <button
           type="button"
@@ -186,6 +267,7 @@ export default function FilterSidebar({
               categoryCounts={categoryCounts}
               showSidebarSearch={showSidebarSearch}
               priceBounds={priceBounds}
+              variantOptions={variantOptions}
               inStockId="in-stock-only-mobile"
               showCloseButton
               onClose={() => setMobileOpen(false)}
@@ -195,7 +277,7 @@ export default function FilterSidebar({
         </DialogContent>
       </Dialog>
 
-      {/* Desktop: persistent sidebar */}
+      {/* Desktop sidebar */}
       <aside className="hidden w-[280px] shrink-0 lg:block">
         <div className="rounded-2xl border border-border/80 bg-white p-5 shadow-sm">
           <FilterPanel
@@ -203,6 +285,7 @@ export default function FilterSidebar({
             categoryCounts={categoryCounts}
             showSidebarSearch={showSidebarSearch}
             priceBounds={priceBounds}
+            variantOptions={variantOptions}
           />
         </div>
       </aside>
