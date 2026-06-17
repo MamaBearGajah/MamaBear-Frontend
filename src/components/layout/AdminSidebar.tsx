@@ -102,10 +102,14 @@ export default function AdminSidebar() {
   const role = (state.user?.role ?? "admin") as UserRole;
   const mainNav = useMemo(() => getAdminNavForRole(role), [role]);
 
-  const handleLogout = async () => {
-    await clearSession();
-    router.push("/login");
-    router.refresh();
+ const { logout } = useAuth();
+
+const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (e) {
+      console.error("Logout API error:", e);
+    }
   };
 
   return (
