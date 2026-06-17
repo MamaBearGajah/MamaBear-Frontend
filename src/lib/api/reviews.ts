@@ -1,6 +1,10 @@
 import {apiClient} from '@/lib/api/client';
 import {ApiResponse, Product, Review} from '@/types';
 
+interface helpfulReview{
+  reviewId: string,
+  productId: string
+}
 
 export const reviewsApi = {
   getList: (productId: string) =>
@@ -34,3 +38,19 @@ export async function getAllReviews(
 
   return data.data;
 }
+
+
+// export async function helpfulReview(
+//   reviewId: string,
+//   productId: string,
+// ): Promise<
+// {
+//   data: helpfulReview[];
+
+// }> {
+//   const { data } = await apiClient.post(
+//     `/products/${productId}/reviews/${reviewId}/helpful`,
+//   );
+
+//   return data.data;
+// }
