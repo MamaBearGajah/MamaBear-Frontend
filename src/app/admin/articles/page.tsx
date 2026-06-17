@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { createBlog } from "@/lib/api/blog";
-import {getAllBlogs, updateBlog, deleteBlog} from "@/lib/api/blog";
+import {getAllAdminBlogs, updateBlog, deleteBlog, } from "@/lib/api/blog";
 import { User, BlogCreateListParams, BlogUpdateListParams, BlogList } from "@/types";
 import { mockBlogs } from "@/lib/blog/articlesData";
 import { apiClient } from "@/lib/api/client";
@@ -79,7 +79,7 @@ export default function CreateBlogForm() {
 useEffect(() => {
   async function fetchBlogs() {
     try {
-      const fetchedBlogs = await getAllBlogs();
+      const fetchedBlogs = await getAllAdminBlogs();
 
       if (
         !Array.isArray(fetchedBlogs) ||
