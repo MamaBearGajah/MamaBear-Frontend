@@ -28,7 +28,8 @@ import {
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { apiClient, authHeaders } from "@/lib/api/client";
-import { deleteProductAndRedirectAction } from "@/lib/actions/products";
+import { deleteProductAndRedirectAction, revalidateAdminProductsAction } from "@/lib/actions/products";
+import { stashProductListRefresh, buildProductsListReturnUrl } from "@/lib/admin/product-list-refresh";
 import { cn, toSlug } from "@/lib/utils";
 import {
   productFormDefaults,
@@ -38,7 +39,7 @@ import {
   type ProductFormInput,
   type ProductFormValues,
 } from "@/lib/validations/product.schema";
-import { handleApiError } from "@/lib/errorHandler";
+import { getApiErrorMessage, handleApiError } from "@/lib/errorHandler";
 import type { Category, Product, ProductStatus } from "@/types";
 
 const STATUS_OPTIONS: { value: ProductStatus; label: string }[] = [
@@ -46,6 +47,16 @@ const STATUS_OPTIONS: { value: ProductStatus; label: string }[] = [
   { value: "inactive", label: "Inactive" },
   { value: "draft", label: "Draft" },
 ];
+
+function toProductImagePayload(images: ProductImage[]) {
+  return images.map((img) => ({
+    imageUrl: img.imageUrl,
+    altText: img.altText,
+    imageType: img.imageType,
+    isFeatured: img.isFeatured,
+    sortOrder: img.sortOrder,
+  }));
+}
 
 interface ProductFormProps {
   mode: "create" | "edit";
@@ -156,13 +167,7 @@ export default function ProductForm({
     );
   };
 
-  const getErrorMessage = (error: unknown): string => {
-    if (isAxiosError(error)) {
-      return error.response?.data?.error?.message ?? error.message;
-    }
-    if (error instanceof Error) return error.message;
-    return "Terjadi kesalahan";
-  };
+  const getErrorMessage = (error: unknown): string => getApiErrorMessage(error);
 
   useEffect(() => {
     if (isEdit || slugManuallyEdited.current) return;
@@ -173,7 +178,16 @@ export default function ProductForm({
 
   const onSubmit = (data: ProductFormValues) => {
     if (imageUploading) {
-      toast.error("Tunggu upload image selesai dulu.");
+      toast.error("Wait for the image upload to finish.");
+      return;
+    }
+
+    const uploadableImages = galleryImages.filter((image) =>
+      Boolean(image.imageUrl?.trim()),
+    );
+
+    if (galleryImages.some((image) => !image.imageUrl?.trim())) {
+      toast.error("Upload pending images before saving.");
       return;
     }
 
@@ -181,35 +195,50 @@ export default function ProductForm({
       try {
         const payload = {
           ...formValuesToPayload(data),
-          mainImage: galleryImages.find(
-              (image) => image.imageType === "main"
-            )?.imageUrl,
-          images: galleryImages.map((img) => ({
-            id: img.id,
-            imageUrl: img.imageUrl,
-            altText: img.altText,
-            imageType: img.imageType,
-            isFeatured: img.isFeatured,
-            sortOrder: img.sortOrder,
-  
-          })),
+          images: toProductImagePayload(uploadableImages),
         };
 
         const headers = authHeaders(accessToken);
 
         if (isEdit) {
-          // PATCH bukan PUT — sesuai backend @Patch(':id')
           await apiClient.patch(`/products/${product!.id}`, payload, {
             headers,
           });
+          const savedPatch = {
+            id: product!.id,
+            name: data.name,
+            slug: data.slug,
+          };
+          stashProductListRefresh(savedPatch);
+          router.push(buildProductsListReturnUrl(savedPatch));
         } else {
-          await apiClient.post("/products", payload, { headers });
+          const { data: response } = await apiClient.post<{ data: Product }>(
+            "/products",
+            {
+              ...payload,
+              mainImage: uploadableImages.find(
+                (image) => image.imageType === "main",
+              )?.imageUrl,
+            },
+            { headers },
+          );
+          if (response.data?.id) {
+            const savedPatch = {
+              id: response.data.id,
+              name: data.name,
+              slug: data.slug,
+            };
+            stashProductListRefresh(savedPatch);
+            router.push(buildProductsListReturnUrl(savedPatch));
+          } else {
+            router.push(`/admin/products?updated=${Date.now()}`);
+          }
         }
 
         toast.success(
-          isEdit ? "Produk berhasil diperbarui" : "Produk berhasil dibuat"
+          isEdit ? "Product updated successfully" : "Product created successfully"
         );
-        router.push("/admin/products");
+        await revalidateAdminProductsAction();
       } catch (error) {
         const fieldErrors = parseFieldErrors(error);
         if (fieldErrors) {
@@ -217,7 +246,7 @@ export default function ProductForm({
             setError(field as keyof ProductFormInput, { message });
           });
         }
-        toast.error(getErrorMessage(error) ?? "Gagal menyimpan produk");
+        toast.error(getErrorMessage(error) ?? "Failed to save product");
       }
     });
   };
@@ -243,7 +272,7 @@ export default function ProductForm({
       galleryImages.some((img) => img.imageType === "main")
     ) {
       toast.error(
-        "Main image sudah ada. Hapus yang lama dulu sebelum menambah main baru."
+        "A main image already exists. Remove the existing main image before adding a new one."
       );
       return;
     }
@@ -283,29 +312,12 @@ export default function ProductForm({
     <>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="mx-auto max-w-6xl space-y-8"
+        className="mx-auto mt-8 max-w-6xl space-y-8"
       >
-        <div className="flex items-center justify-end gap-3">
-          <Button type="button" variant="outline" asChild>
-            <Link href="/admin/products">Cancel</Link>
-          </Button>
-          <Button
-            type="submit"
-            disabled={pending || imageUploading}
-            className="bg-[var(--mamabear-dark-pink)] text-white hover:bg-[var(--mamabear-dark-pink)]/90"
-          >
-            {pending
-              ? "Menyimpan…"
-              : isEdit
-                ? "Simpan perubahan"
-                : "Add Product"}
-          </Button>
-        </div>
-
-        <div className="mt-2 grid gap-8 xl:grid-cols-[minmax(0,1fr)_300px] xl:items-start">
+        <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_300px] xl:items-start">
           <div className="space-y-8">
             {/* Status */}
-            <section className="space-y-3">
+            <section className="space-y-3 pt-2">
               <Label>Status</Label>
               <div className="flex flex-wrap gap-2">
                 {STATUS_OPTIONS.map((opt) => (
@@ -337,7 +349,7 @@ export default function ProductForm({
             {/* Name, Slug, SKU, Description */}
             <section className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="name">Nama produk *</Label>
+                <Label htmlFor="name">Product name *</Label>
                 <Input
                   id="name"
                   {...register("name")}
@@ -386,12 +398,12 @@ export default function ProductForm({
               </div>
 
               <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="description">Deskripsi</Label>
+                <Label htmlFor="description">Description</Label>
                 <Textarea
                   id="description"
                   rows={5}
                   {...register("description")}
-                  placeholder="Deskripsi produk…"
+                  placeholder="Product description…"
                   className={fieldClass("description")}
                 />
                 {errors.description && (
@@ -405,7 +417,7 @@ export default function ProductForm({
             {/* Pricing, Weight, Stock, Category */}
             <section className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="basePrice">Harga dasar (Rp) *</Label>
+                <Label htmlFor="basePrice">Base price (IDR) *</Label>
                 <Input
                   id="basePrice"
                   type="number"
@@ -422,16 +434,16 @@ export default function ProductForm({
 
               <div className="space-y-2">
                 <Label htmlFor="discountPrice">
-                  Harga diskon (Rp)
+                  Discount price (IDR)
                   <span className="text-muted-foreground ml-1 text-xs">
-                    — opsional, yang ditampilkan ke customer
+                    — optional, shown to customers
                   </span>
                 </Label>
                 <Input
                   id="discountPrice"
                   type="number"
                   min={0}
-                  placeholder="Kosongkan jika tidak ada diskon"
+                  placeholder="Leave empty if no discount"
                   {...register("discountPrice")}
                   className={fieldClass("discountPrice")}
                 />
@@ -443,7 +455,7 @@ export default function ProductForm({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="weight">Berat (gram) *</Label>
+                <Label htmlFor="weight">Weight (grams) *</Label>
                 <Input
                   id="weight"
                   type="number"
@@ -459,7 +471,7 @@ export default function ProductForm({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="stock">Stok *</Label>
+                <Label htmlFor="stock">Stock *</Label>
                 <Input
                   id="stock"
                   type="number"
@@ -475,7 +487,7 @@ export default function ProductForm({
               </div>
 
               <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="categoryId">Kategori</Label>
+                <Label htmlFor="categoryId">Category</Label>
                 <Select
                   value={categoryIdValue || "none"}
                   onValueChange={(v) =>
@@ -485,10 +497,10 @@ export default function ProductForm({
                   }
                 >
                   <SelectTrigger id="categoryId" className="w-full sm:max-w-xs">
-                    <SelectValue placeholder="Pilih kategori" />
+                    <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Tanpa kategori</SelectItem>
+                    <SelectItem value="none">No category</SelectItem>
                     {leafCategories.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
                         {c.name}
@@ -521,8 +533,8 @@ export default function ProductForm({
           onReorder={handleGalleryReorder}
         />
 
-        {isEdit && (
-          <div className="flex justify-start">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-6">
+          {isEdit ? (
             <Button
               type="button"
               variant="outline"
@@ -530,19 +542,38 @@ export default function ProductForm({
               onClick={() => setDeleteOpen(true)}
             >
               <Trash2 className="size-4" />
-              Hapus
+              Delete
+            </Button>
+          ) : (
+            <span />
+          )}
+
+          <div className="flex items-center gap-3">
+            <Button type="button" variant="outline" asChild>
+              <Link href="/admin/products">Cancel</Link>
+            </Button>
+            <Button
+              type="submit"
+              disabled={pending || imageUploading}
+              className="bg-[var(--mamabear-dark-pink)] text-white hover:bg-[var(--mamabear-dark-pink)]/90"
+            >
+              {pending
+                ? "Saving…"
+                : isEdit
+                  ? "Save changes"
+                  : "Add Product"}
             </Button>
           </div>
-        )}
+        </div>
       </form>
 
       {isEdit && product && (
         <ConfirmDialog
           open={deleteOpen}
           onOpenChange={setDeleteOpen}
-          title="Hapus produk?"
-          description={`Produk "${product.name}" akan dihapus permanen.`}
-          confirmLabel="Hapus"
+          title="Delete product?"
+          description={`Product "${product.name}" will be permanently deleted.`}
+          confirmLabel="Delete"
           variant="destructive"
           loading={deletePending}
           onConfirm={handleDelete}

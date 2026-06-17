@@ -1,9 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
-// removed ShoppingCart import during merge conflict resolution
 import { apiClient } from "@/lib/api/client";
 import type { ProductBadgeType } from "@/types";
-import {ShoppingCart} from 'lucide-react';
+import BestsellerWishlistButton from "@/components/product/BestsellerWishlistButton";
 
 type Product = {
   id: number;
@@ -330,6 +329,10 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                     </div>
                   ) : null}
 
+                  {product.id != null && (
+                    <BestsellerWishlistButton productId={String(product.id)} />
+                  )}
+
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#6C4735]/35 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 peer-checked:opacity-100" />
 
                   {/* Image Area */}
@@ -353,13 +356,6 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                     </div>
                   )}
 
-                  <Link
-                    href={`/products/${product.slug ?? ""}`}
-                    className="absolute inset-x-3 bottom-3 z-20 flex translate-y-3 items-center justify-center gap-2 rounded-xl bg-[#D5557E] px-4 py-2.5 text-sm font-semibold text-white opacity-0 shadow-md transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100 peer-checked:translate-y-0 peer-checked:opacity-100 hover:bg-[#C84E77]"
-                  >
-                    <ShoppingCart className="size-4" strokeWidth={1.85} />
-                    Buy Now
-                  </Link>
                 </div>
 
                 {/* Detail Section - Bottom: category, name; rating, variant, price */}
@@ -483,6 +479,10 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                       ) : null}
                     </div>
                   ) : null}
+
+                  {product.id != null && (
+                    <BestsellerWishlistButton productId={String(product.id)} />
+                  )}
 
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#6C4735]/35 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 peer-checked:opacity-100" />
 

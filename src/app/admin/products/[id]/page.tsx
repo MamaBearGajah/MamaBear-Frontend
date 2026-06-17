@@ -42,11 +42,14 @@ export default async function ProductFormPage({ params }: ProductFormPageProps) 
         userName={session?.user.name ?? "Admin"}
         showGlobalSearch={false}
       />
-      <ProductForm
-        mode={isCreate ? "create" : "edit"}
-        product={product}
-        categories={categoriesRes.data}
-      />
+      <div className="mt-6">
+        <ProductForm
+          mode={isCreate ? "create" : "edit"}
+          product={product}
+          categories={categoriesRes.data}
+          accessToken={session?.accessToken}
+        />
+      </div>
     </div>
   );
 }

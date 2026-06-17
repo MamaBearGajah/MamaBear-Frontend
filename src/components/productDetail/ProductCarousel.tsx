@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react";
-import {Heart} from "lucide-react";
+import WishlistButton from "@/components/cart/WishilistButton";
 import { Dispatch, SetStateAction } from 'react';
 
 const image = [
@@ -13,6 +13,7 @@ const image = [
 
 
 interface ProductCarouselProps {
+  productId: string;
   images: string[];
   variantselectedimage?: string | null;
   discountPercent:number;
@@ -21,7 +22,7 @@ interface ProductCarouselProps {
 
 }
 
-export default function ProductCarousel({images, variantselectedimage, setvariantselectedimage, NotVariantPrice, discountPercent}:ProductCarouselProps) {
+export default function ProductCarousel({productId, images, variantselectedimage, setvariantselectedimage, NotVariantPrice, discountPercent}:ProductCarouselProps) {
   const [selectedImage, setSelectedImage] = useState(images[0])
   useEffect(() =>{
       setSelectedImage(variantselectedimage ?? images[0])
@@ -51,9 +52,9 @@ export default function ProductCarousel({images, variantselectedimage, setvarian
               }}
             className="h-[60vh] md:h-[50vh] object-cover"
           />
-          <button type="button" aria-label="Add to wishlist" className="absolute top-3 right-3 z-10 flex size-9 items-center justify-center rounded-full bg-white/95 text-brown shadow-sm transition-colors hover:bg-light-pink hover:text-dark-pink">
-            <Heart className="size-4" strokeWidth={1.75} />
-          </button>
+          <div className="absolute top-3 right-3 z-10">
+            <WishlistButton productId={productId} variant="overlay" />
+          </div>
       </div>
 
       {/* Small Images */}

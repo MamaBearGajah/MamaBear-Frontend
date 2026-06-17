@@ -36,7 +36,7 @@ export default function ShopProductGrid({
       className={
         view === "list"
           ? "flex flex-col gap-4"
-          : "grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3"
+          : "grid grid-cols-2 gap-4 sm:gap-5 xl:grid-cols-3"
       }
     >
       {products.map((product) => (

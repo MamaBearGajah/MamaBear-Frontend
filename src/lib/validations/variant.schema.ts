@@ -1,19 +1,19 @@
 import { z } from "zod";
 
 export const variantFormSchema = z.object({
-  name: z.string().min(1, "Nama wajib diisi"),
-  value: z.string().min(1, "Nilai wajib diisi"),
-  basePrice: z.coerce.number().min(0, "Harga dasar minimal 0"),
+  name: z.string().min(1, "Name is required"),
+  value: z.string().min(1, "Value is required"),
+  basePrice: z.coerce.number().min(0, "Base price must be at least 0"),
   discountPrice: z
-    .union([z.literal(""), z.coerce.number().min(0, "Harga diskon minimal 0")])
+    .union([z.literal(""), z.coerce.number().min(0, "Discount price must be at least 0")])
     .optional(),
   priceAdjustment: z.coerce.number().default(0),
   stock: z.coerce
     .number()
-    .int("Stok harus bilangan bulat")
-    .min(0, "Stok minimal 0"),
+    .int("Stock must be a whole number")
+    .min(0, "Stock must be at least 0"),
   imageUrl: z
-    .union([z.literal(""), z.string().url("URL gambar tidak valid")])
+    .union([z.literal(""), z.string().url("Image URL is invalid")])
     .optional(),
   sku: z
     .string()

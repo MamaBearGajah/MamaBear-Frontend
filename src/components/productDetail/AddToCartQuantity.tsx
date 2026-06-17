@@ -6,7 +6,6 @@ import { CartItem } from '@/types';
 import {Product} from '@/types/index';
 import { ProductVariant } from '@/types';
 import {ShoppingCart} from 'lucide-react';
-import { redirect } from 'next/navigation';
 import { toast } from "sonner";
 import WishlistButton from '../cart/WishilistButton';
 
@@ -43,31 +42,8 @@ export default function AddToCartQuantity({ price, product, variant }: AddToCart
                 image: variant.imageUrl ?? (product.images?.[0]?.imageUrl ?? '/Logo Mamabear.png'),
             };
         addItem(newItem);
-        toast.success('Item added to cart!');                                    toast.success('Item added to cart!');
+        toast.success('Item added to cart!');
     }
-
-    const handleBuyNow = () => {
-        if(!variant){
-            alert('please select a variant!')
-            return;
-        }
-        const newItem: CartItem = {
-            id: `temp-id-${Date.now()}`,
-            productId: product.id,
-            variantId: variant.id,
-            variantName: variant.name,
-            variantValue: variant.value,
-            variantLabel: variant.name && variant.value ? `${variant.name}: ${variant.value}` : variant.name ?? variant.value,
-            quantity: quantity,
-            name: product.name,
-            basePrice: Number(variant.basePrice ?? product.basePrice),
-            discountPrice: variant.discountPrice ? Number(variant.discountPrice) : product.discountPrice ? Number(product.discountPrice) : undefined,
-            image: variant.imageUrl ?? (product.images?.[0]?.imageUrl ?? '/Logo Mamabear.png'),
-        };
-        addItem(newItem);
-        redirect('/checkout/info');
-    }
-
 
     return(
         <div>
@@ -100,10 +76,6 @@ export default function AddToCartQuantity({ price, product, variant }: AddToCart
                         {/* <img className='w-[20px]' src="/heart.svg"></img> */}
                         <WishlistButton productId={product.id} />
                 </div>
-            </div>
-            <br></br>
-            <div onClick={handleBuyNow} className='cursor-pointer text-[var(--mamabear-dark-pink)] font-bold border border-2 border-dark-pink rounded-full w-full transition-all duration-300 pt-2 pb-2 hover:bg-gray-300 flex justify-center items-center'>
-                Buy Now - Rp {quantity * price}
             </div>
         </div>
     )

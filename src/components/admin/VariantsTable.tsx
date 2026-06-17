@@ -47,7 +47,7 @@ export default function VariantsTable({
       try {
         await variantApi.delete(deleteTarget.productId, deleteTarget.id);
         toast.success(
-          `"${deleteTarget.name} ${deleteTarget.value}" berhasil dihapus.`
+          `"${deleteTarget.name} ${deleteTarget.value}" deleted successfully.`
         );
         setDeleteTarget(null);
         router.refresh();
@@ -200,13 +200,13 @@ export default function VariantsTable({
       <ConfirmDialog
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
-        title="Hapus varian produk?"
+        title="Delete variant?"
         description={
           deleteTarget
-            ? `Varian "${deleteTarget.name} ${deleteTarget.value}" akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.`
+            ? `Variant "${deleteTarget.name} ${deleteTarget.value}" will be permanently deleted. This action cannot be undone.`
             : undefined
         }
-        confirmLabel="Hapus"
+        confirmLabel="Delete"
         variant="destructive"
         loading={pending}
         onConfirm={handleDelete}
