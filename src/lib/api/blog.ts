@@ -8,6 +8,19 @@ export async function getAllBlogs(
   params: BlogListParams = {}
 ): Promise<BlogList[]> {
   const { data } = await apiClient.get(
+    `/blog`,
+    {    
+    params: params,    
+    },
+  );
+  return data.data
+}
+
+export async function getAllAdminBlogs(
+  // id: string,
+  params: BlogListParams = {}
+): Promise<BlogList[]> {
+  const { data } = await apiClient.get(
     `/blog/admin/all`,
     {    
     params: params,    
