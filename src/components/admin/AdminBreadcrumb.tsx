@@ -15,20 +15,20 @@ import {
 
 const SEGMENT_LABELS: Record<string, string> = {
   admin: "Admin",
-  products: "Produk",
+  products: "Products",
   variants: "Variants",
-  orders: "Pesanan",
-  customers: "Pelanggan",
-  categories: "Kategori",
-  reports: "Laporan",
-  content: "Konten",
+  orders: "Orders",
+  customers: "Customers",
+  categories: "Categories",
+  reports: "Reports",
+  content: "Content",
   widget: "Widgets",
   HomeBanner: "Banner",
   settings: "Settings",
-  new: "Baru",
-  create: "Buat",
+  new: "New",
+  create: "Create",
   edit: "Edit",
-  view: "Detail",
+  view: "View",
   "google-analytics": "Google Analytics",
   "google-tag-manager": "Google Tag Manager",
 };
@@ -92,7 +92,7 @@ function buildAdminBreadcrumbs(pathname: string): Crumb[] {
       }
 
       if (index === tail.length - 1) {
-        crumbs.push({ label: "Detail", href, isLast: true });
+        crumbs.push({ label: "View", href, isLast: true });
       }
       continue;
     }

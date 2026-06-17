@@ -1,5 +1,5 @@
 import type { ApiResponse, Category, CategoryListParams, ProductListItem, ProductListParams } from "@/types";
-import { apiClient } from "./client";
+import { apiClient, authHeaders } from "./client";
 import { mapProductListItems } from "./map-product-list-item";
 import { ALL_PRODUCTS_CATEGORY } from "@/lib/categories/flattenCategories";
 import { normalizeApiResponse } from "./normalize-api-response";
@@ -72,6 +72,11 @@ export async function getCategoryList(
   };
 }
 
+export async function getCategoryById(id: string): Promise<Category> {
+  const { data } = await apiClient.get<ApiResponse<Category>>(`/categories/${id}`);
+  return data.data;
+}
+
 export async function getCategoryListNoFlatten(
   params: CategoryListParams = {},
 ): Promise<ApiResponse<Category[]>> {
@@ -114,8 +119,50 @@ export async function getCategoryProducts(
 
   return {
     ...normalized,
-    data: mapProductListItems(
-      Array.isArray(normalized.data) ? (normalized.data as unknown[]) : [],
-    ),
+    data: mapProductListItems(normalized.data as unknown[]),
   };
+}
+
+export type CategoryPayload = {
+  name: string;
+  slug: string;
+  description?: string | null;
+  parentId?: string | null;
+  imageUrl?: string | null;
+  sortOrder?: number;
+  isActive?: boolean;
+};
+
+export async function createCategory(
+  payload: CategoryPayload,
+  accessToken?: string,
+): Promise<Category> {
+  const { data } = await apiClient.post<ApiResponse<Category>>(
+    "/categories",
+    payload,
+    { headers: authHeaders(accessToken) },
+  );
+  return data.data;
+}
+
+export async function updateCategory(
+  id: string,
+  payload: Partial<CategoryPayload>,
+  accessToken?: string,
+): Promise<Category> {
+  const { data } = await apiClient.patch<ApiResponse<Category>>(
+    `/categories/${id}`,
+    payload,
+    { headers: authHeaders(accessToken) },
+  );
+  return data.data;
+}
+
+export async function deleteCategory(
+  id: string,
+  accessToken?: string,
+): Promise<void> {
+  await apiClient.delete(`/categories/${id}`, {
+    headers: authHeaders(accessToken),
+  });
 }

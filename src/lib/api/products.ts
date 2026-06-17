@@ -9,6 +9,7 @@ import {
   ProductPayload,
   ApiResponse,
 } from "@/types";
+import { unstable_noStore as noStore } from "next/cache";
 import { apiClient, authHeaders } from "./client";
 import axios from "axios";
 import { mapProductListItems } from "./map-product-list-item";
@@ -146,8 +147,12 @@ export async function fetchProductSlug(slug: string): Promise<Product> {
 export async function getProductList(
   params: ProductListParams = {}
 ): Promise<ApiResponse<ProductListItem[]>> {
+  noStore();
   const { data } = await apiClient.get("/products", {
     params: toApiProductParams(params),
+    ...(typeof window !== "undefined" && {
+      headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+    }),
   });
 
   const normalized = normalizeApiResponse<ProductListItem[]>(data);
@@ -202,18 +207,21 @@ export async function createProduct(
 ): Promise<Product> {
   const { data } = await apiClient.post<ApiResponse<Product>>(
     "/products",
-    payload
+    payload,
+    { headers: authHeaders(accessToken) }
   );
   return data.data;
 }
 
 export async function updateProduct(
   id: string,
-  payload: ProductPayload
+  payload: ProductPayload,
+  accessToken?: string
 ): Promise<Product> {
   const { data } = await apiClient.put<ApiResponse<Product>>(
     `/products/${id}`,
-    payload
+    payload,
+    { headers: authHeaders(accessToken) }
   );
   return data.data;
 }

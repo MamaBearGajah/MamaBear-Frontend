@@ -114,6 +114,10 @@ export async function deleteProductAction(id: string): Promise<{ success: boolea
   return { success: true };
 }
 
+export async function revalidateAdminProductsAction(): Promise<void> {
+  revalidatePath("/admin/products");
+}
+
 export async function deleteProductAndRedirectAction(id: string): Promise<void> {
   await deleteProductAction(id);
   redirect("/admin/products");

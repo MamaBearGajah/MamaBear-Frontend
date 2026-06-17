@@ -1,12 +1,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { Heart, ShoppingCart } from 'lucide-react';
+import WishlistButton from '@/components/cart/WishilistButton';
 import { cn } from '@/lib/utils';
 import Stars from './Stars';
-import { useCart } from '@/hooks/useCart';
-import { nanoid } from 'nanoid';
-import type { CartItem } from '@/types';
-import {ProductYouMightLove} from '@/types'
 
 type YouMightAlsoLoveCardProps = {
   product: {
@@ -14,7 +10,7 @@ type YouMightAlsoLoveCardProps = {
     name: string;
     avgRating?: number | string | null;
     discountPrice: number;
-    images?: { imageUrl: string }[];
+    image?: string;
     stock?: number;
     slug: string;
     basePrice?: number;
@@ -22,8 +18,7 @@ type YouMightAlsoLoveCardProps = {
   };
 };
 
-const YouMightAlsoLoveCard = ({ product }: ProductYouMightLove) => {
-  const { addItem } = useCart();
+const YouMightAlsoLoveCard = ({ product }: YouMightAlsoLoveCardProps) => {
   const imageUrl = product.image ?? '/Logo Mamabear.png';
   const price = product.discountPrice;
   const hasDiscount = product.basePrice != null && product.basePrice > product.discountPrice;
@@ -48,9 +43,11 @@ const YouMightAlsoLoveCard = ({ product }: ProductYouMightLove) => {
 
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-brown/50 via-brown/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" aria-hidden />
 
-        <button type="button" aria-label="Add to wishlist" className="absolute top-3 right-3 z-10 flex size-9 items-center justify-center rounded-full bg-white/95 text-brown shadow-sm transition-colors hover:bg-light-pink hover:text-dark-pink">
-          <Heart className="size-4" strokeWidth={1.75} />
-        </button>
+        {product.id ? (
+          <div className="absolute top-3 right-3 z-10">
+            <WishlistButton productId={product.id} variant="overlay" />
+          </div>
+        ) : null}
 
         <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
           {discountPercent != null && (
@@ -60,21 +57,6 @@ const YouMightAlsoLoveCard = ({ product }: ProductYouMightLove) => {
 
         {isLowStock && (
           <span className="absolute bottom-16 left-3 z-10 rounded-md bg-amber-400 px-2 py-0.5 text-[10px] font-semibold text-brown">Low Stock</span>
-        )}
-
-        {((product.stock ?? 0) > 0) && (
-          <Link
-            href={`/products/${product.slug}`}
-            className={cn(
-              "absolute inset-x-3 bottom-3 z-20 flex items-center justify-center gap-2 rounded-full bg-dark-pink py-2.5 text-sm font-semibold text-white shadow-md",
-              "translate-y-full opacity-0 transition-all duration-300 ease-out",
-              "group-hover:translate-y-0 group-hover:opacity-100",
-              "hover:bg-dark-pink/90",
-            )}
-          >
-            <ShoppingCart className="size-4" strokeWidth={2} />
-            Buy Now
-          </Link>
         )}
       </div>
 

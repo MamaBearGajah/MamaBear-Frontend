@@ -13,13 +13,16 @@ const YouMightAlsoLove = ({product}:{product:Product[]}) => {
                 <YouMightAlsoLoveCard
                   key={index}
                   product={{
+                    id: item.id,
                     name: item.name,
                     avgRating: item.avgRating ?? 0,
+                    basePrice: item.basePrice,
                     discountPrice: item.discountPrice ?? item.basePrice,
                     image: item.images[0].imageUrl,
                     stock: item.stock,
                     createdAt: item.createdAt,
-                    slug: item.slug
+                    slug: item.slug,
+                    ratingCount: item.reviewCount,
                   }}
                 />
               );

@@ -139,7 +139,7 @@ export default function VariantForm({
         }
 
         toast.success(
-          isEdit ? "Variant berhasil diperbarui" : "Variant berhasil dibuat"
+          isEdit ? "Variant updated successfully" : "Variant created successfully"
         );
         router.push("/admin/variants");
       } catch (error) {
@@ -149,7 +149,7 @@ export default function VariantForm({
             setError(field as keyof VariantFormInput, { message });
           });
         }
-        toast.error(getErrorMessage(error) ?? "Gagal menyimpan variant");
+        toast.error(getErrorMessage(error) ?? "Failed to save variant");
       }
     });
   };
@@ -184,9 +184,9 @@ export default function VariantForm({
             className="bg-[var(--mamabear-dark-pink)] text-white hover:bg-[var(--mamabear-dark-pink)]/90"
           >
             {pending
-              ? "Menyimpan…"
+              ? "Saving…"
               : isEdit
-                ? "Simpan perubahan"
+                ? "Save changes"
                 : "Add Variant"}
           </Button>
         </div>
@@ -195,7 +195,7 @@ export default function VariantForm({
           <div className="space-y-8">
             <section className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="createProductId">Nama Produk</Label>
+                <Label htmlFor="createProductId">Product name</Label>
                 <Select
                   value={createProductId || "none"}
                   onValueChange={(v) => setCreateProductId(v)}
@@ -217,7 +217,7 @@ export default function VariantForm({
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="name">Nama Variant *</Label>
+                <Label htmlFor="name">Variant name *</Label>
                 <Input
                   id="name"
                   {...register("name")}
@@ -247,7 +247,7 @@ export default function VariantForm({
                 ) : null}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="priceAdjustment">Adjustasi Harga *</Label>
+                <Label htmlFor="priceAdjustment">Price adjustment *</Label>
                 <Input
                   id="priceAdjustment"
                   {...register("priceAdjustment")}
@@ -281,7 +281,7 @@ export default function VariantForm({
 
             <section className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="basePrice">Harga dasar (Rp) *</Label>
+                <Label htmlFor="basePrice">Base price (IDR) *</Label>
                 <Input
                   id="basePrice"
                   type="number"
@@ -298,12 +298,12 @@ export default function VariantForm({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="discountPrice">Harga diskon (Rp)</Label>
+                <Label htmlFor="discountPrice">Discount price (IDR)</Label>
                 <Input
                   id="discountPrice"
                   type="number"
                   min={0}
-                  placeholder="Opsional"
+                  placeholder="Optional"
                   {...register("discountPrice")}
                   className={fieldClass("discountPrice")}
                   disabled={!isEdit && !createProductId}
@@ -315,7 +315,7 @@ export default function VariantForm({
                 ) : null}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="stock">Stok *</Label>
+                <Label htmlFor="stock">Stock *</Label>
                 <Input
                   id="stock"
                   type="number"
@@ -382,7 +382,7 @@ export default function VariantForm({
               onClick={() => setDeleteOpen(true)}
             >
               <Trash2 className="size-4" />
-              Hapus
+              Delete
             </Button>
           </div>
         ) : null}
@@ -392,9 +392,9 @@ export default function VariantForm({
         <ConfirmDialog
           open={deleteOpen}
           onOpenChange={setDeleteOpen}
-          title="Hapus Variant?"
-          description={`Variant "${variant.name}" akan dihapus permanen.`}
-          confirmLabel="Hapus"
+          title="Delete variant?"
+          description={`Variant "${variant.name}" will be permanently deleted.`}
+          confirmLabel="Delete"
           variant="destructive"
           loading={deletePending}
           onConfirm={handleDelete}
