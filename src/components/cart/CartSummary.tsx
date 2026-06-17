@@ -141,7 +141,7 @@ export default function CartSummary({
           Secured by SSL encryption
         </p>
 
-        <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-6">
+        {/* <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-6">
           {PAYMENT_METHODS.map((method) => (
             <span
               key={method}
@@ -150,7 +150,7 @@ export default function CartSummary({
               {method}
             </span>
           ))}
-        </div>
+        </div> */}
       </div>
     </div>
   );
