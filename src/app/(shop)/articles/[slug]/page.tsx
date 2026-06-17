@@ -5,13 +5,13 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import DOMPurify from "dompurify";
 
-import { getBlogById } from "@/lib/api/blog";
+import { getBlogById, getBlogBySlug } from "@/lib/api/blog";
 import { BlogList } from "@/types";
 import { mockBlogs } from "@/lib/blog/articlesData";
 
 export default function BlogDetailPage() {
   const params = useParams();
-  const id = params.id as string;
+  const slug = params.slug as string;
 
   const [blog, setBlog] = useState<BlogList | null>(null);
   const [loading, setLoading] = useState(true);
@@ -19,7 +19,7 @@ export default function BlogDetailPage() {
   useEffect(() => {
     async function fetchBlog() {
       try {
-        const result = await getBlogById(id);
+        const result = await getBlogBySlug(slug);
         console.log("Result:", result);
 
         if (
@@ -29,13 +29,13 @@ export default function BlogDetailPage() {
         ) {
           setBlog(result);
         } else {
-          const mockBlog = mockBlogs.find((blog) => blog.id === id);
+          const mockBlog = mockBlogs.find((blog) => blog.slug === slug);
           setBlog(mockBlog || null);
         }
       } catch (error) {
         console.error(error);
 
-        const mockBlog = mockBlogs.find((blog) => blog.id === id);
+        const mockBlog = mockBlogs.find((blog) => blog.slug === slug);
         setBlog(mockBlog || null);
       } finally {
         setLoading(false);
@@ -43,7 +43,7 @@ export default function BlogDetailPage() {
     }
 
     fetchBlog();
-  }, [id]);
+  }, [slug]);
 
   if (loading) {
     return (
@@ -110,7 +110,7 @@ export default function BlogDetailPage() {
       </div>
 
       {/* Author */}
-      <div className="max-w-4xl mx-auto px-6 py-8">
+      {/* <div className="max-w-4xl mx-auto px-6 py-8">
         <div className="bg-white rounded-2xl p-6 shadow-sm flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-pink-500 text-white flex items-center justify-center font-bold">
             {blog.author.name
@@ -134,7 +134,7 @@ export default function BlogDetailPage() {
             {new Date(blog.publishedAt).toLocaleDateString()}
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-6 pb-20">

@@ -378,7 +378,7 @@ console.log("blogs", blogs)
             {filteredBlogs.map((blog) => (
               <Link
                 key={blog.id}
-                href={`/articles/${blog.id}`}
+                href={`/articles/${blog.slug}`}
                 className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all"
               >
                 <img
