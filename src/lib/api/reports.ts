@@ -5,7 +5,9 @@ import type {
   TopCategoryReport,
   TopProductReport,
 } from "@/types";
+import { adminOrdersApi } from "./adminOrders";
 import { apiClient } from "./client";
+import { mapOrdersFromApi } from "./map-order";
 import { normalizeApiResponse } from "./normalize-api-response";
 
 type ReportsRequestOptions = {
@@ -62,18 +64,70 @@ function mapTopCategories(raw: unknown): TopCategoryReport[] {
   return raw.map(mapTopCategory);
 }
 
+type OrderCategoryAggregate = {
+  categoryId: string;
+  name: string;
+  revenue: number;
+};
+
+type RawRecord = Record<string, unknown>;
+
+function isWithinRange(dateValue: string, params: ReportQueryParams): boolean {
+  const date = dateValue.slice(0, 10);
+  return date >= params.from && date <= params.to;
+}
+
+function getItemCategory(row: RawRecord): { id: string; name: string } | null {
+  const product = row.product as RawRecord | undefined;
+  const variant = row.variant as RawRecord | undefined;
+  const variantProduct = variant?.product as RawRecord | undefined;
+  const category =
+    (product?.category as RawRecord | undefined) ??
+    (variantProduct?.category as RawRecord | undefined);
+
+  if (!category?.name) return null;
+
+  return {
+    id: String(category.id ?? category.slug ?? category.name),
+    name: String(category.name),
+  };
+}
+
+async function getOrdersReportSource(options?: ReportsRequestOptions) {
+  const requestConfig = options?.cookieHeader
+    ? { headers: { Cookie: options.cookieHeader } }
+    : undefined;
+  const { data } = await adminOrdersApi.getAll(requestConfig);
+  const normalized = normalizeApiResponse<unknown>(data);
+  const rawOrders = Array.isArray(normalized.data) ? normalized.data : [];
+
+  return {
+    rawOrders,
+    orders: mapOrdersFromApi(rawOrders),
+  };
+}
+
 export async function getSalesReport(
   params: ReportQueryParams,
   options?: ReportsRequestOptions,
 ): Promise<ApiResponse<SalesReportSummary>> {
-  const { data } = await apiClient.get<ApiResponse<unknown>>("/reports/sales", {
-    params: { from: params.from, to: params.to },
-    ...reportsRequestConfig(options),
-  });
-  const normalized = normalizeApiResponse<unknown>(data);
+  const { orders } = await getOrdersReportSource(options);
+  const filteredOrders = orders.filter((order) =>
+    isWithinRange(order.createdAt, params),
+  );
+  const totalSales = filteredOrders.reduce((sum, order) => sum + order.total, 0);
+  const orderCount = filteredOrders.length;
+  const avgOrderValue = orderCount > 0 ? Math.round(totalSales / orderCount) : 0;
+
   return {
-    ...normalized,
-    data: mapSalesReport(normalized.data, params),
+    success: true,
+    data: {
+      from: params.from,
+      to: params.to,
+      totalSales,
+      orderCount,
+      avgOrderValue,
+    },
   };
 }
 
@@ -81,21 +135,34 @@ export async function getTopProducts(
   params: ReportQueryParams,
   options?: ReportsRequestOptions,
 ): Promise<ApiResponse<TopProductReport[]>> {
-  const { data } = await apiClient.get<ApiResponse<unknown>>(
-    "/reports/top-products",
-    {
-      params: {
-        from: params.from,
-        to: params.to,
-        limit: params.limit,
-      },
-      ...reportsRequestConfig(options),
-    },
-  );
-  const normalized = normalizeApiResponse<unknown>(data);
+  const { orders } = await getOrdersReportSource(options);
+  const bucket = new Map<string, TopProductReport>();
+
+  for (const order of orders) {
+    if (!isWithinRange(order.createdAt, params)) continue;
+
+    for (const item of order.items) {
+      const key = item.productId || item.name;
+      const current = bucket.get(key) ?? {
+        productId: key || `product-${bucket.size + 1}`,
+        name: item.name || "Unknown product",
+        qty: 0,
+        revenue: 0,
+      };
+
+      current.qty += item.quantity;
+      current.revenue += item.quantity * item.price;
+      bucket.set(key, current);
+    }
+  }
+
+  const products = [...bucket.values()]
+    .sort((left, right) => right.revenue - left.revenue)
+    .slice(0, params.limit ?? 10);
+
   return {
-    ...normalized,
-    data: mapTopProducts(normalized.data),
+    success: true,
+    data: products,
   };
 }
 
@@ -103,17 +170,41 @@ export async function getTopCategories(
   params: ReportQueryParams,
   options?: ReportsRequestOptions,
 ): Promise<ApiResponse<TopCategoryReport[]>> {
-  const { data } = await apiClient.get<ApiResponse<unknown>>(
-    "/reports/top-categories",
-    {
-      params: { from: params.from, to: params.to },
-      ...reportsRequestConfig(options),
-    },
-  );
-  const normalized = normalizeApiResponse<unknown>(data);
+  const { rawOrders, orders } = await getOrdersReportSource(options);
+  const bucket = new Map<string, OrderCategoryAggregate>();
+
+  for (let index = 0; index < orders.length; index += 1) {
+    const order = orders[index];
+    if (!isWithinRange(order.createdAt, params)) continue;
+
+    const rawOrder = (rawOrders[index] ?? {}) as RawRecord;
+    const rawItems = Array.isArray(rawOrder.items) ? rawOrder.items : [];
+
+    for (let itemIndex = 0; itemIndex < order.items.length; itemIndex += 1) {
+      const item = order.items[itemIndex];
+      const rawItem = (rawItems[itemIndex] ?? {}) as RawRecord;
+      const category = getItemCategory(rawItem);
+      if (!category) continue;
+
+      const key = category.id;
+      const current = bucket.get(key) ?? {
+        categoryId: key,
+        name: category.name,
+        revenue: 0,
+      };
+
+      current.revenue += item.quantity * item.price;
+      bucket.set(key, current);
+    }
+  }
+
+  const categories = [...bucket.values()]
+    .sort((left, right) => right.revenue - left.revenue)
+    .slice(0, params.limit ?? 10);
+
   return {
-    ...normalized,
-    data: mapTopCategories(normalized.data),
+    success: true,
+    data: categories,
   };
 }
 
