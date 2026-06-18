@@ -92,6 +92,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("Logout API error:", e);
     } finally {
       dispatch({ type: "LOGOUT" });
+      localStorage.removeItem("cart");
+      window.location.href = "/";
     }
   }, []);
 
