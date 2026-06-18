@@ -25,7 +25,8 @@ export async function PATCH(request: Request, { params }: Params) {
     if (body.resi !== undefined) patch.resi = body.resi;
 
     const updated = await updateOrder(params.id, patch);
-    if (!updated) return NextResponse.json({ message: "Order not found" }, { status: 404 });
+    if (!updated)
+      return NextResponse.json({ message: "Order not found" }, { status: 404 });
 
     return NextResponse.json(updated, { status: 200 });
   } catch (err) {

@@ -17,46 +17,6 @@ export const metadata = {
     "MamaBear menyediakan produk ASI booster, cemilan sehat, dan kebutuhan ibu dan anak dengan pengalaman belanja yang hangat dan mudah.",
 };
 
-/*
-// Backend fetch for categories is temporarily disabled while BE is not ready.
-// Uncomment and use the function below when backend endpoint is available.
-async function fetchCategories(): Promise<Category[]> {
-  const BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
-  const candidates = [
-    ${BASE}/categories,
-    ${BASE}/categories/list,
-    ${BASE}/product-categories,
-    ${BASE}/products/categories,
-  ];
-
-  for (const url of candidates) {
-    const data = await tryFetch(url);
-    if (!data) continue;
-
-    if (Array.isArray(data)) {
-      if (data.length === 0) return [];
-      // array of strings -> convert to minimal Category
-      if (typeof data[0] === "string") {
-        return (data as string[]).map((s) => ({ name: s, image: null, count: 0 }));
-      }
-
-      if (data[0] && typeof data[0] === "object") {
-        // map common field names to our Category shape
-        return (data as any[]).map((c) => {
-          const name = c.name ?? c.title ?? c.label ?? c.category ?? String(c.id ?? "");
-          const image = c.image ?? c.imageUrl ?? c.thumbnail ?? null;
-          const count = c.count ?? c.productCount ?? c.productsCount ?? c.total ?? 0;
-          return { id: c.id ?? undefined, name, image, count } as Category;
-        });
-      }
-    }
-  }
-
-  console.warn("No categories endpoint returned usable data");
-  return [];
-}
-*/
-
 export default async function Home() {
   return (
     <div

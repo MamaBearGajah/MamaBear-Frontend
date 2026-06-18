@@ -283,11 +283,11 @@ const CheckoutPageInfo = () => {
   }
 
   return (
-    <div className="min-h-screen bg-pink-50 px-4 py-10">
+    <div className="min-h-screen bg-pink-50 px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-8 lg:grid-cols-3">
           {/* LEFT - FORM */}
-          <div className="col-span-2 rounded-2xl bg-white p-6 shadow-sm">
+          <div className="rounded-2xl bg-white p-5 shadow-sm sm:p-6 lg:col-span-2">
             <div className="mb-6 flex items-center gap-2">
               <Link href="/cart" className="text-pink-600">
                 <ArrowLeft size={18} />
@@ -394,7 +394,7 @@ const CheckoutPageInfo = () => {
             )}
 
             {showNewAddressForm && (
-              <div className="mb-6 grid grid-cols-2 gap-4">
+              <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="col-span-2">
                   <h2 className="mb-2 text-lg font-semibold">
                     {addresses.length > 0 ? "Alamat Baru" : "Detail Pengiriman"}
@@ -402,7 +402,7 @@ const CheckoutPageInfo = () => {
                 </div>
                 <div className="col-span-2">
                   <label className="text-sm font-medium">Alamat Label</label>
-                  <div className="mt-2 flex gap-3">
+                  <div className="mt-2 flex flex-wrap gap-3">
                     {["Rumah", "Kantor", "Lainnya"].map((labelType) => (
                       <button
                         key={labelType}
@@ -443,7 +443,7 @@ const CheckoutPageInfo = () => {
                     </p>
                   )}
                 </div>
-                <div>
+                <div className="col-span-2">
                   <label htmlFor="phone" className="text-sm font-medium">
                     Phone Number
                   </label>
@@ -459,7 +459,7 @@ const CheckoutPageInfo = () => {
                     <p className="mt-1 text-xs text-red-500">{errors.phone}</p>
                   )}
                 </div>
-                <div>
+                <div className="col-span-2">
                   <label htmlFor="province" className="text-sm font-medium">
                     Province
                   </label>
@@ -484,7 +484,7 @@ const CheckoutPageInfo = () => {
                     </p>
                   )}
                 </div>
-                <div>
+                <div className="col-span-2">
                   <label htmlFor="city" className="text-sm font-medium">
                     City
                   </label>
@@ -509,7 +509,7 @@ const CheckoutPageInfo = () => {
                     <p className="mt-1 text-xs text-red-500">{errors.city}</p>
                   )}
                 </div>
-                <div>
+                <div className="col-span-2">
                   <label htmlFor="zip" className="text-sm font-medium">
                     Zip Code
                   </label>
@@ -548,7 +548,7 @@ const CheckoutPageInfo = () => {
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="col-span-2">
                 <label htmlFor="deliveryNotes" className="text-sm font-medium">
                   Note (Optional)

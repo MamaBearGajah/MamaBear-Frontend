@@ -20,8 +20,6 @@ import {
   RotateCcw,
 } from "lucide-react";
 
-
-
 const CartPage = () => {
   const { state, itemCount, removeItem, updateQuantity, clearCart } = useCart();
   const { state: authState } = useAuth();
@@ -43,18 +41,16 @@ const CartPage = () => {
 
   const removeSelected = () => {
     setSelectedItemIds([]);
-  }
+  };
 
   const selectedSubtotal = selectedItems.reduce((total, item) => {
     const price = item.discountPrice ?? item.basePrice;
     return total + price * item.quantity;
   }, 0);
 
-  
-
   const selectedCount = selectedItems.length;
   const discount = promoApplied ? selectedSubtotal * 0.15 : 0;
-  console.log("discount",discount)
+  console.log("discount", discount);
   useEffect(() => {
     setDiscount(discount);
   }, [discount]);
@@ -62,8 +58,7 @@ const CartPage = () => {
   //   selectedSubtotal > 0 ? (selectedSubtotal >= 200000 ? 0 : 15000) : 0;
   // const finalTotal =
   //   selectedSubtotal > 0 ? selectedSubtotal - discount + shipping : 0;
-  const finalTotal =
-    selectedSubtotal > 0 ? selectedSubtotal - discount:0;
+  const finalTotal = selectedSubtotal > 0 ? selectedSubtotal - discount : 0;
 
   const handleToggleItemSelection = (itemId: string, checked: boolean) => {
     setSelectedItemIds((current) =>
@@ -87,7 +82,6 @@ const CartPage = () => {
     setSelectedItemIds([]);
   };
 
-
   const handleApplyPromo = () => {
     if (promoCode.toUpperCase() === "MAMABEAR15") {
       setPromoApplied(true);
@@ -104,13 +98,13 @@ const CartPage = () => {
 
   return (
     <div
-      className="min-h-screen px-4 py-8"
+      className="min-h-screen overflow-x-hidden py-6 md:py-10"
       style={{
         backgroundColor: "#FFF5F8",
         fontFamily: "'Urbanist', sans-serif",
       }}
     >
-      <div className="mx-auto max-w-7xl">
+      <div className="container-main space-y-4 md:space-y-8">
         {/* Breadcrumb */}
         <div
           className="mb-6 flex items-center gap-2 text-xs"
@@ -155,31 +149,33 @@ const CartPage = () => {
           ))}
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-3">
+        <div className="grid min-w-0 gap-4 lg:grid-cols-3 lg:gap-8">
           {/* Cart items */}
-          <div className="space-y-4 lg:col-span-2">
-            <div className="overflow-hidden rounded-3xl border border-pink-100 bg-white shadow-sm">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-pink-100 px-5 py-4">
+          <div className="min-w-0 space-y-4 lg:col-span-2">
+            <div className="w-full min-w-0 overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-sm sm:rounded-3xl">
+              <div className="flex items-center justify-between gap-3 border-b border-pink-100 px-3 py-3 sm:px-5 sm:py-4">
                 <h2 className="text-[15px] font-bold text-[#6C4735]">
                   Products
                 </h2>
 
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex shrink-0 items-center gap-2 sm:gap-3">
                   {selectedCount > 0 && (
                     <button
                       type="button"
                       onClick={handleRemoveSelected}
-                      className="inline-flex items-center gap-1.5 rounded-2xl border border-[#F6B8CB] bg-[#FFF5F8] px-4 py-2 text-sm font-medium text-[#D5557E] transition hover:bg-[#FDE7EE]"
+                      className="inline-flex max-w-full items-center gap-1.5 rounded-2xl border border-[#F6B8CB] bg-[#FFF5F8] px-3 py-2 text-xs font-medium text-[#D5557E] transition hover:bg-[#FDE7EE] sm:px-4 sm:text-sm"
                     >
                       <Trash2 size={16} />
-                      Delete selected ({selectedCount})
+                      <span className="truncate">
+                        Delete selected ({selectedCount})
+                      </span>
                     </button>
                   )}
 
                   <button
                     type="button"
                     onClick={handleClearCart}
-                    className="inline-flex items-center gap-1.5 text-sm font-medium text-[#D5557E] transition hover:opacity-80"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-[#D5557E] transition hover:opacity-80 sm:text-sm"
                   >
                     <Trash2 size={16} />
                     Clear Cart
@@ -187,7 +183,7 @@ const CartPage = () => {
                 </div>
               </div>
 
-              <div className="px-5">
+              <div className="divide-y divide-pink-100">
                 {items.map((item) => {
                   return (
                     <CartItem
@@ -221,7 +217,7 @@ const CartPage = () => {
           </div>
 
           {/* Order summary */}
-          <div>
+          <div className="flex w-full min-w-0 lg:justify-end lg:pt-0">
             <CartSummary
               selectedItems={selectedItems}
               subtotal={selectedSubtotal}

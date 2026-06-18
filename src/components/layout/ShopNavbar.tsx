@@ -4,12 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, useState } from "react";
-import { Heart, Settings, ShoppingCart, User, Menu, X, LogOut } from "lucide-react";
+import { Settings, ShoppingCart, User, Menu, X, LogOut } from "lucide-react";
+import WishlistNavLink from "@/components/layout/WishlistNavLink";
 import SearchBar from "./SearchBar";
 import { cn } from "@/lib/utils";
 import { useAuth } from "../../context/AuthContext";
 // Pastikan path import ini sesuai dengan lokasi kamu menyimpan ProfileDropdown
-import ProfileDropdown from "@/components/layout/ProfileDropdown"; 
+import ProfileDropdown from "@/components/layout/ProfileDropdown";
 import { useCart } from "@/hooks/useCart";
 
 const NAV_LINKS = [
@@ -38,7 +39,9 @@ function NavLink({
       className={cn(
         "shrink-0 rounded-full font-medium transition-colors",
         size === "sm" ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm",
-        isActive ? "bg-dark-pink text-white" : "text-brown hover:text-dark-pink",
+        isActive
+          ? "bg-dark-pink text-white"
+          : "text-brown hover:text-dark-pink",
         size === "sm" && !isActive && "hover:bg-light-pink/60"
       )}
     >
@@ -54,7 +57,7 @@ function CartButton({ href, className }: { href: string; className?: string }) {
       <div className="relative">
         <ShoppingCart className="size-5" strokeWidth={1.75} />
         {itemCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 flex size-4 items-center justify-center rounded-full bg-dark-pink text-[10px] font-bold text-white">
+          <span className="bg-dark-pink absolute -top-1.5 -right-1.5 flex size-4 items-center justify-center rounded-full text-[10px] font-bold text-white">
             {itemCount > 9 ? "9+" : itemCount}
           </span>
         )}
@@ -70,99 +73,81 @@ function NavbarContent() {
   const isAdmin = user?.role === "admin" || user?.role === "super_admin";
   const firstName = user?.name?.split(" ")[0];
 
-  
   // Asumsi state.user memiliki properti name dan email.
   // Jika auth kamu belum menyimpan data user, kita beri nilai fallback sementara.
   const currentUser = state.user || {
     name: "Member MamaBear",
-    email: "member@mamabear.co.id"
+    email: "member@mamabear.co.id",
   };
 
   return (
     <div className="border-border/60 border-b bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/90">
-      <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center gap-3 px-[2cm] py-3 md:gap-4 md:py-3.5">
+      <div className="mx-auto flex w-full max-w-[1280px] flex-nowrap items-center gap-2 px-4 py-3 lg:gap-3 lg:px-6 lg:py-3.5">
         {/* Logo */}
-        <Link href="/" className="flex shrink-0 items-center gap-2.5">
+        <Link href="/" className="flex shrink-0 items-center">
           <Image
             src="/Logo Mamabear.png"
             alt="MamaBear"
             width={164}
             height={48}
-            className="h-12 w-auto object-contain"
+            className="h-10 w-auto object-contain lg:h-12"
             priority
           />
         </Link>
 
         {/* Desktop nav links */}
-        <nav className="ml-[3cm] hidden items-center gap-1 lg:flex">
+        <nav className="hidden shrink-0 items-center gap-0.5 lg:flex">
           {NAV_LINKS.map((link) => (
             <NavLink key={link.href} {...link} pathname={pathname} />
           ))}
         </nav>
 
         {/* Search bar */}
-        <div className="order-3 w-full min-w-0 md:order-none md:max-w-xl md:flex-1 lg:max-w-2xl">
+        <div className="min-w-0 flex-1 px-1 lg:px-3">
           <SearchBar />
         </div>
 
-        <CartButton href="/cart" className="order-4 ml-auto md:order-none" />
-
         {/* Right actions */}
-        <div className="ml-auto flex items-center gap-2 sm:gap-3">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           {!isLoading && (
             <>
-              {isAuthenticated && !isAdmin && (
+              {isAuthenticated && (
                 <>
-                  {/* Nama user — klik ke profile */}
-                  <Link href="/account/profile" className="hidden sm:inline text-sm font-medium text-brown hover:text-dark-pink transition-colors">
-                    Hi, {firstName}
-                  </Link>
+                  <WishlistNavLink className="text-brown hover:bg-light-pink/60 hover:text-dark-pink inline-flex rounded-full p-2 transition-colors" />
 
-                  {/* Wishlist */}
-                  <Link
-                    href="/wishlist"
-                    aria-label="Wishlist"
-                    className="text-brown hover:bg-light-pink/60 hover:text-dark-pink rounded-full p-2 transition-colors"
-                  >
-                    <Heart className="size-5" strokeWidth={1.75} />
-                  </Link>
-
-                  {/* Cart dengan badge */}
                   <CartButton
                     href="/cart"
                     className="text-brown hover:bg-light-pink/60 hover:text-dark-pink rounded-full p-2 transition-colors"
                   />
 
-                  {/* Logout */}
-                  <button
-                    onClick={logout}
-                    className="bg-dark-pink hover:bg-dark-pink/90 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium text-white transition-colors"
-                  >
-                    <LogOut className="size-4" />
-                    <span className="hidden sm:inline">Logout</span>
-                  </button>
-                </>
-              )}
+                  {!isAdmin && (
+                    <Link
+                      href="/account/profile"
+                      className="text-brown hover:text-dark-pink hidden text-sm font-medium transition-colors sm:inline"
+                    >
+                      Hi, {firstName}
+                    </Link>
+                  )}
 
-              {isAuthenticated && isAdmin && (
-                <>
-                  <ProfileDropdown user={currentUser} onLogout={logout} />
-                  {/* <Link href="/account/profile" className="hidden sm:inline text-sm font-medium text-brown hover:text-dark-pink transition-colors">
-                    Hi, {firstName}
-                  </Link> */}
-                  <Link
-                    href="/admin"
-                    className="border-brown/30 text-brown hover:bg-light-pink/40 inline-flex items-center gap-1.5 rounded-full border bg-white px-4 py-2 text-sm font-medium transition-colors"
-                  >
-                    <Settings className="size-4" />
-                    <span className="hidden sm:inline">Admin</span>
-                  </Link>
+                  {isAdmin && (
+                    <>
+                      <ProfileDropdown user={currentUser} onLogout={logout} />
+                      <Link
+                        href="/admin"
+                        className="border-brown/30 text-brown hover:bg-light-pink/40 inline-flex items-center gap-1.5 rounded-full border bg-white px-3 py-2 text-sm font-medium transition-colors lg:px-4"
+                      >
+                        <Settings className="size-4" />
+                        <span className="hidden xl:inline">Admin</span>
+                      </Link>
+                    </>
+                  )}
+
                   <button
                     onClick={logout}
-                    className="bg-dark-pink hover:bg-dark-pink/90 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium text-white transition-colors"
+                    className="bg-dark-pink hover:bg-dark-pink/90 inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-white transition-colors lg:px-4"
                   >
                     <LogOut className="size-4" />
-                    <span className="hidden sm:inline">Logout</span>
+                    <span className="hidden xl:inline">Logout</span>
                   </button>
                 </>
               )}
@@ -171,7 +156,7 @@ function NavbarContent() {
                 <>
                   <Link
                     href="/register"
-                    className="border border-dark-pink text-dark-pink hover:bg-light-pink/40 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-colors"
+                    className="border-dark-pink text-dark-pink hover:bg-light-pink/40 inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-colors"
                   >
                     Register
                   </Link>
@@ -231,15 +216,12 @@ function MobileHeaderInline() {
             <SearchBar />
           </div>
 
-          {isAuthenticated && isAdmin && (
+          {isAuthenticated && (
             <>
-              <Link
-                href="/wishlist"
-                aria-label="Wishlist"
+              <WishlistNavLink
                 className="text-brown hover:bg-light-pink/60 hover:text-dark-pink inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors"
-              >
-                <Heart className="size-4" strokeWidth={1.75} />
-              </Link>
+                iconClassName="size-4"
+              />
               <CartButton
                 href="/cart"
                 className="text-brown hover:bg-light-pink/60 hover:text-dark-pink inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors"
@@ -272,17 +254,17 @@ function MobileHeaderInline() {
               </Link>
             ))}
 
-              {isAuthenticated && (
-                  <p className="px-4 py-1 text-xs text-brown/60">
-                      <Link
-                        href="/account/profile"
-                        onClick={() => setMenuOpen(false)}
-                        className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#FACBD8] hover:bg-[#D5557E]/10 px-4 text-sm font-semibold text-[#6C4735] transition hover:opacity-90 min-w-[100px]"
-                      >
-                        Hi, {firstName} 👋
-                    </Link>
-                    <br></br>
-                      {/* <CartButton
+            {isAuthenticated && (
+              <p className="text-brown/60 px-4 py-1 text-xs">
+                <Link
+                  href="/account/profile"
+                  onClick={() => setMenuOpen(false)}
+                  className="inline-flex h-10 min-w-[100px] flex-1 items-center justify-center gap-1.5 rounded-full bg-[#FACBD8] px-4 text-sm font-semibold text-[#6C4735] transition hover:bg-[#D5557E]/10 hover:opacity-90"
+                >
+                  Hi, {firstName} 👋
+                </Link>
+                <br></br>
+                {/* <CartButton
                         href="/cart"
                         className="text-brown hover:bg-light-pink/60 hover:text-dark-pink inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors"
                       />
@@ -293,19 +275,14 @@ function MobileHeaderInline() {
                       >
                         <Heart className="size-4" strokeWidth={1.75} />
                       </Link> */}
-                  </p>
-                  
-                  
-                )}
+              </p>
+            )}
 
             <div className="my-2 h-px bg-[#D5557E]/30" />
 
             {!isLoading && (
               <>
-
-
-
-                <div className="flex gap-2 mt-2">
+                <div className="mt-2 flex gap-2">
                   {isAuthenticated ? (
                     <>
                       {isAdmin && (
@@ -319,7 +296,10 @@ function MobileHeaderInline() {
                         </Link>
                       )}
                       <button
-                        onClick={() => { setMenuOpen(false); logout(); }}
+                        onClick={() => {
+                          setMenuOpen(false);
+                          logout();
+                        }}
                         className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#D5557E] px-4 text-sm font-semibold text-white transition hover:opacity-90"
                       >
                         <LogOut className="size-4" />
