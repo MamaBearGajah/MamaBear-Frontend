@@ -236,10 +236,10 @@ export default function Footer() {
               nursing mama.
             </p>
             <div className="flex items-center gap-4">
-              <Link href="#" className="transition hover:text-[#FACBD8]">
+              <Link href="/privacy" className="transition hover:text-[#FACBD8]">
                 Privacy Policy
               </Link>
-              <Link href="#" className="transition hover:text-[#FACBD8]">
+              <Link href="/terms" className="transition hover:text-[#FACBD8]">
                 Terms of Service
               </Link>
               <Link href="#" className="transition hover:text-[#FACBD8]">
