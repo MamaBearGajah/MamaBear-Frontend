@@ -11,6 +11,7 @@ export type PlaceShopOrderInput = {
 export type PlaceShopOrderResult = {
   orderId: string;
   paymentUrl?: string;
+  snapToken?: string;
 };
 
 async function resolveDefaultAddressId(): Promise<string | null> {
@@ -23,19 +24,23 @@ async function resolveDefaultAddressId(): Promise<string | null> {
   if (!Array.isArray(addresses) || addresses.length === 0) return null;
 
   return (
-    addresses.find((address) => address.isDefault)?.id ?? addresses[0]?.id ?? null
+    addresses.find((address) => address.isDefault)?.id ??
+    addresses[0]?.id ??
+    null
   );
 }
 
 export async function placeShopOrder(
-  input: PlaceShopOrderInput,
+  input: PlaceShopOrderInput
 ): Promise<PlaceShopOrderResult> {
   const addressId = await resolveDefaultAddressId();
   if (!addressId) {
-    throw new Error("No shipping address found. Please add an address first.");
+    throw new Error("Alamat pengiriman tidak ditemukan. Tambahkan alamat dulu.");
   }
 
   const provider = input.provider ?? "xendit";
+
+  // 1. Buat order di BE
   const orderRes = await createOrder({
     addressId,
     courier: input.courier.toLowerCase(),
@@ -45,16 +50,33 @@ export async function placeShopOrder(
 
   const orderId = orderRes.data?.orderId;
   if (!orderId) {
-    throw new Error("Order creation did not return an order ID.");
+    throw new Error("Order berhasil dibuat tapi orderId tidak ditemukan.");
   }
 
+  // FIX: ambil total dari response order untuk dikirim ke payment endpoint
+  const total = (orderRes.data as any)?.total ?? (orderRes.data as any)?.amount;
+  if (!total) {
+    // Fallback: buat payment tanpa amount — BE akan cari dari order
+    // Ini akan gagal jika BE strict membutuhkan amount
+    console.warn("placeShopOrder: total tidak ada di order response, payment mungkin gagal");
+  }
+
+  // 2. Buat payment
   try {
-    const paymentRes = await checkoutPayment({ orderId, provider });
+    const paymentRes = await checkoutPayment({
+      orderId,
+      provider,
+      // FIX: kirim amount — BE CreatePaymentDto membutuhkan ini
+      amount: Number(total ?? 0),
+    });
+
     return {
       orderId,
       paymentUrl: paymentRes.data?.paymentUrl || undefined,
+      snapToken: paymentRes.data?.snapToken || undefined,
     };
   } catch {
+    // Payment gagal tapi order sudah dibuat — kembalikan orderId agar user bisa coba lagi
     return { orderId };
   }
 }

@@ -94,20 +94,20 @@ const CheckoutPageReview = () => {
 
             {/* SHIPPING ADDRESS */}
             <div className="flex flex-col gap-2 rounded-xl border border-pink-100 bg-[#fff5f7] p-5">
-              <div className="mb-1 flex items-center justify-between">
-                <span className="font-medium text-gray-800">
-                  Shipping Address
-                </span>
-              </div>
-              <div className="flex flex-col text-sm text-gray-600">
-                <span className="font-medium">
-                  {shipping?.fullName || "No Full Name"}
-                </span>
-                <span>{shipping?.phone || "No Phone Number"}</span>
-                <span>{shipping?.streetAddress || "No Street Address"}</span>
-                <span>{shipping?.deliveryNotes || "No Delivery notes"}</span>
-              </div>
+            <div className="mb-1 flex items-center justify-between">
+              <span className="font-medium text-gray-800">
+                Shipping Address
+              </span>
             </div>
+            <div className="flex flex-col text-sm text-gray-600">
+              <span className="font-medium">
+                {shipping?.receiverName || "No Full Name"}  {/* fullName → receiverName */}
+              </span>
+              <span>{shipping?.phone || "No Phone Number"}</span>
+              <span>{shipping?.address || "No Street Address"}</span>  {/* streetAddress → address */}
+              <span>{shipping?.deliveryNotes || "No Delivery notes"}</span>
+            </div>
+          </div>
 
             {/* SHIPPING */}
             <div className="flex flex-col gap-2 rounded-xl border border-pink-100 bg-[#fff5f7] p-5">
