@@ -157,9 +157,9 @@ const AddToCartMobile = ({
         <button
           type="button"
           onClick={() => quantity > 1 && setQuantity(quantity - 1)}
-          className="flex min-h-[84px] items-center justify-center border-r border-[var(--mamabear-light-pink)] bg-white px-3"
+          className="flex min-h-[68px] items-center justify-center border-r border-[var(--mamabear-light-pink)] bg-white px-2.5"
         >
-          <div className="flex items-center gap-2 rounded-full border border-[var(--mamabear-light-pink)] bg-[var(--mamabear-light-pink)]/35 px-3 py-2 text-[var(--mamabear-dark-pink)]">
+          <div className="flex items-center gap-2 rounded-full border border-[var(--mamabear-light-pink)] bg-[var(--mamabear-light-pink)]/35 px-2.5 py-1.5 text-[var(--mamabear-dark-pink)]">
             <button
               type="button"
               onClick={() => quantity > 1 && setQuantity(quantity - 1)}
@@ -184,7 +184,7 @@ const AddToCartMobile = ({
           type="button"
           onClick={handleCheckout}
           disabled={!selectedVariant}
-          className={`flex min-h-[84px] flex-col items-center justify-center gap-1 px-3 text-white transition active:scale-[0.99] ${
+          className={`flex min-h-[68px] flex-col items-center justify-center gap-0.5 px-2.5 text-white transition active:scale-[0.99] ${
             selectedVariant
               ? "bg-[var(--mamabear-brown)] hover:opacity-95"
               : "cursor-not-allowed bg-[var(--mamabear-brown)] opacity-50"
@@ -198,7 +198,7 @@ const AddToCartMobile = ({
           type="button"
           onClick={handleCheckout}
           disabled={!selectedVariant}
-          className={`flex min-h-[84px] flex-col items-start justify-center gap-0.5 px-4 text-left text-white transition active:scale-[0.99] ${
+          className={`flex min-h-[68px] flex-col items-start justify-center gap-0.5 px-3 text-left text-white transition active:scale-[0.99] ${
             selectedVariant
               ? "bg-[var(--mamabear-dark-pink)] hover:opacity-95"
               : "cursor-not-allowed bg-[var(--mamabear-dark-pink)] opacity-50"

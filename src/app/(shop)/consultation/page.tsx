@@ -275,7 +275,7 @@ export default function ConsultationPage() {
           Mamabear member, you get special access to our experts!
         </p>
 
-        <div className="mx-auto grid max-w-4xl grid-cols-2 gap-3 md:grid-cols-2 md:gap-8">
+        <div className="mx-auto grid max-w-4xl grid-cols-1 gap-3 md:grid-cols-2 md:gap-8">
           {/* Option 1: Chat */}
           <div
             className="flex h-full flex-col rounded-2xl border-4 bg-white p-4 text-left shadow-sm sm:rounded-[2.5rem] sm:p-10"

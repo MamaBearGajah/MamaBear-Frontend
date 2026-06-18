@@ -4,11 +4,7 @@ import type { Product } from "@/types";
 import { WISHLIST_MAX_ITEMS } from ".";
 
 export async function fetchWishlistProducts(
-<<<<<<< HEAD
   productIds: string[],
-=======
-  productIds: string[]
->>>>>>> 9e8340474f86f753e081379410b8f8dfd9ea85d9
 ): Promise<Product[]> {
   const ids = productIds.slice(0, WISHLIST_MAX_ITEMS);
   if (ids.length === 0) return [];

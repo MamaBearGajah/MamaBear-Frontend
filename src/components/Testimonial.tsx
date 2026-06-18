@@ -432,7 +432,7 @@ const Testimonial = async () => {
                 {story.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-full bg-[#FACBD8] px-3 py-1 text-[11px] font-bold text-[#D5557E]"
+                    className="rounded-lg bg-[#FACBD8] px-3 py-1 text-[11px] font-bold text-[#D5557E]"
                   >
                     {tag}
                   </span>

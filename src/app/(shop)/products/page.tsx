@@ -45,24 +45,6 @@ function extractVariantOptions(products: any[]): Array<{ name: string; value: st
   return options;
 }
 
-/** Extract distinct variant name+value dari semua produk di halaman */
-function extractVariantOptions(products: any[]): Array<{ name: string; value: string }> {
-  const seen = new Set<string>();
-  const options: Array<{ name: string; value: string }> = [];
-
-  for (const product of products) {
-    for (const v of product.variantOptions ?? []) {
-      const key = `${v.name}::${v.value}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        options.push({ name: v.name, value: v.value });
-      }
-    }
-  }
-
-  return options;
-}
-
 export default async function ProductsPage({
   searchParams,
 }: ProductsPageProps) {
@@ -96,11 +78,6 @@ export default async function ProductsPage({
 
   const products = filterStorefrontProducts(productsRes.data);
   const categoryCounts = computeCategoryCounts(allProductsRes.data);
-
-
-  // Selalu pakai allProductsRes (semua produk tanpa filter)
-  // supaya variant chips tampil lengkap dari semua produk, bukan hanya kategori aktif
-  const variantOptions = extractVariantOptions(allProductsRes.data);
 
   // Backend category endpoint pakai key 'total', products endpoint pakai 'totalItems'
 
