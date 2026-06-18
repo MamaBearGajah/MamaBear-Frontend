@@ -22,6 +22,11 @@ function emitWishlistChange(ids: string[]) {
   );
 }
 
+function isSameWishlist(a: string[], b: string[]) {
+  if (a.length !== b.length) return false;
+  return a.every((id, index) => id === b[index]);
+}
+
 export function getWishlist(): string[] {
   if (typeof window === "undefined") return [];
   return parseWishlist(localStorage.getItem(WISHLIST_KEY));
@@ -30,6 +35,10 @@ export function getWishlist(): string[] {
 export function setWishlist(ids: string[]) {
   if (typeof window === "undefined") return;
   const unique = Array.from(new Set(ids)).slice(0, WISHLIST_MAX_ITEMS);
+
+  const current = getWishlist();
+  if (isSameWishlist(current, unique)) return;
+
   localStorage.setItem(WISHLIST_KEY, JSON.stringify(unique));
   emitWishlistChange(unique);
 }

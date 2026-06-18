@@ -106,6 +106,11 @@ function NavbarContent() {
           <SearchBar />
         </div>
 
+        <CartButton
+            href="/cart"
+            className="text-brown hover:bg-light-pink/60 hover:text-dark-pink rounded-full p-2 transition-colors"
+        />
+
         {/* Right actions */}
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           {!isLoading && (
@@ -114,10 +119,10 @@ function NavbarContent() {
                 <>
                   <WishlistNavLink className="text-brown hover:bg-light-pink/60 hover:text-dark-pink inline-flex rounded-full p-2 transition-colors" />
 
-                  <CartButton
+                  {/* <CartButton
                     href="/cart"
                     className="text-brown hover:bg-light-pink/60 hover:text-dark-pink rounded-full p-2 transition-colors"
-                  />
+                  /> */}
 
                   {!isAdmin && (
                     <Link

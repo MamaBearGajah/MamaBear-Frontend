@@ -7,8 +7,13 @@ import {
   clearWishlist,
   getWishlist,
   removeFromWishlist,
+  setWishlist,
   toggleWishlist,
 } from "@/lib/wishlist";
+import {
+  extractWishlistProductIds,
+  wishlistApi,
+} from "@/lib/api/wishlist";
 
 export function useWishlist() {
   const [ids, setIds] = useState<string[]>([]);
@@ -17,8 +22,19 @@ export function useWishlist() {
     setIds(getWishlist());
   }, []);
 
+  const syncFromApi = useCallback(async () => {
+    try {
+      const { data } = await wishlistApi.getAll();
+      const productIds = extractWishlistProductIds(data);
+      setWishlist(productIds);
+      setIds(productIds);
+    } catch {
+      syncFromStorage();
+    }
+  }, [syncFromStorage]);
+
   useEffect(() => {
-    syncFromStorage();
+    void syncFromApi();
 
     const handleStorage = (event: StorageEvent) => {
       if (event.key === "wishlist") {
@@ -37,14 +53,51 @@ export function useWishlist() {
       window.removeEventListener("storage", handleStorage);
       window.removeEventListener(WISHLIST_CHANGED_EVENT, handleCustom);
     };
-  }, [syncFromStorage]);
+  }, [syncFromApi]);
 
   return {
     ids,
     count: ids.length,
-    toggle: toggleWishlist,
-    remove: removeFromWishlist,
-    clear: clearWishlist,
-    refresh: syncFromStorage,
+    toggle: (productId: string) => {
+      void (async () => {
+        const alreadyExists = ids.includes(productId);
+
+        try {
+          if (alreadyExists) {
+            await wishlistApi.remove(productId);
+          } else {
+            await wishlistApi.create({ productId });
+          }
+
+          await syncFromApi();
+        } catch {
+          const updated = toggleWishlist(productId);
+          setIds(updated);
+        }
+      })();
+    },
+    remove: (productId: string) => {
+      void (async () => {
+        try {
+          await wishlistApi.remove(productId);
+          await syncFromApi();
+        } catch {
+          const updated = removeFromWishlist(productId);
+          setIds(updated);
+        }
+      })();
+    },
+    clear: () => {
+      void (async () => {
+        try {
+          await Promise.all(ids.map((productId) => wishlistApi.remove(productId)));
+          await syncFromApi();
+        } catch {
+          clearWishlist();
+          syncFromStorage();
+        }
+      })();
+    },
+    refresh: syncFromApi,
   };
 }
