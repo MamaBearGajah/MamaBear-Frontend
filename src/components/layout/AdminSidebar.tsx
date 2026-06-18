@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+
 import { usePathname, useRouter } from "next/navigation";
 import {
   ExternalLink,
@@ -15,8 +16,12 @@ import { useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { getAdminNavForRole, type AdminNavItem } from "@/config/admin-nav";
 import { clearSession } from "@/lib/auth/clear-session";
+
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types";
+
+
+
 
 const footerNav = [
   { label: "View Store", href: "/", icon: ExternalLink, external: true as const },
@@ -44,6 +49,9 @@ function NavLink({
       : "text-white/85 hover:bg-white/10 hover:text-white",
     item.disabled && "pointer-events-none cursor-not-allowed opacity-45",
   );
+
+
+
 
   const content = (
     <>
@@ -98,14 +106,18 @@ export default function AdminSidebar() {
   const router = useRouter();
   const { state } = useAuth();
   const [open, setOpen] = useState(false);
-
+  const { logout } = useAuth();
   const role = (state.user?.role ?? "admin") as UserRole;
   const mainNav = useMemo(() => getAdminNavForRole(role), [role]);
 
   const handleLogout = async () => {
-    await clearSession();
-    router.push("/login");
-    router.refresh();
+    try {
+      await logout();
+    } catch (e) {
+      console.error("Logout API error:", e);
+    }
+    // router.push("/login");
+    // router.refresh();
   };
 
   return (

@@ -81,14 +81,15 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     label: "Widgets",
     href: "/admin/widget",
     icon: Drill,
-    roles: ["super_admin"],
+    roles: ["admin","super_admin"],
+    disabled: false,
   },
   {
     label: "Banner",
     href: "/admin/HomeBanner",
     icon: MonitorCog,
-    roles: ["super_admin"],
-    disabled: true,
+    roles: ["admin","super_admin"],
+    disabled: false,
   },
   {
     label: "Article",
@@ -107,8 +108,6 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
 ];
 
 export const SUPER_ADMIN_ROUTE_PREFIXES = [
-  "/admin/widget",
-  "/admin/HomeBanner",
   "/admin/settings",
 ] as const;
 

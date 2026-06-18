@@ -4,8 +4,8 @@ import Link from "next/link";
 import {
   BarChart3,
   Tag,
-  Megaphone,
-  Drill
+//   Megaphone,
+//   Drill
 //   Facebook,
 } from "lucide-react";
 
@@ -53,16 +53,13 @@ export default function WidgetOptions() {
       {/* Responsive Grid */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {widgets.map((widget) => (
-          <div
+          <Link
             key={widget.title}
-            className="group cursor-pointer rounded-xl border bg-white p-5 shadow-sm transition hover:shadow-md"
+            href={`/admin/widget/${widget.title
+              .toLowerCase()
+              .replace(/\s+/g, "-")}`}
+            className="group block cursor-pointer rounded-xl border bg-white p-5 shadow-sm transition hover:shadow-md"
           >
-            <Link
-                href={`/admin/widget/${widget.title
-                    .toLowerCase()
-                    .replace(/\s+/g, "-")}`}
-                className="group cursor-pointer rounded-xl border bg-white p-5 shadow-sm transition hover:shadow-md"
-                >
             {/* Icon */}
             <div
               className={`mb-4 flex h-12 w-12 items-center justify-center rounded-lg text-white ${widget.color}`}
@@ -82,8 +79,7 @@ export default function WidgetOptions() {
             <div className="mt-4 text-sm text-gray-400 group-hover:text-gray-600">
               Click to configure →
             </div>
-            </Link>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
