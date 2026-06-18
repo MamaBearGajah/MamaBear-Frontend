@@ -135,13 +135,13 @@ export default function Footer() {
                   FAQ
                 </Link>
                 <Link
-                  href="#"
+                  href="/shipping"
                   className="block transition hover:text-[#FACBD8]"
                 >
                   Shipping Info
                 </Link>
                 <Link
-                  href="#"
+                  href="/refund"
                   className="block transition hover:text-[#FACBD8]"
                 >
                   Returns & Refunds
