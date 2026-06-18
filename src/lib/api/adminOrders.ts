@@ -11,6 +11,9 @@ export const adminOrdersApi = {
   getAll: (config?: AxiosRequestConfig) =>
     apiClient.get("/orders/admin", config),
 
+  getAllCustomer: (config?: AxiosRequestConfig) =>
+    apiClient.get("/orders", config),
+
   getById: (id: string, config?: AxiosRequestConfig) =>
     apiClient.get(`/orders/${id}`, config),
 
