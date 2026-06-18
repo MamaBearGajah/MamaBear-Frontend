@@ -124,7 +124,6 @@ function NavbarContent() {
               />
               {isAuthenticated && (
                 <>
-<<<<<<< HEAD
                   <WishlistNavLink className="text-brown hover:bg-light-pink/60 hover:text-dark-pink inline-flex rounded-full p-2 transition-colors" />
 
                   {/* <CartButton
@@ -132,8 +131,6 @@ function NavbarContent() {
                     className="text-brown hover:bg-light-pink/60 hover:text-dark-pink rounded-full p-2 transition-colors"
                   /> */}
 
-=======
->>>>>>> e2235cf15fce7010a2619a2e84377f3de0a499f5
                   {!isAdmin && (
                     <Link
                       href="/account/profile"
