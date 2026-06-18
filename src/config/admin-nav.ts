@@ -57,7 +57,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/customers",
     icon: Users,
     roles: ["admin", "super_admin"],
-    disabled: true,
+    disabled: false,
   },
   {
     label: "Categories",
@@ -83,21 +83,21 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     label: "Widgets",
     href: "/admin/widget",
     icon: Drill,
-    roles: ["admin","super_admin"],
+    roles: ["admin", "super_admin"],
     disabled: false,
   },
   {
     label: "Banner",
     href: "/admin/HomeBanner",
     icon: MonitorCog,
-    roles: ["admin","super_admin"],
+    roles: ["admin", "super_admin"],
     disabled: false,
   },
   {
     label: "Bundles",
     href: "/admin/bundles",
     icon: Flower2,
-    roles: ["admin","super_admin"],
+    roles: ["admin", "super_admin"],
     disabled: false,
   },
   {
@@ -116,9 +116,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   },
 ];
 
-export const SUPER_ADMIN_ROUTE_PREFIXES = [
-  "/admin/settings",
-] as const;
+export const SUPER_ADMIN_ROUTE_PREFIXES = ["/admin/settings"] as const;
 
 export function getAdminNavForRole(role: UserRole): AdminNavItem[] {
   return ADMIN_NAV_ITEMS.filter((item) => item.roles.includes(role));
@@ -126,7 +124,7 @@ export function getAdminNavForRole(role: UserRole): AdminNavItem[] {
 
 export function isSuperAdminRoute(pathname: string): boolean {
   return SUPER_ADMIN_ROUTE_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
   );
 }
 
