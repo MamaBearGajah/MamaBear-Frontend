@@ -27,6 +27,7 @@ interface ProductsPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
+<<<<<<< HEAD
 /** Extract distinct variant name+value dari semua produk di halaman */
 function extractVariantOptions(products: any[]): Array<{ name: string; value: string }> {
   const seen = new Set<string>();
@@ -46,6 +47,11 @@ function extractVariantOptions(products: any[]): Array<{ name: string; value: st
 }
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+=======
+export default async function ProductsPage({
+  searchParams,
+}: ProductsPageProps) {
+>>>>>>> e2235cf15fce7010a2619a2e84377f3de0a499f5
   const params = await searchParams;
   const filters = parseShopListParamsFromRecord(params);
   const listParams = toStorefrontProductListParams(filters);
@@ -77,6 +83,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const products = filterStorefrontProducts(productsRes.data);
   const categoryCounts = computeCategoryCounts(allProductsRes.data);
 
+<<<<<<< HEAD
   // Selalu pakai allProductsRes (semua produk tanpa filter)
   // supaya variant chips tampil lengkap dari semua produk, bukan hanya kategori aktif
   const variantOptions = extractVariantOptions(allProductsRes.data);
@@ -88,14 +95,21 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     limit: rawMeta?.limit ?? filters.limit,
     totalItems: rawMeta?.totalItems ?? rawMeta?.total ?? products.length,
     totalPages: rawMeta?.totalPages ?? 1,
+=======
+  const meta: PaginationMeta = productsRes.meta ?? {
+    page: filters.page,
+    limit: filters.limit,
+    total: products.length,
+    totalPages: 1,
+>>>>>>> e2235cf15fce7010a2619a2e84377f3de0a499f5
   };
 
   return (
-    <main className="min-h-[60vh] bg-light-pink/25 py-6 md:py-10">
+    <main className="bg-light-pink/25 min-h-[60vh] py-6 md:py-10">
       <div className="container-main space-y-4">
         <Suspense fallback={null}>
           <ProductsPageHeader
-            totalItems={meta.totalItems}
+            totalItems={meta.total}
             categories={categoriesRes.data}
           />
         </Suspense>
@@ -135,4 +149,8 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       </div>
     </main>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> e2235cf15fce7010a2619a2e84377f3de0a499f5
