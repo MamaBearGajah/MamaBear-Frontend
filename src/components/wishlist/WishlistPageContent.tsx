@@ -3,29 +3,52 @@
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
-  CreditCard,
   ChevronRight,
+  ExternalLink,
   Heart,
   Loader2,
   RotateCcw,
   Shield,
-  ShoppingCart,
   Trash2,
   Truck,
 } from "lucide-react";
-import { nanoid } from "nanoid";
 import { toast } from "sonner";
 
-import { useCart } from "@/hooks/useCart";
-import { useWishlist } from "@/hooks/useWishlist";
-import { useCheckout } from "@/context/CheckoutContext";
+import { wishlistApi } from "@/lib/api/wishlist";
+import { setWishlist } from "@/lib/wishlist";
 import { resolveProductImageUrl } from "@/lib/images/resolve-product-image";
-import { fetchWishlistProducts } from "@/lib/wishlist/fetch-wishlist-products";
-import { effectivePrice, formatPrice } from "@/lib/utils";
-import type { Product } from "@/types";
+import { formatPrice } from "@/lib/utils";
+
+type WishlistProduct = {
+  id: string;
+  name: string;
+  slug: string;
+  basePrice: string | number;
+  discountPrice: string | number | null;
+  status: string;
+  stock?: number;
+  images: { imageUrl: string; altText: string }[];
+};
+
+type WishlistItem = {
+  id: string;
+  productId: string;
+  addedAt: string;
+  product: WishlistProduct;
+};
+
+function toNumber(value: string | number | null | undefined): number {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function effectiveWishlistPrice(product: WishlistProduct): number {
+  const discount = toNumber(product.discountPrice);
+  if (discount > 0) return discount;
+  return toNumber(product.basePrice);
+}
 
 const PAGE_BG = "#FFF5F8";
 const BROWN = "#6C4735";
@@ -34,102 +57,77 @@ const PINK = "#D5557E";
 const BORDER = "#FACBD8";
 
 export default function WishlistPageContent() {
-  const router = useRouter();
-  const { ids, remove, clear, count, refresh } = useWishlist();
-  const { addItem } = useCart();
-  const { postItems } = useCheckout();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [items, setItems] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadProducts = useCallback(async (productIds: string[]) => {
-    if (productIds.length === 0) {
-      setProducts([]);
-      setLoading(false);
-      return;
-    }
-
+  const loadWishlist = useCallback(async () => {
     setLoading(true);
     try {
-      const fetched = await fetchWishlistProducts(productIds);
-      const ordered = productIds
-        .map((id) => fetched.find((product) => product.id === id))
-        .filter((product): product is Product => Boolean(product));
-      setProducts(ordered);
+      const { data } = await wishlistApi.getAll();
+      const raw = data?.data ?? data;
+      const wishlistItems: WishlistItem[] = Array.isArray(raw?.items) ? raw.items : [];
+      setItems(wishlistItems);
     } catch {
-      toast.error("Failed to load wishlist products");
-      setProducts([]);
+      toast.error("Failed to load wishlist");
+      setItems([]);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+
 
   useEffect(() => {
-    void Promise.resolve().then(() => loadProducts(ids));
-  }, [ids, loadProducts]);
+    void Promise.resolve().then(() => loadWishlist());
+  }, [loadWishlist]);
 
-  const handleClearAll = () => {
-    clear();
-    toast.success("Wishlist cleared");
-  };
-
-  const handleRemove = (productId: string) => {
-    remove(productId);
-    toast.success("Removed from wishlist");
-  };
-
-  const handleAddToCart = (product: Product) => {
-    if (product.stock <= 0) {
-      toast.error("Product is out of stock");
-      return;
+  const handleDelete = async (productId: string) => {
+    try {
+      await wishlistApi.remove(productId);
+      setItems((prev) => {
+        const updated = prev.filter((item) => item.productId !== productId);
+        setWishlist(updated.map((item) => item.productId));
+        return updated;
+      });
+      toast.success("Removed from wishlist");
+    } catch {
+      toast.error("Failed to remove item");
     }
-
-    addItem({
-      id: nanoid(),
-      productId: product.id,
-      quantity: 1,
-      name: product.name,
-      basePrice: product.basePrice,
-      discountPrice: product.discountPrice ?? undefined,
-      image: resolveProductImageUrl(product.images?.[0]?.imageUrl),
-    });
-    toast.success("Added to cart");
   };
 
-  const handleCheckout = (product: Product) => {
-    if (product.stock <= 0) {
-      toast.error("Product is out of stock");
-      return;
+  const handleClearAll = async () => {
+    try {
+      await Promise.all(items.map((item) => wishlistApi.remove(item.productId)));
+      setItems([]);
+      setWishlist([]);
+      toast.success("Wishlist cleared");
+    } catch {
+      toast.error("Failed to clear wishlist");
     }
-
-    postItems([
-      {
-        id: nanoid(),
-        productId: product.id,
-        quantity: 1,
-        name: product.name,
-        basePrice: product.basePrice,
-        discountPrice: product.discountPrice ?? undefined,
-        image: resolveProductImageUrl(product.images?.[0]?.imageUrl),
-      },
-    ]);
-
-    router.push("/checkout/info");
   };
 
-  const isEmpty = ids.length === 0;
+  if (loading) {
+    return (
+      <div
+        className="flex min-h-screen items-center justify-center"
+        style={{ backgroundColor: PAGE_BG }}
+      >
+        <div className="flex items-center gap-2" style={{ color: MUTED }}>
+          <Loader2 className="size-5 animate-spin" style={{ color: PINK }} />
+          <span>Loading wishlist...</span>
+        </div>
+      </div>
+    );
+  }
 
-  if (!loading && isEmpty) {
+  if (items.length === 0) {
     return (
       <div
         className="flex min-h-screen items-center justify-center px-4"
         style={{ backgroundColor: PAGE_BG, fontFamily: "'Urbanist', sans-serif" }}
       >
         <div className="w-full max-w-md rounded-3xl border border-pink-100 bg-white p-10 text-center shadow-sm">
-          <Heart size={42} className="mx-auto mb-4 text-[#D5557E]" fill="#D5557E" />
+          <Heart size={42} className="mx-auto mb-4" style={{ color: PINK }} fill={PINK} />
           <h1 className="mb-3 text-3xl font-black" style={{ color: BROWN }}>
             Your Wishlist is Empty
           </h1>
@@ -154,26 +152,24 @@ export default function WishlistPageContent() {
       style={{ backgroundColor: PAGE_BG, fontFamily: "'Urbanist', sans-serif" }}
     >
       <div className="mx-auto max-w-7xl">
-        <div
-          className="mb-6 flex items-center gap-2 text-xs"
-          style={{ color: MUTED }}
-        >
-          <Link href="/" className="hover:text-pink-600">
-            Home
-          </Link>
+        {/* Breadcrumb */}
+        <div className="mb-6 flex items-center gap-2 text-xs" style={{ color: MUTED }}>
+          <Link href="/" className="hover:text-pink-600">Home</Link>
           <ChevronRight size={12} />
           <span style={{ color: PINK }}>Wishlist</span>
         </div>
 
+        {/* Header */}
         <div className="mb-8">
           <h1 className="mb-2 text-3xl font-black" style={{ color: BROWN }}>
             My Wishlist
           </h1>
           <p className="text-sm" style={{ color: MUTED }}>
-            {count} item{count !== 1 ? "s" : ""} saved for later
+            {items.length} item{items.length !== 1 ? "s" : ""} saved for later
           </p>
         </div>
 
+        {/* Trust badges */}
         <div className="mb-8 grid gap-3 md:grid-cols-3">
           {[
             { icon: Truck, text: "Free shipping for orders > Rp 200K" },
@@ -185,144 +181,114 @@ export default function WishlistPageContent() {
               className="flex items-center gap-2.5 rounded-xl border bg-white p-3 text-xs"
               style={{ borderColor: BORDER, color: MUTED }}
             >
-              <badge.icon
-                size={16}
-                style={{ color: PINK }}
-                className="shrink-0"
-              />
+              <badge.icon size={16} style={{ color: PINK }} className="shrink-0" />
               {badge.text}
             </div>
           ))}
         </div>
 
-        {loading ? (
-          <div
-            className="flex items-center justify-center gap-2 rounded-3xl border border-pink-100 bg-white py-20 shadow-sm"
-            style={{ color: MUTED }}
-          >
-            <Loader2 className="size-5 animate-spin" style={{ color: PINK }} />
-            <span>Loading wishlist...</span>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="overflow-hidden rounded-3xl border border-pink-100 bg-white shadow-sm">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-pink-100 px-5 py-4">
-                <h2 className="text-[15px] font-bold" style={{ color: BROWN }}>
-                  Saved Products
-                </h2>
-                <button
-                  type="button"
-                  onClick={handleClearAll}
-                  className="inline-flex items-center gap-1.5 text-sm font-medium transition hover:opacity-80"
-                  style={{ color: PINK }}
-                >
-                  <Trash2 size={16} />
-                  Clear All
-                </button>
-              </div>
+        {/* Product list */}
+        <div className="space-y-4">
+          <div className="overflow-hidden rounded-3xl border border-pink-100 bg-white shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-pink-100 px-5 py-4">
+              <h2 className="text-[15px] font-bold" style={{ color: BROWN }}>
+                Saved Products
+              </h2>
+              <button
+                type="button"
+                onClick={handleClearAll}
+                className="inline-flex items-center gap-1.5 text-sm font-medium transition hover:opacity-80"
+                style={{ color: PINK }}
+              >
+                <Trash2 size={16} />
+                Clear All
+              </button>
+            </div>
 
-              <div className="divide-y divide-pink-50 px-5">
-                {products.map((product) => {
-                  const price = effectivePrice(product);
-                  const imageUrl = resolveProductImageUrl(
-                    product.images?.[0]?.imageUrl,
-                  );
-                  const outOfStock = product.stock <= 0;
+            <div className="divide-y divide-pink-50 px-5">
+              {items.map((item) => {
+                const { product } = item;
+                const price = effectiveWishlistPrice(product);
+                const imageUrl = resolveProductImageUrl(product.images?.[0]?.imageUrl);
+                const outOfStock = (product.stock ?? 1) <= 0;
 
-                  return (
-                    <div
-                      key={product.id}
-                      className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center"
+                return (
+                  <div
+                    key={item.id}
+                    className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center"
+                  >
+                    <Link
+                      href={`/products/${product.slug}`}
+                      className="relative size-24 shrink-0 overflow-hidden rounded-xl border border-pink-100"
                     >
+                      <Image
+                        src={imageUrl}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                        sizes="96px"
+                      />
+                    </Link>
+
+                    <div className="min-w-0 flex-1">
                       <Link
                         href={`/products/${product.slug}`}
-                        className="relative size-24 shrink-0 overflow-hidden rounded-xl border border-pink-100"
+                        className="line-clamp-2 text-[15px] font-bold transition hover:opacity-80"
+                        style={{ color: BROWN }}
                       >
-                        <Image
-                          src={imageUrl}
-                          alt={product.name}
-                          fill
-                          className="object-cover"
-                          sizes="96px"
-                        />
+                        {product.name}
                       </Link>
-
-                      <div className="min-w-0 flex-1">
-                        <Link
-                          href={`/products/${product.slug}`}
-                          className="line-clamp-2 text-[15px] font-bold transition hover:opacity-80"
-                          style={{ color: BROWN }}
-                        >
-                          {product.name}
-                        </Link>
-                        <p
-                          className="mt-1 text-lg font-black"
-                          style={{ color: PINK }}
-                        >
+                      <div className="mt-1 flex items-center gap-2">
+                        <p className="text-lg font-black" style={{ color: PINK }}>
                           {formatPrice(price)}
                         </p>
-                        {outOfStock && (
-                          <p className="mt-1 text-xs font-medium text-red-500">
-                            Out of stock
+                        {toNumber(product.discountPrice) > 0 && (
+                          <p className="text-sm text-gray-400 line-through">
+                            {formatPrice(toNumber(product.basePrice))}
                           </p>
                         )}
                       </div>
-
-                      <div className="flex flex-wrap gap-2 sm:shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => handleAddToCart(product)}
-                          disabled={outOfStock}
-                          className="inline-flex items-center gap-1.5 rounded-2xl px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-                          style={{ backgroundColor: PINK }}
-                        >
-                          <ShoppingCart size={16} />
-                          Add to Cart
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleCheckout(product)}
-                          disabled={outOfStock}
-                          className="inline-flex items-center gap-1.5 rounded-2xl border px-4 py-2 text-sm font-semibold transition hover:bg-[#FFF5F8] disabled:cursor-not-allowed disabled:opacity-50"
-                          style={{ borderColor: BORDER, color: PINK }}
-                        >
-                          <CreditCard size={16} />
-                          Checkout
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleRemove(product.id)}
-                          className="inline-flex items-center gap-1.5 rounded-2xl border px-4 py-2 text-sm font-medium transition hover:bg-[#FFF5F8]"
-                          style={{ borderColor: BORDER, color: PINK }}
-                        >
-                          <Trash2 size={16} />
-                          Remove
-                        </button>
-                      </div>
+                      {outOfStock && (
+                        <p className="mt-1 text-xs font-medium text-red-500">Out of stock</p>
+                      )}
                     </div>
-                  );
-                })}
-              </div>
-            </div>
 
-            {products.length < ids.length && (
-              <p className="px-1 text-sm" style={{ color: MUTED }}>
-                Some saved items could not be loaded and were skipped.
-              </p>
-            )}
-
-            <div className="px-1 pt-1">
-              <Link
-                href="/products"
-                className="inline-flex items-center gap-1 text-sm font-semibold transition hover:underline"
-                style={{ color: PINK }}
-              >
-                <ArrowLeft size={16} />
-                Continue Shopping
-              </Link>
+                    <div className="flex flex-wrap gap-2 sm:shrink-0">
+                      <Link
+                        href={`/products/${product.slug}`}
+                        className="inline-flex items-center gap-1.5 rounded-2xl px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+                        style={{ backgroundColor: PINK }}
+                      >
+                        <ExternalLink size={16} />
+                        View Product
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(item.productId)}
+                        className="inline-flex items-center gap-1.5 rounded-2xl border px-4 py-2 text-sm font-medium transition hover:bg-[#FFF5F8]"
+                        style={{ borderColor: BORDER, color: PINK }}
+                      >
+                        <Trash2 size={16} />
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
-        )}
+
+          <div className="px-1 pt-1">
+            <Link
+              href="/products"
+              className="inline-flex items-center gap-1 text-sm font-semibold transition hover:underline"
+              style={{ color: PINK }}
+            >
+              <ArrowLeft size={16} />
+              Continue Shopping
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -73,7 +73,7 @@ export default function ProductCard({
 
     if (initialVariant) {
       setSelectedVariant(initialVariant);
-      console.log("selected variant", selectedVariant);
+      // console.log("selected variant", selectedVariant);
       setThePrice(Number(initialVariant.discountPrice ?? initialVariant.basePrice));
       setvariantSelectedImage(initialVariant.imageUrl ?? "/Logo Mamabear.png");
       saveVariant(initialVariant);

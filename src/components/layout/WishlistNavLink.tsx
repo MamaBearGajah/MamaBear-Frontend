@@ -22,7 +22,10 @@ export default function WishlistNavLink({
       <div className="relative">
         <Heart className={cn("size-5", iconClassName)} strokeWidth={1.75} />
         {count > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 flex size-4 items-center justify-center rounded-full bg-dark-pink text-[10px] font-bold text-white">
+          <span
+            key={count}
+            className="absolute -top-1.5 -right-1.5 flex size-4.5 min-w-4.5 animate-[pop_0.2s_ease-out] items-center justify-center rounded-full bg-dark-pink px-0.5 text-[10px] font-bold text-white"
+          >
             {count > 9 ? "9+" : count}
           </span>
         )}

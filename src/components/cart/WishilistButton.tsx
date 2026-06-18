@@ -84,7 +84,7 @@ export default function WishlistButton({
           : "rounded-full p-2 transition hover:bg-gray-100",
         liked &&
           (variant === "overlay"
-            ? "bg-[#FFDCE7] text-[#D5557E] opacity-100 hover:bg-[#FFCFE0] hover:text-[#C94A73]"
+            ? "bg-[#D5557E] text-white hover:bg-[#C94A73]"
             : "bg-[#FFEAF1] text-[#D5557E] hover:bg-[#FFDCE7]"),
         className,
       )}
@@ -93,7 +93,11 @@ export default function WishlistButton({
         className={cn(
           "transition",
           variant === "overlay" ? "size-4" : "h-5 w-5",
-          liked ? "fill-red-500 text-red-500" : "",
+          liked
+            ? variant === "overlay"
+              ? "fill-white text-white"
+              : "fill-[#D5557E] text-[#D5557E]"
+            : "",
         )}
         strokeWidth={1.75}
       />
