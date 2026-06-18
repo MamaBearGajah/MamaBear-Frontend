@@ -28,8 +28,7 @@ export default function ShopProductCard({
     product.discountPrice != null && product.discountPrice < product.basePrice;
   const discountPercent = hasDiscount
     ? Math.round(
-        ((product.basePrice - product.discountPrice!) / product.basePrice) *
-          100,
+        ((product.basePrice - product.discountPrice!) / product.basePrice) * 100
       )
     : null;
   const imageUrl = resolveProductImageUrl(product.images?.[0]?.imageUrl);
@@ -43,44 +42,47 @@ export default function ShopProductCard({
   return (
     <article
       className={cn(
-        "group flex overflow-hidden rounded-2xl border border-border/80 bg-white shadow-sm transition-shadow hover:shadow-lg",
-        layout === "list" ? "flex-row" : "flex-col",
+        "group border-border/80 flex overflow-hidden rounded-2xl border bg-white shadow-sm transition-shadow hover:shadow-lg",
+        layout === "list" ? "flex-row" : "flex-col"
       )}
     >
       <div
         className={cn(
-          "relative shrink-0 overflow-hidden bg-light-pink/30",
+          "bg-light-pink/30 relative shrink-0 overflow-hidden",
           layout === "list"
             ? "aspect-square w-40 sm:w-48"
-            : "aspect-square w-full rounded-t-2xl",
+            : "aspect-square w-full rounded-t-2xl"
         )}
       >
-        <Link href={`/products/${product.slug}`} className="block h-full w-full">
+        <Link
+          href={`/products/${product.slug}`}
+          className="block h-full w-full"
+        >
           <Image
             src={imageUrl}
             alt={product.name}
             fill
-            sizes="(max-width: 768px) 50vw, 25vw"
+            sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, 25vw"
             className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           />
         </Link>
 
         <div
-          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-brown/50 via-brown/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          className="from-brown/50 via-brown/10 pointer-events-none absolute inset-0 bg-gradient-to-t to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
           aria-hidden
         />
 
         <button
           type="button"
           aria-label="Add to wishlist"
-          className="absolute top-3 right-3 z-10 flex size-9 items-center justify-center rounded-full bg-white/95 text-brown shadow-sm transition-colors hover:bg-light-pink hover:text-dark-pink"
+          className="text-brown hover:bg-light-pink hover:text-dark-pink absolute top-3 right-3 z-10 flex size-9 items-center justify-center rounded-full bg-white/95 shadow-sm transition-colors"
         >
           <Heart className="size-4" strokeWidth={1.75} />
         </button>
 
         <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
           {product.badge && (
-            <span className="rounded-full bg-dark-pink px-2.5 py-0.5 text-[10px] font-semibold tracking-wide text-white uppercase">
+            <span className="bg-dark-pink rounded-full px-2.5 py-0.5 text-[10px] font-semibold tracking-wide text-white uppercase">
               {BADGE_LABELS[product.badge]}
             </span>
           )}
@@ -92,13 +94,13 @@ export default function ShopProductCard({
         </div>
 
         {isLowStock && (
-          <span className="absolute bottom-16 left-3 z-10 rounded-md bg-amber-400 px-2 py-0.5 text-[10px] font-semibold text-brown">
+          <span className="text-brown absolute bottom-16 left-3 z-10 rounded-md bg-amber-400 px-2 py-0.5 text-[10px] font-semibold">
             Low Stock
           </span>
         )}
 
         {!inStock && (
-          <span className="absolute inset-0 z-10 flex items-center justify-center bg-brown/50 text-sm font-medium text-white">
+          <span className="bg-brown/50 absolute inset-0 z-10 flex items-center justify-center text-sm font-medium text-white">
             Out of Stock
           </span>
         )}
@@ -107,10 +109,10 @@ export default function ShopProductCard({
           <Link
             href={`/products/${product.slug}`}
             className={cn(
-              "absolute inset-x-3 bottom-3 z-20 flex items-center justify-center gap-2 rounded-full bg-dark-pink py-2.5 text-sm font-semibold text-white shadow-md",
+              "bg-dark-pink absolute inset-x-3 bottom-3 z-20 flex items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold text-white shadow-md",
               "translate-y-full opacity-0 transition-all duration-300 ease-out",
               "group-hover:translate-y-0 group-hover:opacity-100",
-              "hover:bg-dark-pink/90",
+              "hover:bg-dark-pink/90"
             )}
           >
             <ShoppingCart className="size-4" strokeWidth={2} />
@@ -121,19 +123,21 @@ export default function ShopProductCard({
 
       <Link
         href={`/products/${product.slug}`}
-        className="flex flex-1 flex-col gap-2 p-4"
+        className="flex flex-1 flex-col gap-1.5 p-3 sm:gap-2 sm:p-4"
       >
         {categoryName && (
-          <p className="text-xs font-medium text-dark-pink">{categoryName}</p>
+          <p className="text-dark-pink text-[10px] font-medium sm:text-xs">
+            {categoryName}
+          </p>
         )}
-        <h3 className="line-clamp-2 font-heading text-base font-semibold text-brown transition-colors group-hover:text-dark-pink">
+        <h3 className="text-brown group-hover:text-dark-pink sm:font-heading line-clamp-2 text-[12px] leading-[1.25] font-semibold transition-colors sm:text-base">
           {product.name}
         </h3>
 
         {rating > 0 && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <StarRating rating={rating} />
-            <span className="text-xs text-brown">
+            <span className="text-brown text-[10px] sm:text-xs">
               {rating.toFixed(1)}
               {product.ratingCount != null && (
                 <span className="text-muted-foreground">
@@ -146,29 +150,29 @@ export default function ShopProductCard({
         )}
 
         {visibleTags.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1">
             {visibleTags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-full bg-light-pink px-2 py-0.5 text-[10px] font-medium text-brown"
+                className="bg-light-pink text-brown rounded-full px-1.5 py-0.5 text-[9px] font-medium sm:px-2 sm:text-[10px]"
               >
                 {tag}
               </span>
             ))}
             {moreTags > 0 && (
-              <span className="text-[10px] font-medium text-dark-pink">
+              <span className="text-dark-pink text-[9px] font-medium sm:text-[10px]">
                 +{moreTags} more
               </span>
             )}
           </div>
         )}
 
-        <div className="mt-auto flex items-baseline gap-2 pt-1">
-          <span className="font-heading text-lg font-bold text-brown">
+        <div className="mt-auto flex items-baseline gap-1.5 pt-1 sm:gap-2">
+          <span className="text-brown sm:font-heading text-[13px] font-bold sm:text-lg">
             {formatPrice(price)}
           </span>
           {hasDiscount && (
-            <span className="text-sm text-muted-foreground line-through">
+            <span className="text-muted-foreground text-[10px] line-through sm:text-sm">
               {formatPrice(product.basePrice)}
             </span>
           )}

@@ -9,6 +9,7 @@ import {
   ProductPayload,
   ApiResponse,
 } from "@/types";
+import { unstable_noStore as noStore } from "next/cache";
 import { apiClient, authHeaders } from "./client";
 import axios from "axios";
 import { mapProductListItems } from "./map-product-list-item";
@@ -75,14 +76,10 @@ export async function getAllProducts(
   // accessToken?: string,
   params: ProductListParams = {}
 ): Promise<Product[]> {
-  const { data } = await apiClient.get(
-    `/Products`,
-    {    
-      // headers: authHeaders(accessToken), 
+  const { data } = await apiClient.get(`/Products`, {
+    // headers: authHeaders(accessToken),
     params: toApiProductParams(params),
-         
-    },
-  );
+  });
   const normalized = normalizeApiResponse<Product[]>(data);
   return Array.isArray(normalized.data) ? normalized.data : [];
 }
@@ -93,7 +90,7 @@ export async function getProductBySlug2(
   // accessToken?: string,
 ): Promise<Product> {
   const { data } = await apiClient.get(
-    `/products/slug/${slug}`,
+    `/products/slug/${slug}`
     // { headers: authHeaders(accessToken) },
   );
   const normalized = normalizeApiResponse<Product>(data);
@@ -116,12 +113,9 @@ export async function getProductVariantById(
   productId: string
   // accessToken?: string,
 ): Promise<ProductVariant[]> {
-  const { data } = await apiClient.get(
-    `/products/${productId}/variants`,
-    {
-      //  headers: authHeaders(accessToken)
-    }
-  );
+  const { data } = await apiClient.get(`/products/${productId}/variants`, {
+    //  headers: authHeaders(accessToken)
+  });
   const normalized = normalizeApiResponse<ProductVariant[]>(data);
   return Array.isArray(normalized.data) ? normalized.data : [];
 }
@@ -146,8 +140,12 @@ export async function fetchProductSlug(slug: string): Promise<Product> {
 export async function getProductList(
   params: ProductListParams = {}
 ): Promise<ApiResponse<ProductListItem[]>> {
+  noStore();
   const { data } = await apiClient.get("/products", {
     params: toApiProductParams(params),
+    ...(typeof window !== "undefined" && {
+      headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+    }),
   });
 
   const normalized = normalizeApiResponse<ProductListItem[]>(data);
@@ -202,18 +200,21 @@ export async function createProduct(
 ): Promise<Product> {
   const { data } = await apiClient.post<ApiResponse<Product>>(
     "/products",
-    payload
+    payload,
+    { headers: authHeaders(accessToken) }
   );
   return data.data;
 }
 
 export async function updateProduct(
   id: string,
-  payload: ProductPayload
+  payload: ProductPayload,
+  accessToken?: string
 ): Promise<Product> {
   const { data } = await apiClient.put<ApiResponse<Product>>(
     `/products/${id}`,
-    payload
+    payload,
+    { headers: authHeaders(accessToken) }
   );
   return data.data;
 }

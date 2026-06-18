@@ -16,15 +16,13 @@ export default function ShopProductGrid({
   const searchParams = useSearchParams();
   const view = searchParams.get("view") === "list" ? "list" : "grid";
 
-  const categoryMap = Object.fromEntries(
-    categories.map((c) => [c.id, c.name]),
-  );
+  const categoryMap = Object.fromEntries(categories.map((c) => [c.id, c.name]));
 
   if (products.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-border bg-white px-6 py-16 text-center shadow-sm">
-        <p className="font-heading text-lg text-brown">No products found</p>
-        <p className="mt-2 text-sm text-muted-foreground">
+      <div className="border-border rounded-2xl border border-dashed bg-white px-6 py-16 text-center shadow-sm">
+        <p className="font-heading text-brown text-lg">No products found</p>
+        <p className="text-muted-foreground mt-2 text-sm">
           Try adjusting your filters or search term.
         </p>
       </div>
@@ -36,7 +34,7 @@ export default function ShopProductGrid({
       className={
         view === "list"
           ? "flex flex-col gap-4"
-          : "grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3"
+          : "grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3"
       }
     >
       {products.map((product) => (
@@ -44,9 +42,7 @@ export default function ShopProductGrid({
           <ShopProductCard
             product={product}
             categoryName={
-              product.categoryId
-                ? categoryMap[product.categoryId]
-                : undefined
+              product.categoryId ? categoryMap[product.categoryId] : undefined
             }
             layout={view}
           />

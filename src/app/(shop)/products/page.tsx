@@ -27,7 +27,9 @@ interface ProductsPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+export default async function ProductsPage({
+  searchParams,
+}: ProductsPageProps) {
   const params = await searchParams;
   const filters = parseShopListParamsFromRecord(params);
   const listParams = toStorefrontProductListParams(filters);
@@ -63,21 +65,21 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const meta: PaginationMeta = productsRes.meta ?? {
     page: filters.page,
     limit: filters.limit,
-    totalItems: products.length,
+    total: products.length,
     totalPages: 1,
   };
 
   return (
-    <main className="min-h-[60vh] bg-light-pink/25 py-6 md:py-10">
+    <main className="bg-light-pink/25 min-h-[60vh] py-6 md:py-10">
       <div className="container-main space-y-4">
         <Suspense fallback={null}>
           <ProductsPageHeader
-            totalItems={meta.totalItems}
+            totalItems={meta.total}
             categories={categoriesRes.data}
           />
         </Suspense>
 
-       <Suspense fallback={null}>
+        <Suspense fallback={null}>
           <ActiveFilterBadges categories={categoriesRes.data} />
         </Suspense>
 
@@ -85,19 +87,47 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           <CategoryGrid categories={categoriesRes.data} />
         </Suspense>
 
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-          <FilterSidebar
-            categories={categoriesRes.data}
-            categoryCounts={categoryCounts}
-            basePath="/products"
-            priceBounds={DEFAULT_PRICE_BOUNDS}
-          />
+        <div className="space-y-6">
+          <div className="-mt-4 flex items-start gap-2 lg:hidden">
+            <FilterSidebar
+              categories={categoriesRes.data}
+              categoryCounts={categoryCounts}
+              basePath="/products"
+              priceBounds={DEFAULT_PRICE_BOUNDS}
+            />
 
-          <div className="min-w-0 flex-1 space-y-4">
-            <Suspense fallback={null}>
-              <ProductListToolbar />
-            </Suspense>
+            <div className="min-w-0 flex-1 self-start">
+              <Suspense fallback={null}>
+                <ProductListToolbar />
+              </Suspense>
+            </div>
+          </div>
 
+          <div className="hidden flex-col gap-6 lg:flex lg:flex-row lg:items-start">
+            <FilterSidebar
+              categories={categoriesRes.data}
+              categoryCounts={categoryCounts}
+              basePath="/products"
+              priceBounds={DEFAULT_PRICE_BOUNDS}
+            />
+
+            <div className="min-w-0 flex-1 space-y-4">
+              <Suspense fallback={null}>
+                <ProductListToolbar />
+              </Suspense>
+
+              <ShopProductGrid
+                products={products}
+                categories={categoriesRes.data}
+              />
+
+              <Suspense fallback={null}>
+                <Pagination meta={meta} />
+              </Suspense>
+            </div>
+          </div>
+
+          <div className="space-y-4 lg:hidden">
             <ShopProductGrid
               products={products}
               categories={categoriesRes.data}
@@ -110,4 +140,5 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         </div>
       </div>
     </main>
-  )}
+  );
+}

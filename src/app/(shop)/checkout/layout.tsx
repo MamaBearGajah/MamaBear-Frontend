@@ -10,12 +10,12 @@ export default function CheckoutLayout({
 }) {
   return (
     <div className="bg-pink-50">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
         <CheckoutProvider>
           {/* Page Title */}
-          <h1 className="mb-6 pt-5 text-2xl font-bold">Checkout</h1>
+          <h1 className="mb-6 pt-1 text-2xl font-bold sm:pt-5">Checkout</h1>
           {/* Breadcrumb */}
-          <div className="mb-6 flex items-center gap-2 text-xs">
+          <div className="mb-6 flex flex-wrap items-center gap-2 text-xs">
             <Link href="/" className="hover:text-pink-600">
               Home
             </Link>
