@@ -8,7 +8,7 @@ const certifications = ["BPOM Certified", "Halal MUI", "ISO 9001"];
 import Newsletter from "../Newsletter";
 export default function Footer() {
   return (
-    <footer className=" bg-[#D5557E] font-[var(--font-quicksand)] text-white">
+    <footer className="bg-[#D5557E] font-[var(--font-quicksand)] text-white">
       <div className="mx-auto w-full max-w-[1280px] px-4 py-8 md:px-[3cm]">
         <div className="grid gap-8 md:grid-cols-[1.25fr_1fr_1fr_1.25fr]">
           <div>
@@ -129,7 +129,7 @@ export default function Footer() {
                   Lactation Consultation
                 </Link>
                 <Link
-                  href="#"
+                  href="/faq"
                   className="block transition hover:text-[#FACBD8]"
                 >
                   FAQ

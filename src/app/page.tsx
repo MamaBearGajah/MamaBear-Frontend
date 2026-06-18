@@ -11,6 +11,12 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import BackToTop from "@/components/common/BackToTop";
 
+export const metadata = {
+  title: "MamaBear | ASI Booster dan Produk Ibu & Anak",
+  description:
+    "MamaBear menyediakan produk ASI booster, cemilan sehat, dan kebutuhan ibu dan anak dengan pengalaman belanja yang hangat dan mudah.",
+};
+
 /*
 // Backend fetch for categories is temporarily disabled while BE is not ready.
 // Uncomment and use the function below when backend endpoint is available.
