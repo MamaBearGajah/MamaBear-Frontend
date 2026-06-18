@@ -27,7 +27,9 @@ interface ProductsPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+export default async function ProductsPage({
+  searchParams,
+}: ProductsPageProps) {
   const params = await searchParams;
   const filters = parseShopListParamsFromRecord(params);
   const listParams = toStorefrontProductListParams(filters);
@@ -63,21 +65,21 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const meta: PaginationMeta = productsRes.meta ?? {
     page: filters.page,
     limit: filters.limit,
-    totalItems: products.length,
+    total: products.length,
     totalPages: 1,
   };
 
   return (
-    <main className="min-h-[60vh] bg-light-pink/25 py-6 md:py-10">
+    <main className="bg-light-pink/25 min-h-[60vh] py-6 md:py-10">
       <div className="container-main space-y-4">
         <Suspense fallback={null}>
           <ProductsPageHeader
-            totalItems={meta.totalItems}
+            totalItems={meta.total}
             categories={categoriesRes.data}
           />
         </Suspense>
 
-       <Suspense fallback={null}>
+        <Suspense fallback={null}>
           <ActiveFilterBadges categories={categoriesRes.data} />
         </Suspense>
 
@@ -110,4 +112,5 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         </div>
       </div>
     </main>
-  )}
+  );
+}

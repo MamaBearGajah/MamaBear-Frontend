@@ -228,7 +228,6 @@
 //   return ctx;
 // }
 
-
 // 'use client';
 
 // import React, {
@@ -954,26 +953,29 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!authState.user) return; // still a guest
 
-    if (state.items.length > 0) {
-      // OPTION A — local only: items already in state, just drop the guestCartId
-      dispatch({ type: "SET_GUEST_ID", payload: null });
+    const syncCart = async () => {
+      dispatch({ type: "SET_LOADING", payload: true });
+      try {
+        if (state.guestCartId && state.items.length > 0) {
+          // Merge guest cart
+          const res = await cartApi.mergeGuest(state.guestCartId);
+          const { items } = parseCart(res.data);
+          dispatch({ type: "SET_CART", payload: { items } });
+        } else {
+          // Fetch user cart
+          const res = await cartApi.get();
+          const { items } = parseCart(res.data);
+          dispatch({ type: "SET_CART", payload: { items } });
+        }
+        dispatch({ type: "SET_GUEST_ID", payload: null });
+      } catch (err) {
+        console.error("Cart sync error:", err);
+      } finally {
+        dispatch({ type: "SET_LOADING", payload: false });
+      }
+    };
 
-      // OPTION B — sync to backend:
-      // (async () => {
-      //   dispatch({ type: 'SET_LOADING', payload: true });
-      //   try {
-      //     const merged = await mergeCartAPI(user.id, state.guestCartId, state.items);
-      //     dispatch({ type: 'SET_CART', payload: { items: merged } });
-      //     dispatch({ type: 'SET_GUEST_ID', payload: null });
-      //   } finally {
-      //     dispatch({ type: 'SET_LOADING', payload: false });
-      //   }
-      // })();
-    } else {
-      // No guest items — optionally fetch the user's saved cart from backend:
-      // const userCart = await fetchUserCart(user.id);
-      // dispatch({ type: 'SET_CART', payload: { items: userCart } });
-    }
+    void syncCart();
   }, [authState.user?.id]); // only fires when the logged-in identity changes
 
   // -------------------------------------------------------
@@ -993,7 +995,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         variantId: item.variantId,
         quantity: item.quantity,
       };
-
+      console.log(payload);
       try {
         let response;
 
@@ -1006,12 +1008,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
             guestCartId = await ensureGuestCartExists(guestCartId);
           }
 
+          const guestPayload = {
+            ...payload,
+            sessionId: guestCartId,
+          };
           try {
-            response = await guestCartApi.addItem(guestCartId, payload);
+            response = await guestCartApi.addItem(guestPayload);
           } catch (error: unknown) {
             if (axios.isAxiosError(error) && error.response?.status === 404) {
-              guestCartId = await ensureGuestCartExists(guestCartId);
-              response = await guestCartApi.addItem(guestCartId, payload);
+              // guestCartId = await ensureGuestCartExists(guestCartId);
+              response = await guestCartApi.addItem(guestPayload);
             } else {
               throw error;
             }

@@ -14,5 +14,5 @@ export const cartApi = {
   removeItem: (itemId: string) => apiClient.delete(`/cart/items/${itemId}`),
   clear: () => apiClient.delete("/cart"),
   mergeGuest: (guestCartId: string) =>
-    apiClient.post("/cart/merge-guest", { guestCartId }),
+    apiClient.post("/cart/merge-guest", { sessionId: guestCartId }),
 };
