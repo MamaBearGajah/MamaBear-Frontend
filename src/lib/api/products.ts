@@ -76,14 +76,10 @@ export async function getAllProducts(
   // accessToken?: string,
   params: ProductListParams = {}
 ): Promise<Product[]> {
-  const { data } = await apiClient.get(
-    `/Products`,
-    {    
-      // headers: authHeaders(accessToken), 
+  const { data } = await apiClient.get(`/Products`, {
+    // headers: authHeaders(accessToken),
     params: toApiProductParams(params),
-         
-    },
-  );
+  });
   const normalized = normalizeApiResponse<Product[]>(data);
   return Array.isArray(normalized.data) ? normalized.data : [];
 }
@@ -94,7 +90,7 @@ export async function getProductBySlug2(
   // accessToken?: string,
 ): Promise<Product> {
   const { data } = await apiClient.get(
-    `/products/slug/${slug}`,
+    `/products/slug/${slug}`
     // { headers: authHeaders(accessToken) },
   );
   const normalized = normalizeApiResponse<Product>(data);
@@ -117,12 +113,9 @@ export async function getProductVariantById(
   productId: string
   // accessToken?: string,
 ): Promise<ProductVariant[]> {
-  const { data } = await apiClient.get(
-    `/products/${productId}/variants`,
-    {
-      //  headers: authHeaders(accessToken)
-    }
-  );
+  const { data } = await apiClient.get(`/products/${productId}/variants`, {
+    //  headers: authHeaders(accessToken)
+  });
   const normalized = normalizeApiResponse<ProductVariant[]>(data);
   return Array.isArray(normalized.data) ? normalized.data : [];
 }

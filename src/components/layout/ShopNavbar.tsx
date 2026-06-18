@@ -153,6 +153,28 @@ function NavbarContent() {
                     </>
                   )}
 
+                  {!isAdmin && (
+                    <Link
+                      href="/account/profile"
+                      className="text-brown hover:text-dark-pink hidden text-sm font-medium transition-colors sm:inline"
+                    >
+                      Hi, {firstName}
+                    </Link>
+                  )}
+
+                  {isAdmin && (
+                    <>
+                      <ProfileDropdown user={currentUser} onLogout={logout} />
+                      <Link
+                        href="/admin"
+                        className="border-brown/30 text-brown hover:bg-light-pink/40 inline-flex items-center gap-1.5 rounded-full border bg-white px-3 py-2 text-sm font-medium transition-colors lg:px-4"
+                      >
+                        <Settings className="size-4" />
+                        <span className="hidden xl:inline">Admin</span>
+                      </Link>
+                    </>
+                  )}
+
                   <button
                     onClick={logout}
                     className="bg-dark-pink hover:bg-dark-pink/90 inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-white transition-colors lg:px-4"

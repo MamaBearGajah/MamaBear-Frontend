@@ -68,7 +68,7 @@ export default function PaymentPage() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-pink-50">
+      <div className="flex min-h-screen items-center justify-center bg-pink-50">
         <div className="text-center">
           <h1 className="text-xl font-bold mb-3">Keranjang kosong</h1>
           <Link href="/products" className="text-pink-600 underline">

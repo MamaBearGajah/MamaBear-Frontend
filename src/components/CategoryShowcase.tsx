@@ -20,7 +20,6 @@ interface CategoryCardProps {
   mobileSize?: boolean;
 }
 
-
 function CategoryCard({
   category,
   gradientClass,
@@ -114,11 +113,6 @@ export default async function CategorySection({
       : propCategories && propCategories.length > 0
         ? propCategories
         : [];
-
-  //   const categories =
-  // fetchedCategories.length > 0
-  //   ? fetchedCategories
-  //   : null;
 
   // gradient variants per card (deterministic for SSR)
   const gradientClasses = [
