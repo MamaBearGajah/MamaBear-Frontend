@@ -147,22 +147,22 @@ export default function Footer() {
                   Returns & Refunds
                 </Link>
                 <Link
-                  href="#"
+                  href="/account/orders"
                   className="block transition hover:text-[#FACBD8]"
                 >
                   Track My Order
                 </Link>
                 <Link
-                  href="#"
+                  href="/contact"
                   className="block transition hover:text-[#FACBD8]"
                 >
                   Contact Us
                 </Link>
                 <Link
-                  href="#"
+                  href="/articles"
                   className="block transition hover:text-[#FACBD8]"
                 >
-                  Blog & Tips
+                  Articles
                 </Link>
               </div>
             </div>
