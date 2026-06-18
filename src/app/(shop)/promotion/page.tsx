@@ -267,7 +267,7 @@ export default function PromotionLandingPage() {
         <div className="mx-auto max-w-7xl px-6">
           <div className="mb-12 flex flex-col items-center justify-between gap-6 md:flex-row">
             <div>
-              <h2 className="mb-3 text-4xl font-extrabold">Mother’s Day Hamper Collection</h2>
+              <h2 className="mb-3 text-4xl font-extrabold">Our Hamper Collection</h2>
               <p className="text-lg text-gray-600">Explore our bundle hampers and choose your favorite gift.</p>
             </div>
 
@@ -343,7 +343,7 @@ export default function PromotionLandingPage() {
 
       <section className="px-6 py-24">
         <div className="mx-auto max-w-5xl rounded-[40px] bg-gradient-to-r from-rose-500 to-pink-500 p-12 text-center text-white shadow-2xl">
-          <h2 className="mb-6 text-4xl font-extrabold md:text-5xl">Make Mother’s Day Extra Special</h2>
+          <h2 className="mb-6 text-4xl font-extrabold md:text-5xl">Make Your Day Extra Special</h2>
 
           <p className="mx-auto mb-10 max-w-3xl text-lg text-pink-100 md:text-xl">
             Grab the all-in-one hamper bundle now and share your appreciation with a meaningful gift.
