@@ -1,46 +1,182 @@
 "use client";
 
-/**
- * FIX: src/app/admin/articles/page.tsx
- *
- * Bugs yang diperbaiki:
- * 1. Duplicate import `User` dari lucide-react (3x) → rename ke UserIcon
- * 2. `User` dari @/types konflik dengan `User` lucide → pakai alias UserIcon
- * 3. `setauthorId` (lowercase a) dipanggil sebagai `setAuthorId` di form → konsistenkan
- * 4. `handleUpdateBlog(selectedBlogId)` — selectedBlogId bisa null → add null guard
- * 5. Import `apiClient` tidak dipakai → hapus
- * 6. `console.log` di render body → hapus
- * 7. Status badge styling yang ter-comment out → aktifkan
- * 8. Tambah toast (sonner) menggantikan alert()
- * 9. `BlogStatus` tambah type assertion yang aman untuk status setter
- */
-
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { createBlog, getAllBlogs, updateBlog, deleteBlog } from "@/lib/api/blog";
-import {
-  User as UserType,
-  BlogCreateListParams,
-  BlogUpdateListParams,
-  BlogList,
-  BlogStatus,
-} from "@/types";
+
+import { createBlog } from "@/lib/api/blog";
+import {getAllAdminBlogs, updateBlog, deleteBlog, } from "@/lib/api/blog";
+import { User, BlogCreateListParams, BlogUpdateListParams, BlogList } from "@/types";
 import { mockBlogs } from "@/lib/blog/articlesData";
+import { apiClient } from "@/lib/api/client";
+import { CalendarDays, Eye, FileText, Pencil, Trash2, User, User, User, Newspaper, Plus } from "lucide-react";
 import {
-  CalendarDays,
-  Eye,
-  FileText,
-  Pencil,
-  Trash2,
-  User as UserIcon,
-  Newspaper,
-  Plus,
-  Loader2,
-} from "lucide-react";
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardAction,
+  CardDescription,
+  CardContent
+} from "@/components/ui/card"
 
-const BLOG_STATUSES: BlogStatus[] = ["draft", "published"];
+export default function CreateBlogForm() {
+  const [selectedBlogId, setSelectedBlogId] = useState<string | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [openUpdateModal, setOpenUpdateModal] = useState(false);
+  const [openCreateModal, setOpenCreateModal] = useState(false);
+  const [blogId, setBlogId] = useState('blog id')
+  const [title, setTitle] = useState('blog title');
+  const [authorId, setauthorId] = useState('art-1');
+  const [slug, setSlug] = useState('blog slug')
+  const [content, setContent] = useState('blog content');
+  const [excerpt, setExcerpt] = useState('blog excerpt');
+  const [coverImage, setCoverImage] = useState('https://placehold.co/600x400')
+  const [status, setStatus] = useState('draft');
+  const [formSent, setFormSent] = useState(false);
 
-const MOCK_USERS: UserType[] = [
+  const [updateForm, setUpdateForm] = useState<BlogUpdateListParams>({
+    // title: "",
+    // authorId: "",
+    // slug: "",
+    // content: "",
+    // excerpt: "",
+    // coverImage: "",
+    // status: "draft",
+
+    title:"",
+    slug:"",
+    excerpt: "",
+    coverImage: "",
+    coverPublicId: "",
+    status: "draft",
+    content: "",
+
+
+
+  })
+
+
+
+  const [form, setForm] = useState<BlogCreateListParams>({
+    // title: "",
+    // authorId: "",
+    // slug: "",
+    // content: "",
+    // excerpt: "",
+    // coverImage: "",
+    // status: "draft",
+
+    title:"",
+    slug:"",
+    excerpt: "",
+    coverImage: "",
+    coverPublicId: "",
+    status: "draft",
+    content: "",
+  });
+
+  const [blog, setBlog] = useState<BlogList[]>([]);
+
+  async function fetchBlogs() {
+    try {
+      const fetchedBlogs = await getAllAdminBlogs();
+
+      if (
+        !Array.isArray(fetchedBlogs) ||
+        fetchedBlogs.length === 0
+      ) {
+        setBlog(mockBlogs);
+      } else {
+        setBlog(fetchedBlogs);
+      }
+    } catch (error) {
+      console.error(error);
+
+      setBlog(mockBlogs);
+    }
+  }
+
+
+useEffect(() => {
+  // async function fetchBlogs() {
+  //   try {
+  //     const fetchedBlogs = await getAllAdminBlogs();
+
+  //     if (
+  //       !Array.isArray(fetchedBlogs) ||
+  //       fetchedBlogs.length === 0
+  //     ) {
+  //       setBlog(mockBlogs);
+  //     } else {
+  //       setBlog(fetchedBlogs);
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+
+  //     setBlog(mockBlogs);
+  //   }
+  // }
+
+  fetchBlogs();
+}, []);
+
+
+
+// console.log("blog", blog)
+
+
+  
+
+  // ================= FETCH USERS (AUTHORS) =================
+//   const fetchUsers = async () => {
+//     try {
+//       const { data } = await apiClient.get("/users");
+//       setUsers(data.data);
+//     } catch (err) {
+//       console.error("Failed to fetch users:", err);
+//     }
+//   };
+
+// const MOCK_BLOGS: BlogList[] = [
+//   {
+//     id: "1",
+//     title: "Getting Started with Next.js",
+//     slug: "getting-started-nextjs",
+//     excerpt: "Learn the basics of Next.js in this guide.",
+//     content: "Full content here...",
+//     coverImage: "https://via.placeholder.com/300",
+//     status: "published",
+//     authorId: "1",
+//     createdAt: "2026-01-01T00:00:00.000Z",
+//     updatedAt: "2026-01-01T00:00:00.000Z",
+//   },
+//   {
+//     id: "2",
+//     title: "Understanding React State",
+//     slug: "react-state-guide",
+//     excerpt: "Deep dive into useState and state management.",
+//     content: "Full content here...",
+//     coverImage: "https://via.placeholder.com/300",
+//     status: "draft",
+//     authorId: "2",
+//     createdAt: "2026-01-01T00:00:00.000Z",
+//     updatedAt: "2026-01-01T00:00:00.000Z",
+//   },
+//   {
+//     id: "3",
+//     title: "Tailwind CSS Tips",
+//     slug: "tailwind-tips",
+//     excerpt: "Improve your UI faster with Tailwind tricks.",
+//     content: "Full content here...",
+//     coverImage: "https://via.placeholder.com/300",
+//     status: "published",
+//     authorId: "3",
+//     createdAt: "2026-01-01T00:00:00.000Z",
+//     updatedAt: "2026-01-01T00:00:00.000Z",
+//   },
+// ];
+
+const fetchUsers = async () => {
+const MOCK_USERS: User[] = [
   {
     id: "1",
     name: "John Doe",
@@ -70,398 +206,327 @@ const MOCK_USERS: UserType[] = [
   },
 ];
 
-const EMPTY_CREATE_FORM: BlogCreateListParams = {
-  title: "",
-  authorId: "",
-  slug: "",
-  content: "",
-  excerpt: "",
-  coverImage: "",
-  status: "draft",
+  setUsers(MOCK_USERS);
 };
 
-export default function AdminArticlesPage() {
-  const [selectedBlogId, setSelectedBlogId] = useState<string | null>(null);
-  const [users, setUsers] = useState<UserType[]>([]);
-  const [openUpdateModal, setOpenUpdateModal] = useState(false);
-  const [openCreateModal, setOpenCreateModal] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
 
-  // FIX: Satu nama konsisten — setAuthorId (bukan setauthorId)
-  const [title, setTitle] = useState("");
-  const [authorId, setAuthorId] = useState("");
-  const [slug, setSlug] = useState("");
-  const [content, setContent] = useState("");
-  const [excerpt, setExcerpt] = useState("");
-  const [coverImage, setCoverImage] = useState("");
-  const [status, setStatus] = useState<BlogStatus>("draft");
 
-  const [form, setForm] = useState<BlogCreateListParams>(EMPTY_CREATE_FORM);
-  const [blog, setBlog] = useState<BlogList[]>([]);
-
-  // ================= FETCH BLOGS =================
   useEffect(() => {
-    async function fetchBlogs() {
-      try {
-        const fetchedBlogs = await getAllBlogs();
-        setBlog(
-          Array.isArray(fetchedBlogs) && fetchedBlogs.length > 0
-            ? fetchedBlogs
-            : mockBlogs
-        );
-      } catch {
-        setBlog(mockBlogs);
-      }
-    }
-    fetchBlogs();
-  }, []);
-
-  // ================= FETCH USERS =================
-  useEffect(() => {
-    // TODO: ganti dengan API call ke /users ketika endpoint tersedia
-    setUsers(MOCK_USERS);
+    fetchUsers();
   }, []);
 
   // ================= CREATE BLOG =================
   const handleSubmit = async () => {
-    if (!form.title || !form.slug || !form.content) {
-      toast.error("Title, slug, dan content wajib diisi");
-      return;
-    }
-
-    setIsSaving(true);
     try {
-      const created = await createBlog(form);
-      toast.success("Blog berhasil dibuat!");
-      setOpenCreateModal(false);
-      setForm(EMPTY_CREATE_FORM);
-      // Refresh list
-      setBlog((prev) => [created as unknown as BlogList, ...prev]);
+      await createBlog(form);
+
+      alert("Blog created!");
+
+      setForm({
+        // title: "",
+        // authorId: "",
+        // slug: "",
+        // content: "",
+        // excerpt: "",
+        // coverImage: "",
+        // status: "draft",
+
+        title:"",
+        slug:"",
+        excerpt: "",
+        coverImage: "",
+        coverPublicId: "",
+        status: "draft",
+        content: "",
+          });
+        await fetchBlogs();
+
+      // setFormSent((prev)=>!prev)
+
+
     } catch (err) {
       console.error("Create blog failed:", err);
-      toast.error("Gagal membuat blog. Coba lagi.");
-    } finally {
-      setIsSaving(false);
     }
   };
 
-  // ================= UPDATE BLOG =================
-  const handleUpdateBlog = async () => {
-    // FIX: null guard untuk selectedBlogId
-    if (!selectedBlogId) return;
+const handleUpdateBlog = async (selectedBlogId:string) => {
+  if (!selectedBlogId) return;
+  // console.log("selectedBlogId", selectedBlogId)
 
-    if (!title || !slug) {
-      toast.error("Title dan slug wajib diisi");
-      return;
-    }
+  try {
+    const payload: BlogUpdateListParams = {
+      title,
+      // authorId,
+      slug,
+      content,
+      excerpt,
+      coverImage,
+      status,
+    };
 
-    setIsSaving(true);
-    try {
-      const payload: BlogUpdateListParams = {
-        title,
-        authorId,
-        slug,
-        content,
-        excerpt,
-        coverImage,
-        status,
-      };
+    await updateBlog(selectedBlogId, payload);
 
-      await updateBlog(selectedBlogId, payload);
-      toast.success("Blog berhasil diperbarui!");
-      setOpenUpdateModal(false);
+    await fetchBlogs(); 
 
-      // Refresh list
-      setBlog((prev) =>
-        prev.map((b) =>
-          b.id === selectedBlogId ? { ...b, ...payload } : b
-        )
-      );
-    } catch (err) {
-      console.error("Failed to update blog:", err);
-      toast.error("Gagal memperbarui blog.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
+    alert("Blog updated successfully");
 
-  // ================= DELETE BLOG =================
-  const handleDeleteBlog = async (id: string) => {
-    if (!confirm("Hapus artikel ini?")) return;
-    try {
-      await deleteBlog(id);
-      toast.success("Blog dihapus");
-      setBlog((prev) => prev.filter((b) => b.id !== id));
-    } catch {
-      toast.error("Gagal menghapus blog");
-    }
-  };
+    // await fetchBlogs();
+    // setFormSent((prev)=>!prev)
 
-  // ================= OPEN EDIT MODAL =================
-  const openEdit = (item: BlogList) => {
-    setSelectedBlogId(item.id);
-    setTitle(item.title);
-    setContent(item.content);
-    setSlug(item.slug);
-    setExcerpt(item.excerpt);
-    setCoverImage(item.coverImage);
-    // FIX: konsisten pakai setAuthorId
-    setAuthorId(item.authorId);
-    setStatus(item.status);
-    setOpenUpdateModal(true);
-  };
+    setOpenUpdateModal(false);
+  } catch (err) {
+    console.error("Failed to update blog:", err);
+  }
+};
 
-  // ================= HELPERS =================
-  const statusBadge = (s: BlogStatus) => {
-    const cls =
-      s === "published"
-        ? "bg-green-100 text-green-800"
-        : s === "cancelled"
-          ? "bg-gray-100 text-gray-600"
-          : "bg-yellow-100 text-yellow-800";
-    return (
-      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${cls}`}>
-        {s}
-      </span>
-    );
-  };
+  // function setSelectedBlogId(id: string) {
+  //   throw new Error("Function not implemented.");
+  // }
 
-  // =========================
-  // RENDER
-  // =========================
   return (
-    <div className="p-5">
-      {/* ────────────────── UPDATE MODAL ────────────────── */}
-      {openUpdateModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+    <div style={{ padding: 20 }}>
+{
+  openUpdateModal && (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      onClick={() => setOpenUpdateModal(false)}
+    >
+      <div
+        className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close button */}
+        <button
+          type="button"
           onClick={() => setOpenUpdateModal(false)}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-xl font-bold"
         >
-          <div
-            className="bg-white p-6 rounded-xl w-full max-w-lg shadow-xl relative max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
+          ✕
+        </button>
+
+        <h2 className="text-xl font-bold mb-4">
+          Update Blog
+        </h2>
+
+        <form className="space-y-3">
+          <div>
+            <label htmlFor="title" className="block mb-1 font-medium">
+              Title
+            </label>
+            <input
+              type="text"
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full border p-2 rounded"
+            />
+          </div>
+
+          {/* <div>
+            <label htmlFor="authorId" className="block mb-1 font-medium">
+              Author ID
+            </label>
+            <input
+              type="text"
+              id="authorId"
+              value={authorId}
+              onChange={(e) => setAuthorId(e.target.value)}
+              className="w-full border p-2 rounded"
+            />
+          </div> */}
+
+          <div>
+            <label htmlFor="slug" className="block mb-1 font-medium">
+              Slug
+            </label>
+            <input
+              type="text"
+              id="slug"
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
+              className="w-full border p-2 rounded"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="excerpt" className="block mb-1 font-medium">
+              Excerpt
+            </label>
+            <input
+              type="text"
+              id="excerpt"
+              value={excerpt}
+              onChange={(e) => setExcerpt(e.target.value)}
+              className="w-full border p-2 rounded"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="coverImage" className="block mb-1 font-medium">
+              Cover Image
+            </label>
+            <input
+              type="text"
+              id="coverImage"
+              value={coverImage}
+              onChange={(e) => setCoverImage(e.target.value)}
+              className="w-full border p-2 rounded"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="content" className="block mb-1 font-medium">
+              Content
+            </label>
+            <textarea
+              id="content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="w-full border p-2 rounded"
+              rows={8}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="status" className="block mb-1 font-medium">
+              Status
+            </label>
+            <select
+              id="status"
+              value={status}
+              onChange={(e) =>
+                setStatus(e.target.value as "draft" | "published")
+              }
+              className="w-full border p-2 rounded"
+            >
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+            </select>
+          </div>
+
+          <div className="flex gap-2 justify-end pt-4">
             <button
               type="button"
               onClick={() => setOpenUpdateModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-xl font-bold"
+              className="px-4 py-2 border rounded hover:bg-gray-100"
             >
-              ✕
+              Cancel
             </button>
 
-            <h2 className="text-xl font-bold mb-4">Update Blog</h2>
-
-            <div className="space-y-3">
-              {[
-                { label: "Title", val: title, set: setTitle, id: "u-title" },
-                { label: "Slug", val: slug, set: setSlug, id: "u-slug" },
-                { label: "Cover Image URL", val: coverImage, set: setCoverImage, id: "u-cover" },
-              ].map(({ label, val, set, id }) => (
-                <div key={id}>
-                  <label htmlFor={id} className="block mb-1 font-medium text-sm">
-                    {label}
-                  </label>
-                  <input
-                    type="text"
-                    id={id}
-                    value={val}
-                    onChange={(e) => set(e.target.value)}
-                    className="w-full border p-2 rounded text-sm"
-                  />
-                </div>
-              ))}
-
-              <div>
-                <label htmlFor="u-author" className="block mb-1 font-medium text-sm">
-                  Author
-                </label>
-                <select
-                  id="u-author"
-                  value={authorId}
-                  // FIX: setAuthorId (bukan setauthorId)
-                  onChange={(e) => setAuthorId(e.target.value)}
-                  className="w-full border p-2 rounded text-sm"
-                >
-                  <option value="">Select Author</option>
-                  {users.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.name} ({u.email})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="u-excerpt" className="block mb-1 font-medium text-sm">
-                  Excerpt
-                </label>
-                <textarea
-                  id="u-excerpt"
-                  value={excerpt}
-                  onChange={(e) => setExcerpt(e.target.value)}
-                  className="w-full border p-2 rounded text-sm"
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="u-content" className="block mb-1 font-medium text-sm">
-                  Content
-                </label>
-                <textarea
-                  id="u-content"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  className="w-full border p-2 rounded text-sm"
-                  rows={8}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="u-status" className="block mb-1 font-medium text-sm">
-                  Status
-                </label>
-                <select
-                  id="u-status"
-                  value={status}
-                  // FIX: cast yang aman dengan type guard
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (BLOG_STATUSES.includes(val as BlogStatus)) {
-                      setStatus(val as BlogStatus);
-                    }
-                  }}
-                  className="w-full border p-2 rounded text-sm"
-                >
-                  <option value="draft">Draft</option>
-                  <option value="published">Published</option>
-                </select>
-              </div>
-
-              <div className="flex gap-2 justify-end pt-4">
-                <button
-                  type="button"
-                  onClick={() => setOpenUpdateModal(false)}
-                  className="px-4 py-2 border rounded hover:bg-gray-100 text-sm"
-                >
-                  Batal
-                </button>
-                <button
-                  type="button"
-                  onClick={handleUpdateBlog}
-                  disabled={isSaving}
-                  className="flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700 text-sm disabled:opacity-60"
-                >
-                  {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Update Blog
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ────────────────── HEADER ────────────────── */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-2">
-          <Newspaper className="w-5 h-5 text-pink-600" />
-          <h1 className="text-xl font-bold">
-            Articles{" "}
-            <span className="text-sm font-normal text-gray-500">
-              ({blog.length})
-            </span>
-          </h1>
-        </div>
-        <button
-          type="button"
-          className="flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition text-sm"
-          onClick={() => {
-            setForm(EMPTY_CREATE_FORM);
-            setOpenCreateModal(true);
-          }}
-        >
-          <Plus size={16} />
-          Add Article
-        </button>
-      </div>
-
-      {/* ────────────────── BLOG LIST ────────────────── */}
-      {blog.length > 0 ? (
-        <div className="space-y-3">
-          {blog.map((item) => (
-            <div
-              key={item.id}
-              className="grid items-stretch bg-white border rounded-xl overflow-hidden hover:border-gray-300 transition-colors"
-              style={{ gridTemplateColumns: "112px 1fr auto", borderColor: "#e5e7eb" }}
+            <button
+              type="button"
+              onClick={() => handleUpdateBlog(selectedBlogId)}
+              className="px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700"
             >
-              {/* Cover image */}
-              <div className="w-28 h-24 shrink-0 bg-gray-50 flex items-center justify-center">
-                {item.coverImage ? (
-                  <img
-                    src={item.coverImage}
-                    alt={item.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <FileText size={24} className="text-gray-300" />
-                )}
-              </div>
+              Update Blog
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+<div className='flex justify-between items-center'>
 
-              {/* Body */}
-              <div className="flex flex-col gap-1.5 px-4 py-3 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="text-sm font-semibold text-gray-900 truncate">
-                    {item.title}
-                  </p>
-                  {statusBadge(item.status)}
-                </div>
-                <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">
-                  {item.content?.replace(/#{1,6}\s|(\*+)/g, "").slice(0, 120)}…
-                </p>
-                <div className="flex items-center gap-4 mt-auto pt-1">
-                  <span className="flex items-center gap-1 text-xs text-gray-400">
-                    {/* FIX: UserIcon (bukan User yang konflik) */}
-                    <UserIcon size={11} /> {item.authorId}
-                  </span>
-                  <span className="flex items-center gap-1 text-xs text-gray-400">
-                    <CalendarDays size={11} />
-                    {new Date(item.createdAt).toLocaleDateString("id-ID", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </span>
-                  <span className="flex items-center gap-1 text-xs text-gray-400">
-                    <Eye size={11} /> {item.viewCount?.toLocaleString() ?? 0}
-                  </span>
-                </div>
-              </div>
+        Articles ({blog.length})
+        <button 
+          type='button'
+          className='text-white flex justify-center items-center mr-3 gap-3 border-2 p-2 m-3 bg-dark-pink hover:opacity-80 cursor-pointer transition duration-300 rounded-lg' 
+          onClick={() => setOpenCreateModal((prev)=>!prev)}><Plus size={20}></Plus>
+            Add Article
+        </button>
 
-              {/* Actions */}
-              <div className="flex flex-col justify-center gap-2 px-4">
-                <button
-                  onClick={() => openEdit(item)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border text-gray-600 hover:bg-gray-50 transition-colors"
-                >
-                  <Pencil size={12} />
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDeleteBlog(item.id)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
-                >
-                  <Trash2 size={12} /> Delete
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-gray-400 text-sm">Belum ada artikel.</p>
-      )}
+</div>
 
-      {/* ────────────────── CREATE MODAL ────────────────── */}
-      {openCreateModal && (
+        {blog && blog.length > 0 ? (
+                blog.map((item) => (
+                  <div
+                    key={item.id}
+                    className="grid items-stretch bg-white border rounded-xl overflow-hidden hover:border-gray-300 transition-colors"
+                    style={{ gridTemplateColumns: "112px 1fr auto", borderColor: "#e5e7eb" }}
+                  >
+                    {/* {setBlogId(item.id)} */}
+
+                    {/* Cover image */}
+                    <div className="w-28 h-24 shrink-0 bg-gray-50 flex items-center justify-center">
+                      {item.coverImage ? (
+                        <img src={item.coverImage} alt={item.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <FileText size={24} className="text-gray-300" />
+                      )}
+                    </div>
+
+                    {/* Body */}
+                    <div className="flex flex-col gap-1.5 px-4 py-3 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-sm font-semibold text-gray-900 truncate">{item.title}</p>
+                        <span
+                          // className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          //   item.status === "published"
+                          //     ? "bg-green-100 text-green-800"
+                          //     // : item.status === "archived"
+                          //     ? "bg-gray-100 text-gray-600"
+                          //     : "bg-yellow-100 text-yellow-800"
+                          // }`}
+                        >
+                          {item.status}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">
+                        {item.content?.replace(/#{1,6}\s|(\*+)/g, "").slice(0, 120)}…
+                      </p>
+                      <div className="flex items-center gap-4 mt-auto pt-1">
+                        <span className="flex items-center gap-1 text-xs text-gray-400">
+                          <User size={11} /> {item.authorId}
+                        </span>
+                        <span className="flex items-center gap-1 text-xs text-gray-400">
+                          <CalendarDays size={11} />
+                          {new Date(item.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+                        </span>
+                        <span className="flex items-center gap-1 text-xs text-gray-400">
+                          <Eye size={11} /> {item.viewCount?.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex flex-col justify-center gap-2 px-4">
+                    <button
+                      onClick={() => {
+                        setSelectedBlogId(item.id);
+
+                        setTitle(item.title);
+                        setContent(item.content);
+                        setSlug(item.slug);
+                        setExcerpt(item.excerpt);
+                        setCoverImage(item.coverImage);
+                        setauthorId(item.authorId);
+                        setStatus(item.status);
+
+                        setOpenUpdateModal(true);
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border text-gray-600 hover:bg-gray-50 transition-colors"
+                    >
+                      <Pencil size={12} />
+                      Edit
+                    </button>
+                      <button
+                        onClick={() => deleteBlog(item.id)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        <Trash2 size={12} /> Delete
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )  : (
+          <p>No Blog Found</p>
+        )}
+
+
+
+
+       {openCreateModal && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
           onClick={() => setOpenCreateModal(false)}
@@ -474,10 +539,11 @@ export default function AdminArticlesPage() {
               <h2 className="text-2xl font-bold text-gray-800">
                 Create New Blog
               </h2>
+
               <button
                 type="button"
                 onClick={() => setOpenCreateModal(false)}
-                className="text-gray-400 hover:text-gray-600 text-xl w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"
+                className="text-gray-400 bg-dark-pink hover:text-gray-600 text-xl"
               >
                 ✕
               </button>
@@ -495,16 +561,17 @@ export default function AdminArticlesPage() {
                   htmlFor="createtitle"
                   className="block mb-1 text-sm font-medium text-gray-700"
                 >
-                  Title <span className="text-red-500">*</span>
+                  Title
                 </label>
                 <input
                   id="createtitle"
                   type="text"
                   value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm"
-                  placeholder="Judul artikel"
-                  required
+                  onChange={(e) =>
+                    setForm({ ...form, title: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter blog title"
                 />
               </div>
 
@@ -513,48 +580,45 @@ export default function AdminArticlesPage() {
                   htmlFor="createslug"
                   className="block mb-1 text-sm font-medium text-gray-700"
                 >
-                  Slug <span className="text-red-500">*</span>
+                  Slug
                 </label>
                 <input
                   id="createslug"
                   type="text"
                   value={form.slug}
                   onChange={(e) =>
-                    setForm({
-                      ...form,
-                      slug: e.target.value
-                        .toLowerCase()
-                        .replace(/\s+/g, "-")
-                        .replace(/[^a-z0-9-]/g, ""),
-                    })
+                    setForm({ ...form, slug: e.target.value })
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="my-blog-post"
-                  required
                 />
               </div>
 
-              <div>
+              {/* <div>
                 <label
                   htmlFor="createauthorid"
                   className="block mb-1 text-sm font-medium text-gray-700"
                 >
                   Author
                 </label>
+
                 <select
                   id="createauthorid"
                   value={form.authorId}
-                  onChange={(e) => setForm({ ...form, authorId: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm"
+                  onChange={(e) =>
+                    setForm({ ...form, authorId: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select Author</option>
-                  {users.map((user) => (
+
+                  {users?.map((user) => (
                     <option key={user.id} value={user.id}>
                       {user.name} ({user.email})
                     </option>
                   ))}
                 </select>
-              </div>
+              </div> */}
 
               <div>
                 <label
@@ -563,13 +627,16 @@ export default function AdminArticlesPage() {
                 >
                   Excerpt
                 </label>
+
                 <textarea
                   id="createexcerpt"
                   rows={3}
                   value={form.excerpt}
-                  onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm"
-                  placeholder="Deskripsi singkat artikel..."
+                  onChange={(e) =>
+                    setForm({ ...form, excerpt: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Short description..."
                 />
               </div>
 
@@ -578,16 +645,18 @@ export default function AdminArticlesPage() {
                   htmlFor="createcontent"
                   className="block mb-1 text-sm font-medium text-gray-700"
                 >
-                  Content <span className="text-red-500">*</span>
+                  Content
                 </label>
+
                 <textarea
                   id="createcontent"
                   rows={8}
                   value={form.content}
-                  onChange={(e) => setForm({ ...form, content: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm"
-                  placeholder="Tulis konten artikel di sini..."
-                  required
+                  onChange={(e) =>
+                    setForm({ ...form, content: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Write your content here..."
                 />
               </div>
 
@@ -598,6 +667,7 @@ export default function AdminArticlesPage() {
                 >
                   Cover Image URL
                 </label>
+
                 <input
                   id="createcoverimage"
                   type="text"
@@ -605,7 +675,7 @@ export default function AdminArticlesPage() {
                   onChange={(e) =>
                     setForm({ ...form, coverImage: e.target.value })
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="https://..."
                 />
               </div>
@@ -617,16 +687,17 @@ export default function AdminArticlesPage() {
                 >
                   Status
                 </label>
+
                 <select
                   id="createstatus"
                   value={form.status}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (BLOG_STATUSES.includes(val as BlogStatus)) {
-                      setForm({ ...form, status: val as BlogStatus });
-                    }
-                  }}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm"
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      status: e.target.value as any,
+                    })
+                  }
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="draft">Draft</option>
                   <option value="published">Published</option>
@@ -637,16 +708,15 @@ export default function AdminArticlesPage() {
                 <button
                   type="button"
                   onClick={() => setOpenCreateModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 text-sm"
+                  className="px-4 py-2 border bg-dark-pink border-gray-300 rounded-lg hover:bg-gray-100"
                 >
-                  Batal
+                  Cancel
                 </button>
+
                 <button
                   type="submit"
-                  disabled={isSaving}
-                  className="flex items-center gap-2 px-5 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 text-sm disabled:opacity-60"
+                  className="px-5 py-2 bg-dark-pink text-white rounded-lg hover:bg-blue-700"
                 >
-                  {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
                   Create Blog
                 </button>
               </div>
@@ -654,6 +724,12 @@ export default function AdminArticlesPage() {
           </div>
         </div>
       )}
+
+
     </div>
   );
 }
+
+function fetchBlogs() {
+  throw new Error("Function not implemented.");
+}         

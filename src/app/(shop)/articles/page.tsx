@@ -283,6 +283,7 @@ useEffect(() => {
   async function fetchBlogs() {
     try {
       const result = await getAllBlogs();
+      console.log("result", result)
 
       if (
         Array.isArray(result) &&
@@ -305,6 +306,8 @@ useEffect(() => {
 
   fetchBlogs();
 }, []);
+
+console.log("blogs", blogs)
 
   const filteredBlogs = useMemo(() => {
     const query = search.toLowerCase();
@@ -375,7 +378,7 @@ useEffect(() => {
             {filteredBlogs.map((blog) => (
               <Link
                 key={blog.id}
-                href={`/articles/${blog.id}`}
+                href={`/articles/${blog.slug}`}
                 className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all"
               >
                 <img
