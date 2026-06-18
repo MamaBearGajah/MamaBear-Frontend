@@ -9,6 +9,8 @@ import {
   Settings,
   ShoppingCart,
   Tags,
+  Flower2,
+  // Rose,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -88,6 +90,13 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     label: "Banner",
     href: "/admin/HomeBanner",
     icon: MonitorCog,
+    roles: ["admin","super_admin"],
+    disabled: false,
+  },
+  {
+    label: "Bundles",
+    href: "/admin/bundles",
+    icon: Flower2,
     roles: ["admin","super_admin"],
     disabled: false,
   },

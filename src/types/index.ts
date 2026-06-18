@@ -571,4 +571,24 @@ export interface homeBannerParams {
   endDate: string|Date;
 }
 
+
+export interface bundleHamperParams {
+  name: string;
+  slug: string;
+  description: string;
+  imageUrl: string;
+  publicId: string;
+  bundlePrice: number;
+  discountPrice: number;
+  isActive: boolean;
+  stock: number;
+  sortOrder: number;
+  startDate: string|Date;
+  endDate: string|Date;
+  items: {
+    productId: string;
+    quantity: number;
+  }[];
+}
+
 export type AddressPayload = Omit<Address, "id">;
