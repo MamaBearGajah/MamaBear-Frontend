@@ -43,6 +43,62 @@ interface TopProductsProps {
   products?: (Product | BestsellerProduct)[];
 }
 
+function parseRatingValue(rating: string | number | undefined): number {
+  if (typeof rating === "number") {
+    if (Number.isNaN(rating)) return 0;
+    return Math.max(0, Math.min(5, rating));
+  }
+
+  if (typeof rating === "string") {
+    const match = rating.match(/\d+(?:\.\d+)?/);
+    if (!match) return 0;
+    const parsed = Number(match[0]);
+    if (Number.isNaN(parsed)) return 0;
+    return Math.max(0, Math.min(5, parsed));
+  }
+
+  return 0;
+}
+
+function renderRatingStars(rating: string | number | undefined) {
+  const rounded = Math.round(parseRatingValue(rating) * 2) / 2;
+  const fullStars = Math.floor(rounded);
+  const hasHalfStar = rounded % 1 !== 0;
+
+  return Array.from({ length: 5 }, (_, index) => {
+    const starKey = `star-${index}`;
+
+    if (index < fullStars) {
+      return (
+        <span key={starKey} className="text-[#F4A300]" aria-hidden>
+          ★
+        </span>
+      );
+    }
+
+    if (index === fullStars && hasHalfStar) {
+      return (
+        <span
+          key={starKey}
+          className="relative inline-block text-[#E3D7D1]"
+          aria-hidden
+        >
+          ★
+          <span className="absolute inset-y-0 left-0 w-1/2 overflow-hidden text-[#F4A300]">
+            ★
+          </span>
+        </span>
+      );
+    }
+
+    return (
+      <span key={starKey} className="text-[#E3D7D1]" aria-hidden>
+        ★
+      </span>
+    );
+  });
+}
+
 function isBestsellerProduct(product: any): product is BestsellerProduct {
   return product && typeof product === "object" && "imageLabel" in product;
 }
@@ -369,7 +425,12 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                   </h3>
 
                   <div className="mt-2 flex items-center gap-2 text-[12px] font-normal text-[#8D6B5B]">
-                    <span className="text-[#F4A300]">★★★★★</span>
+                    <span
+                      className="inline-flex items-center"
+                      aria-label={`Rating ${parseRatingValue(product.rating)} out of 5`}
+                    >
+                      {renderRatingStars(product.rating)}
+                    </span>
                     <span>{product.rating}</span>
                   </div>
 
@@ -439,7 +500,7 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
         <div className="mt-5 grid grid-cols-2 gap-3 px-4">
           {shownProducts.map((product, index) => {
             const toggleId = `top-products-mobile-cart-toggle-${index}`;
-            const productHref = `/product/${product.slug ?? product.id ?? product.name}`;
+            const productHref = `/products/${product.slug ?? product.id ?? product.name}`;
 
             return (
               <article
@@ -524,7 +585,12 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                   </h3>
 
                   <div className="mt-1.5 flex items-center gap-1.5 text-[10px] font-normal text-[#8D6B5B]">
-                    <span className="text-[#F4A300]">★★★★★</span>
+                    <span
+                      className="inline-flex items-center"
+                      aria-label={`Rating ${parseRatingValue(product.rating)} out of 5`}
+                    >
+                      {renderRatingStars(product.rating)}
+                    </span>
                     <span>{product.rating}</span>
                   </div>
 

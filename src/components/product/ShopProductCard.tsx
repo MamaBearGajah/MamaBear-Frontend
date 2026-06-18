@@ -62,33 +62,19 @@ export default function ShopProductCard({
             src={imageUrl}
             alt={product.name}
             fill
-<<<<<<< HEAD
             sizes="(max-width: 1280px) 50vw, 33vw"
-=======
-            sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, 25vw"
->>>>>>> 9e8340474f86f753e081379410b8f8dfd9ea85d9
             className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           />
         </Link>
 
         <div
-          className="from-brown/50 via-brown/10 pointer-events-none absolute inset-0 bg-gradient-to-t to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          className="from-brown/50 via-brown/10 pointer-events-none absolute inset-0 bg-linear-to-t to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
           aria-hidden
         />
 
-<<<<<<< HEAD
         <div className="absolute top-3 right-3 z-10">
           <WishlistButton productId={product.id} variant="overlay" />
         </div>
-=======
-        <button
-          type="button"
-          aria-label="Add to wishlist"
-          className="text-brown hover:bg-light-pink hover:text-dark-pink absolute top-3 right-3 z-10 flex size-9 items-center justify-center rounded-full bg-white/95 shadow-sm transition-colors"
-        >
-          <Heart className="size-4" strokeWidth={1.75} />
-        </button>
->>>>>>> 9e8340474f86f753e081379410b8f8dfd9ea85d9
 
         <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
           {product.badge && (
@@ -114,24 +100,6 @@ export default function ShopProductCard({
             Out of Stock
           </span>
         )}
-<<<<<<< HEAD
-=======
-
-        {inStock && (
-          <Link
-            href={`/products/${product.slug}`}
-            className={cn(
-              "bg-dark-pink absolute inset-x-3 bottom-3 z-20 flex items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold text-white shadow-md",
-              "translate-y-full opacity-0 transition-all duration-300 ease-out",
-              "group-hover:translate-y-0 group-hover:opacity-100",
-              "hover:bg-dark-pink/90"
-            )}
-          >
-            <ShoppingCart className="size-4" strokeWidth={2} />
-            Buy Now
-          </Link>
-        )}
->>>>>>> 9e8340474f86f753e081379410b8f8dfd9ea85d9
       </div>
 
       <Link
@@ -143,7 +111,7 @@ export default function ShopProductCard({
             {categoryName}
           </p>
         )}
-        <h3 className="text-brown group-hover:text-dark-pink sm:font-heading line-clamp-2 text-[12px] leading-[1.25] font-semibold transition-colors sm:text-base">
+        <h3 className="text-brown group-hover:text-dark-pink sm:font-heading line-clamp-2 text-[12px] leading-tight font-semibold transition-colors sm:text-base">
           {product.name}
         </h3>
 
