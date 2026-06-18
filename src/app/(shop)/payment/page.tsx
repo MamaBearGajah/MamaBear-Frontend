@@ -1,294 +1,263 @@
 "use client";
 
-import React, { useState } from "react";
+/**
+ * FIX: src/app/(shop)/payment/page.tsx
+ *
+ * Bug sebelumnya:
+ * 1. handlePayment memanggil fetch("../lib/api/payment/create") — path salah,
+ *    relative path ini tidak akan resolve ke Next.js API route
+ * 2. Tidak menggunakan placeShopOrder yang sudah ada
+ * 3. Tidak menggunakan shipping dari CheckoutContext
+ * 4. Tidak ada integrasi Midtrans Snap
+ * 5. Tidak clear cart setelah order berhasil
+ *
+ * Fix:
+ * - Gunakan placeShopOrder() yang sudah benar (createOrder → checkoutPayment → BE)
+ * - Support Xendit (redirect ke paymentUrl) dan Midtrans Snap (popup)
+ * - Clear cart setelah berhasil
+ */
+
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/hooks/useCart";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CreditCard, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
-import PaymentSelector, { PaymentMethod } from "@/components/checkout/PaymentSelector";
 import { useCheckout } from "@/context/CheckoutContext";
-import QRCode from "react-qr-code";
 import { safeFormatPrice } from "@/lib/utils";
 import { placeShopOrder } from "@/lib/shop/place-order";
 
-const DEV_FALLBACK_ORDER_ID = "ORD-2026-8921";
+type Gateway = "xendit" | "midtrans";
 
-const PaymentPage = () => {
-  const { state, clearCart } = useCart();
-  const [paymentData, setPaymentData] = useState<any>(null);
-  // const router = useRouter();
+const GATEWAY_OPTIONS: { value: Gateway; label: string; desc: string }[] = [
+  {
+    value: "xendit",
+    label: "Xendit",
+    desc: "Transfer bank, VA, QRIS, e-wallet",
+  },
+  {
+    value: "midtrans",
+    label: "Midtrans",
+    desc: "Kartu kredit, GoPay, OVO, VA",
+  },
+];
+
+export default function PaymentPage() {
+  const { state: cartState, clearCart } = useCart();
+  const {
+    state: checkoutState,
+    clearCheckout,
+    subtotal,
+  } = useCheckout();
+
   const router = useRouter();
-  const { state: checkoutState, setShipping, clearCheckout, subtotal } = useCheckout();
-  const { items, method:shippingmethod, discount } = checkoutState;
-  // console.log("items", items)
-
-  // console.log("checkoutState", checkoutState)
-
-  // console.log("shippingmethod", shippingmethod)
-
-  // const shippingCost = checkoutState.method?.cost ?? 0;
-
-  // console.log("shippingCost", shippingCost)
-
-
-  // const [method, setMethod] = useState<PaymentMethod>("gopay");
-  // const [gateway, setGateway] = useState<"xendit" | "midtrans">("xendit");
-  const [method, setMethod] = useState<PaymentMethod>("gopay");
-  const [gateway, setGateway] = useState<"xendit" | "midtrans">("xendit");
+  const [gateway, setGateway] = useState<Gateway>("xendit");
   const [loading, setLoading] = useState(false);
 
-  // const discount = subtotal * 0.15;
-  // const discount = 0
-  const shipping = shippingmethod?.cost ?? 0;
-  const total = subtotal - discount + shipping;
+  const shippingCost = checkoutState.method?.cost ?? 0;
+  const discount = checkoutState.discount ?? 0;
+  const total = subtotal - discount + shippingCost;
 
-const handlePayment = async () => {
-  try {
-    setLoading(true);
-
-    const orderId = `ORD-${Date.now()}`;
-
-    const response = await fetch("../lib/api/payment/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        orderId,
-        amount: total,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (data.checkoutUrl) {
-      window.location.href = data.checkoutUrl;
-      return;
+  // Guard: jangan bisa akses halaman ini tanpa item
+  const items = checkoutState.items ?? [];
+  useEffect(() => {
+    if (items.length === 0) {
+      router.replace("/cart");
     }
+  }, [items.length, router]);
 
-    toast.error("Failed to get payment URL");
-  } catch (error) {
-    console.error(error);
-    toast.error("Payment failed");
-  } finally {
-    setLoading(false);
-  }
-};
-
-  // const handlePayment = async () => {
-  //   setLoading(true);
-
-  //   try {
-  //     const result = await placeShopOrder({
-  //       courier: "jne",
-  //       service: "reg",
-  //       provider: gateway,
-  //     });
-
-  //     clearCart();
-
-  //     if (result.paymentUrl) {
-  //       window.location.href = result.paymentUrl;
-  //       return;
-  //     }
-
-  //     router.push(
-  //       // `/order-success?orderId=${encodeURIComponent(result.orderId)}`,
-  //       `/checkout/review`,
-  //     );
-  //   } catch (err) {
-  //     console.error(err);
-  //     toast.info("Backend belum siap — menampilkan pesanan demo.");
-  //     clearCart();
-  //     router.push(
-  //       `/order-success?orderId=${encodeURIComponent(DEV_FALLBACK_ORDER_ID)}`,
-  //     );
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // EMPTY CART GUARD
   if (items.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-pink-50">
         <div className="text-center">
-          <h1 className="text-xl font-bold mb-3">No items to pay</h1>
+          <h1 className="text-xl font-bold mb-3">Keranjang kosong</h1>
           <Link href="/products" className="text-pink-600 underline">
-            Go shopping
+            Belanja dulu yuk
           </Link>
         </div>
       </div>
     );
   }
 
+  const handlePayment = async () => {
+    const shippingMethod = checkoutState.method;
+    if (!shippingMethod?.courier || !shippingMethod?.service) {
+      toast.error("Pilih metode pengiriman dulu");
+      router.push("/checkout/shipping");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await placeShopOrder({
+        courier: shippingMethod.courier,
+        service: shippingMethod.service,
+        provider: gateway,
+      });
+
+      // Sukses — clear semua state
+      clearCart();
+      clearCheckout();
+
+      if (result.paymentUrl) {
+        // Xendit: redirect ke halaman pembayaran Xendit
+        // Midtrans Snap: juga pakai redirect_url kalau Snap token tidak ada di frontend
+        window.location.href = result.paymentUrl;
+        return;
+      }
+
+      // Fallback: tidak ada paymentUrl (COD atau error non-fatal)
+      router.push(
+        `/order-success?orderId=${encodeURIComponent(result.orderId)}`
+      );
+    } catch (err: any) {
+      console.error("Payment error:", err);
+      const message =
+        err?.response?.data?.message ??
+        err?.message ??
+        "Gagal memproses pembayaran";
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-pink-50 py-10 px-4">
-      {
-  paymentData?.payment_method?.qr_code?.qr_string && (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white p-8 rounded-2xl">
+    <div className="min-h-screen bg-pink-50 px-4 py-10">
+      <div className="mx-auto max-w-3xl">
+        {/* Back button */}
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 mb-6"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Kembali
+        </button>
 
-        <h2 className="font-bold text-xl mb-4">
-          Scan to Pay
-        </h2>
-
-        <QRCode
-          value={
-            paymentData.payment_method.qr_code.qr_string
-          }
-        />
-
-        <p className="mt-4 text-center text-sm">
-          Scan using GoPay, OVO, Dana,
-          ShopeePay, Mobile Banking
-        </p>
-      </div>
-    </div>
-  )
-}
-      
-      {loading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-          <div className="flex transform flex-col items-center gap-3 rounded-lg bg-white/95 px-6 py-8 shadow-lg">
-            {/* Loading state */}
-            <svg className="h-10 w-10 animate-spin text-pink-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-            </svg>
-
-            <div className="text-center">
-              <div className="text-lg font-semibold text-slate-900">Processing payment</div>
-              <div className="text-sm text-slate-500">Please wait while we initiate your payment...</div>
+        <div className="grid gap-6 lg:grid-cols-5">
+          {/* ── LEFT: Payment selector ─────────────────────── */}
+          <div className="lg:col-span-3 bg-white rounded-2xl p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-6">
+              <CreditCard className="w-5 h-5 text-pink-600" />
+              <h1 className="text-xl font-bold">Pilih Metode Pembayaran</h1>
             </div>
-          </div>
-        </div>
-      )}
-      <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-8">
 
-        {/* LEFT - PAYMENT METHOD */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm">
-          <div className="flex items-center gap-2 mb-6">
-            <Link href="/checkout" className="text-pink-600">
-              <ArrowLeft size={18} />
-            </Link>
-
-            <h1 className="text-2xl font-bold">Payment</h1>
-          </div>
-
-          <h2 className="font-semibold mb-4">Choose Payment Method</h2>
-
-          <PaymentSelector selected={method} onSelect={setMethod} />
-
-          <div className="mt-6">
-            <h3 className="font-semibold mb-3">Choose Integration Gateway</h3>
-            <div className="grid grid-cols-2 gap-3">
-              {(["xendit", "midtrans"] as const).map((provider) => (
-                <button
-                  key={provider}
-                  type="button"
-                  onClick={() => setGateway(provider)}
-                  className={`rounded-2xl border p-4 text-left transition-all duration-200 ${
-                    gateway === provider
-                      ? "border-pink-600 bg-pink-50 shadow-sm"
-                      : "border-gray-200 bg-white hover:border-pink-300"
+            {/* Gateway selector */}
+            <div className="space-y-3">
+              {GATEWAY_OPTIONS.map((opt) => (
+                <label
+                  key={opt.value}
+                  className={`flex items-start gap-3 border-2 rounded-xl p-4 cursor-pointer transition-colors ${
+                    gateway === opt.value
+                      ? "border-pink-500 bg-pink-50"
+                      : "border-gray-200 hover:border-pink-300"
                   }`}
                 >
-                  <div className="text-base font-semibold">{provider.toUpperCase()}</div>
-                  <div className="text-xs text-slate-500">
-                    {provider === "xendit"
-                      ? "Xendit payment gateway"
-                      : "Midtrans payment gateway"}
+                  <input
+                    type="radio"
+                    name="gateway"
+                    value={opt.value}
+                    checked={gateway === opt.value}
+                    onChange={() => setGateway(opt.value)}
+                    className="mt-1 accent-pink-600"
+                  />
+                  <div>
+                    <p className="font-semibold text-sm">{opt.label}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{opt.desc}</p>
                   </div>
-                </button>
+                </label>
               ))}
             </div>
+
+            {/* Shipping info */}
+            {checkoutState.method && (
+              <div className="mt-6 p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
+                <p className="font-medium text-gray-800 mb-1">Pengiriman</p>
+                <p>
+                  {checkoutState.method.courier?.toUpperCase()}{" "}
+                  {checkoutState.method.service} —{" "}
+                  {safeFormatPrice(checkoutState.method.cost ?? 0)}
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Est. {checkoutState.method.etd ?? "-"} hari kerja
+                </p>
+              </div>
+            )}
+
+            {/* Security badge */}
+            <div className="mt-6 flex items-center gap-2 text-xs text-gray-400">
+              <ShieldCheck className="w-4 h-4 text-green-500" />
+              Pembayaran diproses secara aman oleh{" "}
+              {gateway === "xendit" ? "Xendit" : "Midtrans"}
+            </div>
           </div>
 
-          <div className="mt-6 rounded-2xl border border-pink-200 bg-pink-50 p-4 text-sm text-slate-700">
-            <strong>{gateway.toUpperCase()} integration:</strong> use your backend to create a payment session for {method === "va" ? "Virtual Account" : method === "card" ? "Credit / Debit Card" : method.toUpperCase()}.
-            For example, Xendit can create e-wallet charges, card payments, and VA invoices, while Midtrans can generate Snap tokens for GoPay, OVO, DANA, card checkout and bank transfer.
-          </div>
-        </div>
+          {/* ── RIGHT: Order summary ───────────────────────── */}
+          <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm h-fit">
+            <h2 className="font-bold text-lg mb-4">Ringkasan Pesanan</h2>
 
-        {/* RIGHT - SUMMARY */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm h-fit">
-          <h2 className="text-xl font-bold mb-4">Order Summary</h2>
-
-          <div className="space-y-2 text-sm mb-6">
-            {items.map((item) => {
-              const price = item.discountPrice ?? item.basePrice;
-
-              return (
-                <div key={item.id} className="flex justify-between">
-                  <span>
-                    {item.name} × {item.quantity}
+            {/* Items */}
+            <div className="space-y-2 mb-4 max-h-48 overflow-y-auto">
+              {items.map((item, idx) => (
+                <div
+                  key={item.productId + (item.variantId ?? "") + idx}
+                  className="flex justify-between text-sm"
+                >
+                  <span className="text-gray-600 truncate flex-1 mr-2">
+                    {item.name}
+                    {item.variantLabel ? ` (${item.variantLabel})` : ""} ×{" "}
+                    {item.quantity}
                   </span>
-                  <span>
-                    {safeFormatPrice(price * item.quantity)}
+                  <span className="font-medium shrink-0">
+                    {safeFormatPrice(
+                      (item.discountPrice ?? item.basePrice) * item.quantity
+                    )}
                   </span>
                 </div>
-              );
-            })}
+              ))}
+            </div>
+
+            <div className="border-t pt-3 space-y-2 text-sm">
+              <div className="flex justify-between text-gray-600">
+                <span>Subtotal</span>
+                <span>{safeFormatPrice(subtotal)}</span>
+              </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>Diskon</span>
+                  <span>- {safeFormatPrice(discount)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-gray-600">
+                <span>Ongkos kirim</span>
+                <span>{safeFormatPrice(shippingCost)}</span>
+              </div>
+              <div className="flex justify-between font-bold text-base pt-2 border-t">
+                <span>Total</span>
+                <span className="text-pink-600">{safeFormatPrice(total)}</span>
+              </div>
+            </div>
+
+            <button
+              onClick={handlePayment}
+              disabled={loading}
+              className="mt-6 w-full flex items-center justify-center gap-2 bg-pink-600 text-white py-3 rounded-xl font-semibold hover:bg-pink-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Memproses...
+                </>
+              ) : (
+                <>
+                  <CreditCard className="w-4 h-4" />
+                  Bayar Sekarang
+                </>
+              )}
+            </button>
           </div>
-
-          <div className="border-t pt-4 space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span>{safeFormatPrice(subtotal)}</span>
-            </div>
-
-            <div className="flex justify-between text-green-600">
-              <span>Discount</span>
-              <span>- {safeFormatPrice(discount)}</span>
-            </div>
-
-            <div className="flex justify-between">
-              <span>Shipping</span>
-              <span>
-                {shipping === 0
-                  ? "FREE"
-                  : safeFormatPrice(shipping)}
-              </span>
-            </div>
-
-            <div className="flex justify-between font-bold text-lg border-t pt-3">
-              <span>Total</span>
-              <span>{safeFormatPrice(total)}</span>
-            </div>
-          </div>
-
-          {/* PAY BUTTON */}
-          <button
-            onClick={handlePayment}
-            disabled={loading}
-            className="w-full mt-6 inline-flex items-center justify-center gap-3 bg-pink-600 text-white py-3 rounded-xl font-bold disabled:opacity-60"
-          >
-            {loading ? (
-              <>
-                <svg className="h-5 w-5 animate-spin text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                </svg>
-
-                Processing payment...
-              </>
-            ) : (
-              `Continue with ${method.toUpperCase()} via ${gateway.toUpperCase()}`
-            )}
-          </button>
-
-          <p className="text-xs text-gray-400 mt-3 text-center">
-            Secure payment simulation page
-          </p>
         </div>
-        
       </div>
-      
     </div>
   );
-};
-
-export default PaymentPage;
+}

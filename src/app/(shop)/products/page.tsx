@@ -27,6 +27,24 @@ interface ProductsPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
+/** Extract distinct variant name+value dari semua produk di halaman */
+function extractVariantOptions(products: any[]): Array<{ name: string; value: string }> {
+  const seen = new Set<string>();
+  const options: Array<{ name: string; value: string }> = [];
+
+  for (const product of products) {
+    for (const v of product.variantOptions ?? []) {
+      const key = `${v.name}::${v.value}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        options.push({ name: v.name, value: v.value });
+      }
+    }
+  }
+
+  return options;
+}
+
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   const params = await searchParams;
   const filters = parseShopListParamsFromRecord(params);
@@ -38,9 +56,6 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       : undefined;
 
   const [productsRes, categoriesRes, allProductsRes] = await Promise.all([
-    // Kalau ada categoryId → pakai endpoint recursive /categories/:id/products
-    // supaya parent category (Moms & Baby, Maternity Supplies, ASI Booster)
-    // tetap nampilin produk dari semua descendants-nya
     activeCategoryId
       ? getCategoryProducts(activeCategoryId, {
           page: listParams.page,
@@ -51,6 +66,8 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           inStock: listParams.inStock,
           minPrice: listParams.minPrice,
           maxPrice: listParams.maxPrice,
+          variantName:  listParams.variantName,
+          variantValue: listParams.variantValue,
         })
       : getProductList(listParams),
     getCategoryList(),
@@ -60,11 +77,17 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const products = filterStorefrontProducts(productsRes.data);
   const categoryCounts = computeCategoryCounts(allProductsRes.data);
 
-  const meta: PaginationMeta = productsRes.meta ?? {
-    page: filters.page,
-    limit: filters.limit,
-    totalItems: products.length,
-    totalPages: 1,
+  // Selalu pakai allProductsRes (semua produk tanpa filter)
+  // supaya variant chips tampil lengkap dari semua produk, bukan hanya kategori aktif
+  const variantOptions = extractVariantOptions(allProductsRes.data);
+
+  // Backend category endpoint pakai key 'total', products endpoint pakai 'totalItems'
+  const rawMeta = productsRes.meta as any;
+  const meta: PaginationMeta = {
+    page: rawMeta?.page ?? filters.page,
+    limit: rawMeta?.limit ?? filters.limit,
+    totalItems: rawMeta?.totalItems ?? rawMeta?.total ?? products.length,
+    totalPages: rawMeta?.totalPages ?? 1,
   };
 
   return (
@@ -77,7 +100,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           />
         </Suspense>
 
-       <Suspense fallback={null}>
+        <Suspense fallback={null}>
           <ActiveFilterBadges categories={categoriesRes.data} />
         </Suspense>
 
@@ -91,6 +114,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
             categoryCounts={categoryCounts}
             basePath="/products"
             priceBounds={DEFAULT_PRICE_BOUNDS}
+            variantOptions={variantOptions}
           />
 
           <div className="min-w-0 flex-1 space-y-4">
@@ -110,4 +134,5 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         </div>
       </div>
     </main>
-  )}
+  );
+}

@@ -14,6 +14,7 @@ export function mapProductListItem(row: Record<string, unknown>): ProductListIte
         (img): ProductImage => ({
           id: String(img.id ?? ""),
           productId: String(img.productId ?? row.id ?? ""),
+          publicId: String(img.publicId ?? ""),
           imageUrl: resolveProductImageUrl(String(img.imageUrl ?? "")),
           altText: String(img.altText ?? ""),
           sortOrder: Number(img.sortOrder ?? 0),
@@ -26,6 +27,16 @@ export function mapProductListItem(row: Record<string, unknown>): ProductListIte
 
   const featured = images?.find((i) => i.isFeatured) ?? images?.[0];
 
+  const variantOptions = Array.isArray(row.variants)
+    ? (row.variants as Record<string, unknown>[])
+        .filter((v) => v.isActive !== false)
+        .map((v) => ({
+          name: String(v.name ?? ""),
+          value: String(v.value ?? ""),
+          stock: Number(v.stock ?? 0),
+        }))
+    : undefined;
+
   return {
     id: String(row.id),
     name: String(row.name),
@@ -37,6 +48,7 @@ export function mapProductListItem(row: Record<string, unknown>): ProductListIte
     weight: toNumber(row.weight),
     status: row.status as ProductStatus | undefined,
     images: featured ? [{ ...featured, isFeatured: true }] : images,
+    variantOptions,
   };
 }
 

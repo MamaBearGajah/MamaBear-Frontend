@@ -732,4 +732,4 @@ const handleUpdateBlog = async (selectedBlogId:string) => {
 
 function fetchBlogs() {
   throw new Error("Function not implemented.");
-}
+}         

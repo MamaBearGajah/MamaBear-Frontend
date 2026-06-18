@@ -46,6 +46,8 @@ export function parseShopListParamsFromRecord(
   const minPrice = parseNumber(parseParam(params.minPrice));
   const maxPrice = parseNumber(parseParam(params.maxPrice));
   const inStockParam = parseParam(params.inStock);
+  const variantName  = parseParam(params.variantName);
+  const variantValue = parseParam(params.variantValue);
   const sortBy =
     (parseParam(params.sortBy) as ShopFiltersState["sortBy"] | undefined) ??
     "createdAt";
@@ -65,6 +67,8 @@ export function parseShopListParamsFromRecord(
     minPrice,
     maxPrice,
     inStock,
+    variantName,
+    variantValue,
     sortBy,
     sortOrder,
   };
@@ -87,6 +91,8 @@ export function toProductListParams(
   if (filters.minPrice != null) params.minPrice = filters.minPrice;
   if (filters.maxPrice != null) params.maxPrice = filters.maxPrice;
   if (filters.inStock === true) params.inStock = true;
+  if (filters.variantName)  params.variantName  = filters.variantName;
+  if (filters.variantValue) params.variantValue = filters.variantValue;
 
   return params;
 }
@@ -108,40 +114,5 @@ export function toStorefrontSearchListParams(
   return params;
 }
 
-export const STOREFRONT_CLIENT_CATALOG_LIMIT = 100;
-
-export function needsStorefrontClientCatalog(filters: ShopFiltersState): boolean {
-  return (
-    filters.minPrice != null ||
-    filters.maxPrice != null ||
-    (Boolean(filters.categoryId) && filters.categoryId !== "cat-root") ||
-    filters.sortBy === "price"
-  );
-}
-
-/** Params for fetching a batch to filter/sort on the client (price, category, sort). */
-export function toStorefrontClientCatalogParams(
-  filters: ShopFiltersState,
-): ProductListParams {
-  const params = toStorefrontProductListParams(filters);
-  return {
-    ...params,
-    categoryId: undefined,
-    minPrice: undefined,
-    maxPrice: undefined,
-    sortBy: filters.sortBy === "price" ? "createdAt" : params.sortBy,
-    sortOrder: filters.sortBy === "price" ? "desc" : params.sortOrder,
-    page: 1,
-    limit: STOREFRONT_CLIENT_CATALOG_LIMIT,
-  };
-}
-
-export function parseShopListParams(
-  searchParams: URLSearchParams,
-): ShopFiltersState {
-  const record: Record<string, string | string[] | undefined> = {};
-  searchParams.forEach((value, key) => {
-    record[key] = value;
-  });
-  return parseShopListParamsFromRecord(record);
-}
+/** @alias parseShopListParamsFromRecord — untuk backward compatibility */
+export const parseShopListParams = parseShopListParamsFromRecord;
