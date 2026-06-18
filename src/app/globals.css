@@ -198,3 +198,24 @@ body {
   60%  { transform: scale(1.25); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
 }
+
+@keyframes promo-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.promo-marquee-track {
+  display: inline-flex;
+  min-width: max-content;
+  animation: promo-marquee 14s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .promo-marquee-track {
+    animation: none;
+  }
+}

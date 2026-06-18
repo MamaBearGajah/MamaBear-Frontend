@@ -10,17 +10,12 @@ export const variantFormSchema = z.object({
   priceAdjustment: z.coerce.number().default(0),
   stock: z.coerce
     .number()
-<<<<<<< HEAD
-    .int("Stock must be a whole number")
-    .min(0, "Stock must be at least 0"),
-=======
     .int("Stok harus bilangan bulat")
     .min(0, "Stok minimal 0"),
   weight: z
     .union([z.literal(""), z.coerce.number().int().min(0, "Berat minimal 0")])
     .optional(), // in grams, override product weight if different
   sortOrder: z.coerce.number().int().min(0).default(0),
->>>>>>> c51368907745c701f42a59f064061db16fd78718
   imageUrl: z
     .union([z.literal(""), z.string().url("Image URL is invalid")])
     .optional(),
