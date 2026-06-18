@@ -558,4 +558,17 @@ export interface UpdateProfilePayload {
   preferences?: UserPreferences;
 }
 
+export interface homeBannerParams {
+  imageUrl: string;
+  altText: string;
+  label: string;
+  title: string;
+  desc: string;
+  path:  string;
+  isActive: boolean;
+  sortOrder: number;
+  startDate: string|Date;
+  endDate: string|Date;
+}
+
 export type AddressPayload = Omit<Address, "id">;
