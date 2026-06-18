@@ -61,6 +61,7 @@ export async function getFaqList(): Promise<FaqItem[]> {
     cache: "no-store",
   });
 
+
   if (!response.ok) {
     throw new Error(`Failed to fetch FAQ: ${response.status}`);
   }
