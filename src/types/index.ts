@@ -558,7 +558,6 @@ export interface UpdateProfilePayload {
   preferences?: UserPreferences;
 }
 
-<<<<<<< HEAD
 export interface homeBannerParams {
   imageUrl: string;
   altText: string;
@@ -597,6 +596,3 @@ export interface wishlistItem{
 }
 
 export type AddressPayload = Omit<Address, "id">;
-=======
-export type AddressPayload = Omit<Address, "id">;
->>>>>>> c51368907745c701f42a59f064061db16fd78718

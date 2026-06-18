@@ -27,7 +27,6 @@ interface ProductsPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-<<<<<<< HEAD
 /** Extract distinct variant name+value dari semua produk di halaman */
 function extractVariantOptions(products: any[]): Array<{ name: string; value: string }> {
   const seen = new Set<string>();
@@ -47,11 +46,6 @@ function extractVariantOptions(products: any[]): Array<{ name: string; value: st
 }
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
-=======
-export default async function ProductsPage({
-  searchParams,
-}: ProductsPageProps) {
->>>>>>> e2235cf15fce7010a2619a2e84377f3de0a499f5
   const params = await searchParams;
   const filters = parseShopListParamsFromRecord(params);
   const listParams = toStorefrontProductListParams(filters);
