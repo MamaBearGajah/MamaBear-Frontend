@@ -1,18 +1,13 @@
-// Single Responsibility: semua state + side-effect membership di satu hook
-// Dependency Inversion : komponen tidak tahu dari mana data berasal (API/mock)
-
 "use client";
 
 import { useState, useEffect } from "react";
-import { getCurrentTier, getNextTier, getTierProgress, Tier } from "@/config/Tiers";
-
-export interface MembershipData {
-  points: number;
-  lastDailyLoginAt: string;
-}
+import { getMembership } from "@/lib/api/membership";
+import { getTierByKey, getNextTierByKey, getTierProgress, Tier } from "@/config/Tiers";
 
 export interface UseMembershipReturn {
   points: number;
+  totalSpent: number;
+  pointsExpiredAt: string | null;
   currentTier: Tier;
   nextTier: Tier | null;
   progressPct: number;
@@ -22,51 +17,51 @@ export interface UseMembershipReturn {
   claim: () => Promise<void>;
 }
 
-// Ganti fungsi ini dengan API asli (authApi.getMembership, dll)
-async function fetchMembership(): Promise<MembershipData> {
-  // await authApi.getMembership()
-  return {
-    points: 2450,
-    lastDailyLoginAt: "2024-05-01T10:00:00.000Z",
-  };
-}
-
-async function postClaimDaily(): Promise<{ pointsAdded: number }> {
-  // await apiClient.post("/membership/claim-daily")
-  return new Promise((resolve) => setTimeout(() => resolve({ pointsAdded: 50 }), 800));
-}
-
-function hasClaimedToday(isoDate?: string): boolean {
+function hasClaimedToday(isoDate?: string | null): boolean {
   if (!isoDate) return false;
   return new Date(isoDate).toDateString() === new Date().toDateString();
+}
+
+// TODO: ganti dengan POST /membership/daily-login begitu endpoint-nya
+// tersedia di backend. Untuk sekarang fitur ini disengaja tetap mock,
+// karena backend belum implement daily check-in.
+async function postClaimDailyMock(): Promise<{ pointsAdded: number }> {
+  return new Promise((resolve) => setTimeout(() => resolve({ pointsAdded: 50 }), 800));
 }
 
 export function useMembership(
   onSuccess?: (msg: string) => void,
   onError?: (msg: string) => void,
 ): UseMembershipReturn {
-  const [data, setData] = useState<MembershipData | null>(null);
+  const [points, setPoints] = useState(0);
+  const [totalSpent, setTotalSpent] = useState(0);
+  const [pointsExpiredAt, setPointsExpiredAt] = useState<string | null>(null);
+  const [tierKey, setTierKey] = useState("bronze");
+  const [lastDailyLoginAt, setLastDailyLoginAt] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isClaiming, setIsClaiming] = useState(false);
 
   useEffect(() => {
-    fetchMembership()
-      .then(setData)
+    getMembership()
+      .then((res) => {
+        const { membership } = res.data;
+        setPoints(membership.points);
+        setTotalSpent(membership.totalSpent);
+        setTierKey(membership.tier);
+        setLastDailyLoginAt(membership.lastDailyLoginAt);
+        setPointsExpiredAt(membership.pointsExpiredAt);
+      })
+      .catch(() => onError?.("Gagal memuat data membership."))
       .finally(() => setIsLoading(false));
   }, []);
 
-  const points = data?.points ?? 0;
-
   const claim = async () => {
-    if (!data || hasClaimedToday(data.lastDailyLoginAt)) return;
+    if (hasClaimedToday(lastDailyLoginAt)) return;
     setIsClaiming(true);
     try {
-      const res = await postClaimDaily();
-      setData((prev) =>
-        prev
-          ? { ...prev, points: prev.points + res.pointsAdded, lastDailyLoginAt: new Date().toISOString() }
-          : prev,
-      );
+      const res = await postClaimDailyMock();
+      setPoints((p) => p + res.pointsAdded);
+      setLastDailyLoginAt(new Date().toISOString());
       onSuccess?.(`Yeay! Berhasil klaim ${res.pointsAdded} Poin!`);
     } catch {
       onError?.("Gagal klaim poin hari ini.");
@@ -77,10 +72,12 @@ export function useMembership(
 
   return {
     points,
-    currentTier: getCurrentTier(points),
-    nextTier: getNextTier(points),
-    progressPct: getTierProgress(points),
-    hasClaimed: hasClaimedToday(data?.lastDailyLoginAt),
+    totalSpent,
+    pointsExpiredAt,
+    currentTier: getTierByKey(tierKey),
+    nextTier: getNextTierByKey(tierKey),
+    progressPct: getTierProgress(totalSpent, tierKey),
+    hasClaimed: hasClaimedToday(lastDailyLoginAt),
     isLoading,
     isClaiming,
     claim,

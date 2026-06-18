@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { isAxiosError } from "axios";
 import { AccountPageWrapper } from "@/components/layout/AccountPageWrapper";
+import { useMembership } from "@/hooks/useMembership";
+import { MembershipBadge } from "@/components/membership/MembershipBadge";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 function getInitials(name: string) {
@@ -22,15 +24,6 @@ function getErrMsg(error: unknown): string {
     return error.response?.data?.error?.message ?? error.message;
   if (error instanceof Error) return error.message;
   return "Terjadi kesalahan";
-}
-
-// ── Membership Badge ───────────────────────────────────────────────────────────
-function MembershipBadge() {
-  return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border bg-yellow-50 text-yellow-700 border-yellow-400 shadow-sm whitespace-nowrap">
-      👑 Gold
-    </span>
-  );
 }
 
 // ── Change Password Modal ──────────────────────────────────────────────────────
@@ -72,9 +65,7 @@ function ChangePasswordModal({ open, onClose }: { open: boolean; onClose: () => 
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      {/* max-w-md + mx-4 agar tidak mentok di HP kecil */}
       <div className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-2xl p-6 animate-in zoom-in-95">
-        {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-[#FDF2F5] flex items-center justify-center">
@@ -92,7 +83,6 @@ function ChangePasswordModal({ open, onClose }: { open: boolean; onClose: () => 
 
         <div className="w-full h-px bg-[#F8D7E3] mb-5" />
 
-        {/* Security note */}
         <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5 mb-5 text-xs text-blue-600">
           <Shield size={14} className="mt-0.5 shrink-0" />
           <span>Untuk keamanan, pastikan password baru minimal 8 karakter dan tidak mudah ditebak.</span>
@@ -154,7 +144,6 @@ function ChangePasswordModal({ open, onClose }: { open: boolean; onClose: () => 
             )}
           </div>
 
-          {/* flex-1 agar kedua tombol sama lebar di semua ukuran layar */}
           <div className="flex gap-3 pt-1">
             <Button
               type="button"
@@ -188,6 +177,8 @@ export default function ProfilePage() {
 
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const membership = useMembership();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -267,18 +258,15 @@ export default function ProfilePage() {
         )}
 
         <AccountPageWrapper title="Profile Information" icon={User} actionButton={EditButton}>
-          {/* Avatar + name + badge */}
           <div className="flex items-center gap-4 mb-8">
-            {/* Avatar — shrink-0 agar tidak gepeng di mobile */}
             <div className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-black shadow-sm bg-[#F05A89] shrink-0">
               {getInitials(form.name)}
             </div>
 
-            {/* min-w-0 agar teks panjang tidak overflow container */}
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap mb-0.5">
                 <h3 className="text-lg font-bold text-gray-800 truncate">{form.name || "Member"}</h3>
-                <MembershipBadge />
+                {!membership.isLoading && <MembershipBadge tier={membership.currentTier.key} />}
               </div>
               <p className="text-sm text-gray-500 truncate">{form.email}</p>
             </div>
@@ -288,7 +276,6 @@ export default function ProfilePage() {
 
           <h3 className="text-lg font-bold text-gray-800 mb-5">Personal Details</h3>
 
-          {/* 1 kolom di mobile, 2 kolom di sm ke atas */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="text-sm font-medium text-gray-600 block mb-2">Full Name</label>
@@ -347,9 +334,7 @@ export default function ProfilePage() {
           )}
         </AccountPageWrapper>
 
-        {/* Change Password trigger */}
         <section className="rounded-2xl border border-[#F0D9E2] bg-white p-6 shadow-sm">
-          {/* flex-col di mobile, flex-row di sm ke atas */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
             <div className="min-w-0">
               <h2 className="text-base font-semibold text-[#6C4735]">Password</h2>
@@ -357,7 +342,6 @@ export default function ProfilePage() {
                 Perbarui password akun Anda secara berkala untuk keamanan.
               </p>
             </div>
-            {/* w-full di mobile, w-auto di sm ke atas */}
             <button
               onClick={() => setShowPasswordModal(true)}
               className="flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-semibold bg-[#FDF2F5] text-[#F05A89] hover:bg-[#F8D7E3] transition-colors w-full sm:w-auto sm:shrink-0"

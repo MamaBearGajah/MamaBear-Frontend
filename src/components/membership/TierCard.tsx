@@ -54,15 +54,15 @@ export function TierCard({ currentTier, nextTier }: Props) {
         ))}
       </ul>
 
-      {nextTier && (
-        <p className="text-xs text-gray-400 mt-3">
-          Raih{" "}
-          <span className="font-bold" style={{ color: nextTier.color }}>
-            {nextTier.label}
-          </span>{" "}
-          di {nextTier.minPoints.toLocaleString()} poin
-        </p>
-      )}
+    {nextTier && (
+  <p className="text-xs text-gray-400 mt-3">
+    Raih{" "}
+    <span className="font-bold" style={{ color: nextTier.color }}>
+      {nextTier.label}
+    </span>{" "}
+    di Rp{nextTier.minSpend.toLocaleString("id-ID")} belanja
+  </p>
+)}
     </div>
   );
 }

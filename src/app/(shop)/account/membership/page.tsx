@@ -65,7 +65,7 @@ export default function MembershipPage() {
       {/* Progress checkpoint */}
       <div className="mb-4">
         <TierProgressTrack
-          points={membership.points}
+          totalSpent={membership.totalSpent}
           currentTier={membership.currentTier}
           nextTier={membership.nextTier}
           progressPct={membership.progressPct}
@@ -73,7 +73,7 @@ export default function MembershipPage() {
       </div>
 
       {/* Reset banner */}
-      <PointsResetBanner />
+      <PointsResetBanner expiresAt={membership.pointsExpiredAt} />
     </AccountPageWrapper>
   );
 }
