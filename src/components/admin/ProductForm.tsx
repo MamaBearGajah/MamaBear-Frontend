@@ -930,6 +930,9 @@ export default function ProductForm({
           </div>
         </div>
       </form>
+        )
+      }
+      
 
       {/* ── Confirm delete product ───────────────────── */}
       {isEdit && product && (

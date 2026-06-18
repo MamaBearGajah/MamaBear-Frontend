@@ -262,8 +262,6 @@
 //   );
 // }
 
-
-
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -279,35 +277,32 @@ export default function BlogPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-useEffect(() => {
-  async function fetchBlogs() {
-    try {
-      const result = await getAllBlogs();
-      console.log("result", result)
+  useEffect(() => {
+    async function fetchBlogs() {
+      try {
+        const result = await getAllBlogs();
+        console.log("result", result);
 
-      if (
-        Array.isArray(result) &&
-        result.length > 0
-      ) {
-        setBlogs(result);
-      } else {
-        console.warn(
-          "API returned invalid blog data. Using mockBlogs instead."
-        );
+        if (Array.isArray(result) && result.length > 0) {
+          setBlogs(result);
+        } else {
+          console.warn(
+            "API returned invalid blog data. Using mockBlogs instead."
+          );
+          setBlogs(mockBlogs);
+        }
+      } catch (error) {
+        console.error("Failed to fetch blogs:", error);
         setBlogs(mockBlogs);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Failed to fetch blogs:", error);
-      setBlogs(mockBlogs);
-    } finally {
-      setLoading(false);
     }
-  }
 
-  fetchBlogs();
-}, []);
+    fetchBlogs();
+  }, []);
 
-console.log("blogs", blogs)
+  console.log("blogs", blogs);
 
   const filteredBlogs = useMemo(() => {
     const query = search.toLowerCase();
@@ -321,17 +316,17 @@ console.log("blogs", blogs)
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto py-20 px-4">
-        <div className="grid md:grid-cols-3 gap-6">
+      <div className="mx-auto max-w-6xl px-4 py-20">
+        <div className="grid gap-6 md:grid-cols-3">
           {Array.from({ length: 6 }).map((_, index) => (
             <div
               key={index}
-              className="animate-pulse bg-white rounded-2xl overflow-hidden shadow"
+              className="animate-pulse overflow-hidden rounded-2xl bg-white shadow"
             >
               <div className="h-48 bg-gray-200" />
-              <div className="p-4 space-y-3">
-                <div className="h-4 bg-gray-200 rounded" />
-                <div className="h-4 bg-gray-100 rounded w-2/3" />
+              <div className="space-y-3 p-4">
+                <div className="h-4 rounded bg-gray-200" />
+                <div className="h-4 w-2/3 rounded bg-gray-100" />
               </div>
             </div>
           ))}
@@ -342,10 +337,9 @@ console.log("blogs", blogs)
 
   return (
     <div className="min-h-screen bg-[#FFF5F8]">
-      <div className="max-w-6xl mx-auto py-16 px-4">
-
-        <div className="text-center mb-10">
-          <h1 className="text-5xl font-black text-[#3B1F0E] mb-4">
+      <div className="mx-auto max-w-6xl px-4 py-16">
+        <div className="mb-10 text-center">
+          <h1 className="mb-4 text-5xl font-black text-[#3B1F0E]">
             Mamabear Blog
           </h1>
 
@@ -354,10 +348,10 @@ console.log("blogs", blogs)
           </p>
         </div>
 
-        <div className="relative max-w-md mx-auto mb-10">
+        <div className="relative mx-auto mb-10 max-w-md">
           <Search
             size={18}
-            className="absolute left-4 top-1/2 -translate-y-1/2"
+            className="absolute top-1/2 left-4 -translate-y-1/2"
           />
 
           <input
@@ -365,41 +359,37 @@ console.log("blogs", blogs)
             placeholder="Search articles..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 rounded-full border bg-white"
+            className="w-full rounded-full border bg-white py-3 pr-4 pl-11"
           />
         </div>
 
         {filteredBlogs.length === 0 ? (
-          <div className="text-center py-20">
-            No blogs found
-          </div>
+          <div className="py-20 text-center">No blogs found</div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredBlogs.map((blog) => (
               <Link
                 key={blog.id}
                 href={`/articles/${blog.slug}`}
-                className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all"
+                className="group overflow-hidden rounded-2xl bg-white shadow-sm transition-all hover:shadow-lg"
               >
                 <img
                   src={blog.coverImage}
                   alt={blog.title}
-                  className="h-56 w-full object-cover group-hover:scale-105 transition-transform"
+                  className="h-56 w-full object-cover transition-transform group-hover:scale-105"
                 />
 
                 <div className="p-5">
-                  <h2 className="font-bold text-lg mb-2 text-[#3B1F0E]">
+                  <h2 className="mb-2 text-lg font-bold text-[#3B1F0E]">
                     {blog.title}
                   </h2>
 
-                  <p className="text-sm text-[#8B6352] line-clamp-3 mb-4">
+                  <p className="mb-4 line-clamp-3 text-sm text-[#8B6352]">
                     {blog.excerpt}
                   </p>
 
-                  <div className="flex justify-between items-center text-sm">
-                    <span>
-                      {blog.author?.name ?? "Mamabear Team"}
-                    </span>
+                  <div className="flex items-center justify-between text-sm">
+                    <span>{blog.author?.name ?? "Mamabear Team"}</span>
 
                     <div className="flex items-center gap-1 text-gray-500">
                       <Clock size={14} />

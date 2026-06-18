@@ -29,16 +29,7 @@ const featuredCards: FeaturedCard[] = [
 ];
 
 export default function FeaturedCardsSection() {
-  // TODO: when the backend is available, fetch the categories and resolve the Almon Mix category id.
-  // const almonMixCategoryLink = await fetch('/get/categories')
-  //   .then((res) => res.ok ? res.json() : [])
-  //   .then((categories) =>
-  //     categories.find((category: any) => category.name === 'Almon Mix')
-  //   )
-  //   .then((category) =>
-  //     category ? `/products?categoryId=${category.id}` : '/products?categoryId=almon-mix'
-  //   );
-  const almonMixCategoryLink = "/products?categoryId=almon-mix";
+  const almonMixProductDetailLink = "/products/mamabear-almonmix-isi-6-sachet";
   const aboutPageLink = "/about";
 
   return (
@@ -64,7 +55,7 @@ export default function FeaturedCardsSection() {
                   <Link
                     href={
                       card.ctaLabel === "Shop Now"
-                        ? almonMixCategoryLink
+                        ? almonMixProductDetailLink
                         : aboutPageLink
                     }
                     className="mt-5 inline-flex items-center rounded-full bg-[#6C4735] px-4 py-2 text-[13px] font-semibold text-white"
@@ -115,7 +106,7 @@ export default function FeaturedCardsSection() {
                   <Link
                     href={
                       card.ctaLabel === "Shop Now"
-                        ? almonMixCategoryLink
+                        ? almonMixProductDetailLink
                         : aboutPageLink
                     }
                     className="mt-3 inline-flex items-center rounded-full bg-[#6C4735] px-3 py-1.5 text-[11px] font-semibold text-white"

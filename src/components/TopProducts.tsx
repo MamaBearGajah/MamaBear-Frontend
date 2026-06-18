@@ -2,7 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { apiClient } from "@/lib/api/client";
 import type { ProductBadgeType } from "@/types";
-import BestsellerWishlistButton from "@/components/product/BestsellerWishlistButton";
+import { ShoppingCart } from "lucide-react";
+import BestsellerWishlistButton from "./product/BestsellerWishlistButton";
 
 type Product = {
   id: number;

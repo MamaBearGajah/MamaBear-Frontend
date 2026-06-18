@@ -1,15 +1,21 @@
 "use client";
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { useCart } from "@/hooks/useCart";
 import { CartItem } from "@/types/index";
-import {ShoppingCart} from 'lucide-react';
-import {Product} from "@/types/index";
-import { nanoid } from 'nanoid';
-import { toast } from 'sonner';
-import redirect from "next/navigation";
-const AddToCartMobile = ({ productId, product }: { productId: string; product: Product }) => {
+import { ShoppingCart } from "lucide-react";
+import { Product } from "@/types/index";
+import { nanoid } from "nanoid";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+const AddToCartMobile = ({
+  productId,
+  product,
+}: {
+  productId: string;
+  product: Product;
+}) => {
   const { addItem } = useCart();
+  const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [variants, setVariants] = useState<any[]>([]);
   const [selectedVariant, setSelectedVariant] = useState<{
@@ -87,118 +93,123 @@ const AddToCartMobile = ({ productId, product }: { productId: string; product: P
       );
     };
   }, [productId]);
-  return (
-    <div className="flex justify-between items-center md:hidden fixed bottom-0 left-0 right-0 bg-dark-pink border-t shadow-md cursor-pointer gap-2 z-50 transition duration-300">
-      <div className='flex items-center gap-2 '>
-        <span className='w-8 h-8 text-2xl font-bold flex justify-end' onClick={() => quantity > 1 && setQuantity(quantity - 1)}>-</span>
-        <span className='font-bold w-[100px] h-[20px] bg-white text-black p-4 rounded-full flex items-center justify-center'>{quantity}</span>
-        <span className='w-8 h-8 text-2xl font-bold flex justify-start' onClick={() => setQuantity(quantity + 1)}>+</span>
-      </div>
 
-      <div className="flex-1 px-2 flex flex-col items-center p-4 justify-center">
-        {/* <div className="mb-2 text-xs text-white">
-          {selectedVariant ? (
-            <span>
-              Selected variant:{" "}
-              {selectedVariant.name && selectedVariant.value
-                ? `${selectedVariant.name}: ${selectedVariant.value}`
-                : (selectedVariant.name ?? selectedVariant.value)}
+  const activeVariant =
+    variants.find((item) => item.id === selectedVariant?.id) ?? null;
+  const activePrice = Number(
+    activeVariant?.discountPrice ??
+      activeVariant?.basePrice ??
+      product.discountPrice ??
+      product.basePrice
+  );
+  const totalPrice = quantity * activePrice;
+
+  const formatPrice = (value: number) =>
+    new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      maximumFractionDigits: 0,
+    }).format(value);
+
+  const handleCheckout = () => {
+    if (!selectedVariant) {
+      toast.error(
+        "Please choose a product variant on the product page before adding to cart."
+      );
+      return;
+    }
+
+    const variant = variants.find((x) => x.id === selectedVariant.id) ?? null;
+    const label =
+      variant?.name && variant?.value
+        ? `${variant.name}: ${variant.value}`
+        : selectedVariant.name && selectedVariant.value
+          ? `${selectedVariant.name}: ${selectedVariant.value}`
+          : (selectedVariant.name ?? selectedVariant.value ?? "Variant");
+
+    addItem({
+      id: nanoid(),
+      productId: product.id,
+      variantId: variant?.id ?? selectedVariant.id,
+      variantName: variant?.name ?? selectedVariant.name,
+      variantValue: variant?.value ?? selectedVariant.value,
+      variantLabel: label,
+      name: product.name,
+      basePrice: Number(variant?.basePrice ?? product.basePrice),
+      discountPrice: variant?.discountPrice
+        ? Number(variant.discountPrice)
+        : product.discountPrice
+          ? Number(product.discountPrice)
+          : undefined,
+      image:
+        variant?.imageUrl ??
+        product.images?.[0]?.imageUrl ??
+        "/Logo Mamabear.png",
+      quantity: quantity,
+    } as CartItem);
+    toast.success("Item added to cart");
+    router.push("/checkout/info");
+  };
+
+  return (
+    <div className="fixed right-0 bottom-0 left-0 z-50 border-t border-pink-100 bg-white/98 shadow-[0_-10px_30px_rgba(213,85,126,0.12)] backdrop-blur md:hidden">
+      <div className="grid grid-cols-[1.15fr_1fr_auto] items-stretch">
+        <button
+          type="button"
+          onClick={() => quantity > 1 && setQuantity(quantity - 1)}
+          className="flex min-h-[84px] items-center justify-center border-r border-[var(--mamabear-light-pink)] bg-white px-3"
+        >
+          <div className="flex items-center gap-2 rounded-full border border-[var(--mamabear-light-pink)] bg-[var(--mamabear-light-pink)]/35 px-3 py-2 text-[var(--mamabear-dark-pink)]">
+            <button
+              type="button"
+              onClick={() => quantity > 1 && setQuantity(quantity - 1)}
+              className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-lg font-bold shadow-sm transition hover:bg-pink-50"
+            >
+              -
+            </button>
+            <span className="min-w-6 text-center text-sm font-bold">
+              {quantity}
             </span>
-          ) : (
-            <span>Please choose a variant from the product page first.</span>
-          )}
-        </div> */}
+            <button
+              type="button"
+              onClick={() => setQuantity(quantity + 1)}
+              className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-lg font-bold shadow-sm transition hover:bg-pink-50"
+            >
+              +
+            </button>
+          </div>
+        </button>
 
         <button
-          onClick={() => {
-            if (!selectedVariant) {
-              toast.error(
-                "Please choose a product variant on the product page before adding to cart."
-              );
-              return;
-            }
-
-            const variant =
-              variants.find((x) => x.id === selectedVariant.id) ?? null;
-            const label =
-              variant?.name && variant?.value
-                ? `${variant.name}: ${variant.value}`
-                : selectedVariant.name && selectedVariant.value
-                  ? `${selectedVariant.name}: ${selectedVariant.value}`
-                  : (selectedVariant.name ??
-                    selectedVariant.value ??
-                    "Variant");
-
-            addItem({
-              id: nanoid(),
-              productId: product.id,
-              variantId: variant?.id ?? selectedVariant.id,
-              categoryName: product.category?.name,
-              variantName: variant?.name ?? selectedVariant.name,
-              variantValue: variant?.value ?? selectedVariant.value,
-              variantLabel: label,
-              name: product.name,
-              basePrice: Number(variant?.basePrice ?? product.basePrice),
-              discountPrice: variant?.discountPrice
-                ? Number(variant.discountPrice)
-                : product.discountPrice
-                  ? Number(product.discountPrice)
-                  : undefined,
-              image:
-                variant?.imageUrl ??
-                product.images?.[0]?.imageUrl ??
-                "/Logo Mamabear.png",
-              quantity: quantity,
-            } as CartItem);
-            toast.success("Item added to cart");
-          }}
+          type="button"
+          onClick={handleCheckout}
           disabled={!selectedVariant}
-          className={`text-black bg-light-pink p-3 rounded-lg text-center  transition duration-300 flex items-center gap-1 ${!selectedVariant ? 'opacity-50' : 'hover:underline cursor-pointer'}`}
+          className={`flex min-h-[84px] flex-col items-center justify-center gap-1 px-3 text-white transition active:scale-[0.99] ${
+            selectedVariant
+              ? "bg-[var(--mamabear-brown)] hover:opacity-95"
+              : "cursor-not-allowed bg-[var(--mamabear-brown)] opacity-50"
+          }`}
         >
-          <ShoppingCart className='w-[20px] h-[20px] mr-3' />
-          Add To Cart
+          <ShoppingCart className="h-6 w-6" strokeWidth={2.2} />
+          <span className="text-sm leading-tight font-medium">Add To Cart</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={handleCheckout}
+          disabled={!selectedVariant}
+          className={`flex min-h-[84px] flex-col items-start justify-center gap-0.5 px-4 text-left text-white transition active:scale-[0.99] ${
+            selectedVariant
+              ? "bg-[var(--mamabear-dark-pink)] hover:opacity-95"
+              : "cursor-not-allowed bg-[var(--mamabear-dark-pink)] opacity-50"
+          }`}
+        >
+          <span className="text-sm leading-tight font-medium">Checkout</span>
+          <span className="text-base leading-tight font-bold">
+            {formatPrice(totalPrice)}
+          </span>
         </button>
       </div>
-
-      <Link href="../../checkout/info">
-      <button className='flex items-center justify-center py-3 px-3 rounded-xl bg-brown cursor-pointer text-white font-medium hover:opacity-80 transition'
-        onClick={() => {
-            if (!selectedVariant) {
-              toast.error('Please choose a product variant on the product page before adding to cart.');
-              return;
-            }
-
-            const variant = variants.find((x) => x.id === selectedVariant.id) ?? null;
-            const label = variant?.name && variant?.value
-              ? `${variant.name}: ${variant.value}`
-              : selectedVariant.name && selectedVariant.value
-              ? `${selectedVariant.name}: ${selectedVariant.value}`
-              : selectedVariant.name ?? selectedVariant.value ?? 'Variant';
-
-            addItem({
-              id: nanoid(),
-              productId: product.id,
-              variantId: variant?.id ?? selectedVariant.id,
-              variantName: variant?.name ?? selectedVariant.name,
-              variantValue: variant?.value ?? selectedVariant.value,
-              variantLabel: label,
-              name: product.name,
-              basePrice: Number(variant?.basePrice ?? product.basePrice),
-              discountPrice: variant?.discountPrice
-                ? Number(variant.discountPrice)
-                : product.discountPrice
-                ? Number(product.discountPrice)
-                : undefined,
-              image: variant?.imageUrl ?? (product.images?.[0]?.imageUrl ?? '/Logo Mamabear.png'),
-              quantity: quantity,
-            } as CartItem);
-            toast.success('Item added to cart');
-          }}
-          disabled={!selectedVariant}
-      > 
-          <h2 className='text-white hover:underline transition duration-300'>Checkout</h2>
-        </button>
-        </Link>
     </div>
   );
 };
