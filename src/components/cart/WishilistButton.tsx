@@ -6,9 +6,11 @@ import { toast } from "sonner";
 
 import {
   WISHLIST_CHANGED_EVENT,
+  getWishlist,
   isWishlisted,
-  toggleWishlist,
+  setWishlist,
 } from "@/lib/wishlist";
+import { wishlistApi } from "@/lib/api/wishlist";
 import { cn } from "@/lib/utils";
 
 type WishlistButtonProps = {
@@ -25,7 +27,9 @@ export default function WishlistButton({
   const [liked, setLiked] = useState(false);
 
   useEffect(() => {
-    setLiked(isWishlisted(productId));
+    queueMicrotask(() => {
+      setLiked(isWishlisted(productId));
+    });
 
     const handleChange = () => {
       setLiked(isWishlisted(productId));
@@ -39,9 +43,29 @@ export default function WishlistButton({
     event.preventDefault();
     event.stopPropagation();
 
-    const updated = toggleWishlist(productId);
-    const isNowLiked = updated.includes(productId);
+    const previous = getWishlist();
+    const wasLiked = previous.includes(productId);
+    const updated = wasLiked
+      ? previous.filter((id) => id !== productId)
+      : Array.from(new Set([...previous, productId]));
+    const isNowLiked = !wasLiked;
     setLiked(isNowLiked);
+
+    void (async () => {
+      try {
+        if (!wasLiked) {
+          await wishlistApi.create({ productId });
+        } else {
+          await wishlistApi.remove(productId);
+        }
+
+        setWishlist(updated);
+      } catch {
+        setWishlist(previous);
+        setLiked(previous.includes(productId));
+        toast.error("Failed to update wishlist");
+      }
+    })();
 
     toast.success(
       isNowLiked ? "Added to wishlist" : "Removed from wishlist",
@@ -58,6 +82,10 @@ export default function WishlistButton({
         variant === "overlay"
           ? "flex size-9 items-center justify-center rounded-full bg-white/95 text-brown shadow-sm transition-colors hover:bg-light-pink hover:text-dark-pink"
           : "rounded-full p-2 transition hover:bg-gray-100",
+        liked &&
+          (variant === "overlay"
+            ? "bg-[#FFDCE7] text-[#D5557E] opacity-100 hover:bg-[#FFCFE0] hover:text-[#C94A73]"
+            : "bg-[#FFEAF1] text-[#D5557E] hover:bg-[#FFDCE7]"),
         className,
       )}
     >

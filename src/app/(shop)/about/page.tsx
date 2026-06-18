@@ -4,30 +4,21 @@ import React, { useState, useEffect } from "react";
 import {
   Heart,
   Shield,
-  BookOpen,
-  HelpCircle,
   Mail,
   MapPin,
   Phone,
-  Truck,
-  ChevronDown,
   ArrowRight,
-  CheckCircle,
-  Package,
 } from "lucide-react";
-import { Link } from "react-router";
 import BackTop from "@/components/common/BackToTop";
 
 const TABS = [
   { id: "story", label: "Our Story", icon: Heart },
-  { id: "faq", label: "FAQ", icon: HelpCircle },
   { id: "policies", label: "Policies", icon: Shield },
   { id: "contact", label: "Contact Us", icon: MapPin },
 ];
 
 export default function AboutPage() {
   const [activeTab, setActiveTab] = useState("story");
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -41,71 +32,6 @@ export default function AboutPage() {
       "https://images.unsplash.com/photo-1631010231931-d2c396b444ec?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzaGlwcGluZyUyMGJveGVzJTIwZWNvbW1lcmNlfGVufDF8fHx8MTc3ODI0MDc1MXww&ixlib=rb-4.1.0&q=80&w=1080",
   };
 
-  const productFaqs = [
-    {
-      q: "Apa itu Mamabear?",
-      a: "Mamabear adalah penyedia produk-produk pelancar ASI dengan bahan-bahan alami. Founder Agnes Susanti Widjaja adalah ibu menyusui sekaligus Bachelor degree in Science in Food Technology & Nutrition lulusan Royal Melbourne Institute of Technology. Melalui riset, pengalaman dan dedikasinya, Mamabear hadir sebagai solusi ASI terbaik bagi Anda.",
-    },
-    {
-      q: "Apa saja produk-produk Mamabear?",
-      a: "Mamabear menyediakan produk-produk pelancar ASI yaitu: Teh Pelancar ASI, Minuman Bubuk (Zoya Mix dan Almond Mix), dan Almond Oat Cookies. Zoya Mix dan Almond Oat Cookies juga bisa dikonsumsi oleh semua usia, termasuk anak-anak sebagai cemilan atau sarapan sehat.",
-    },
-    {
-      q: "Apa keunggulan produk Mamabear?",
-      a: "Kami hanya menggunakan bahan–bahan alami berkualitas yang diproduksi dengan teknologi dan proses terbaik. Seluruh produk kami aman dan efektif, serta praktis untuk ibu menyusui. Seluruh produk Mamabear juga telah lulus uji BPOM dan tersertifikasi Halal.",
-    },
-    {
-      q: "Produk pelancar ASI yang paling cocok untuk saya?",
-      a: "Setiap produk Mamabear dibuat untuk ibu menyusui. Sesuai pengalaman kami, Teh Pelancar ASI dan Zoya Milk efektif untuk meningkatkan produksi ASI. Sedangkan Almond Mix dan Almond Oat Cookies bisa memperkaya kualitas ASI. Kami sangat menyarankan untuk mencoba seluruh produk untuk hasil maksimal.",
-    },
-    {
-      q: "Apakah ada peringatan kesehatan sebelum pemakaian produk Mamabear?",
-      a: "Seluruh produk kami terbuat dari bahan-bahan alami dan pilihan yang aman untuk ibu menyusui. Konsumsi seluruh produk Mamabear sesuai petunjuk di kemasan. Anda juga boleh berkonsultasi dengan dokter Anda.",
-    },
-    {
-      q: "Apakah ada efek samping dari produk Mamabear?",
-      a: "Jika dikonsumsi secara tepat dan sesuai dengan porsi yang direkomendasi di kemasan, produk Mamabear tidak memiliki efek samping atau ketergantungan.",
-    },
-    {
-      q: "Apakah ibu hamil boleh mengkonsumsi produk Mamabear?",
-      a: "Teh Pelancar ASI Mamabear boleh dikonsumsi setelah melahirkan. Ibu hamil boleh mengkonsumsi teh setelah minggu ke-38 kehamilan. Zoya Mix dan Almond Oat Cookies juga aman dan cocok untuk segala usia termasuk ibu hamil.",
-    },
-    {
-      q: "Bagaimana cara konsumsi produk Mamabear agar cepat mendapatkan hasil?",
-      a: "Ikuti anjuran pemakaian. Anda boleh menggunakan secara bergantian, misalnya: Sarapan dengan Zoya Mix, minum Teh Pelancar ASI di siang hari, cemilan sore dengan Almond Oat Cookies, dan minum Zoya Mix sebelum tidur.",
-    },
-    {
-      q: "Apakah produk Mamabear bisa digunakan secara bersamaan?",
-      a: "Ya, kombinasi produk Mamabear dapat saling melengkapi. Seluruh bahan kami bersifat alami dan tidak mengandung bahan kimia berbahaya. Anda bebas mengkonsumsinya secara bersamaan.",
-    },
-    {
-      q: "Apakah produk Mamabear aman untuk yang alergi susu?",
-      a: "Hampir seluruh produk kami tidak mengandung susu dan produk turunannya, KECUALI Almond Oat Cookies varian Chocolate Chip dan Cookies and Cream.",
-    },
-  ];
-
-  const orderFaqs = [
-    {
-      q: "Bagaimana cara pesan produk Mamabear?",
-      a: "Buat akun dengan cara mendaftarkan email Anda. Log in dan tambahkan produk ke keranjang, lalu lengkapi pembayaran. Produk Mamabear juga tersedia di mitra resmi kami.",
-    },
-    {
-      q: "Apa saja sistem pembayaran yang tersedia?",
-      a: "Kami menerima berbagai bentuk pembayaran, antara lain transfer bank (BCA & Mandiri), kartu kredit, ShopeePay, GoPay, dan Alfamart.",
-    },
-    {
-      q: "Berapa lama untuk proses pengiriman?",
-      a: "Pesanan Anda akan diproses dalam 3-4 hari kerja. Lama pengiriman tergantung pada lokasi tujuan.",
-    },
-    {
-      q: "Apakah saya bisa mengganti pesanan atau alamat?",
-      a: "Untuk mengubah pesanan, langsung WhatsApp tim kami. Untuk mengubah alamat, silakan batalkan pesanan untuk membuat pesanan baru.",
-    },
-    {
-      q: "Apakah ada diskon belanja?",
-      a: "Silakan subscribe ke newsletter kami untuk mendapatkan info penawaran dan update menarik lainnya!",
-    },
-  ];
 
   const renderStory = () => (
     <div className="space-y-16 animate-in fade-in duration-500">
@@ -297,99 +223,6 @@ export default function AboutPage() {
     </div>
   );
 
-  const renderFaqSection = (
-    title: string,
-    faqs: { q: string; a: string }[],
-    startIndex: number,
-  ) => (
-    <div className="mb-10">
-      <h3
-        className="text-2xl font-black mb-6"
-        style={{ color: "#3B1F0E" }}
-      >
-        {title}
-      </h3>
-      <div className="space-y-3">
-        {faqs.map((faq, idx) => {
-          const actualIdx = startIndex + idx;
-          const isOpen = openFaq === actualIdx;
-          return (
-            <div
-              key={actualIdx}
-              className="rounded-2xl border overflow-hidden bg-white transition-all duration-300 shadow-sm"
-              style={{
-                borderColor: isOpen ? "#D5557E" : "#F0D9E2",
-              }}
-            >
-              <button
-                onClick={() =>
-                  setOpenFaq(isOpen ? null : actualIdx)
-                }
-                className="w-full px-6 py-4 flex items-center gap-4 text-left"
-              >
-                <span
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 transition-colors"
-                  style={{
-                    backgroundColor: isOpen
-                      ? "#D5557E"
-                      : "#FACBD8",
-                    color: isOpen ? "white" : "#D5557E",
-                  }}
-                >
-                  {String(idx + 1).padStart(2, "0")}
-                </span>
-                <p
-                  className="flex-1 font-bold text-[15px]"
-                  style={{ color: "#3B1F0E" }}
-                >
-                  {faq.q}
-                </p>
-                <ChevronDown
-                  size={18}
-                  className={`shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
-                  style={{ color: "#D5557E" }}
-                />
-              </button>
-              <div
-                className="overflow-hidden transition-all duration-300"
-                style={{ maxHeight: isOpen ? "400px" : "0px" }}
-              >
-                <p
-                  className="px-6 pb-5 pl-[4.5rem] text-sm leading-relaxed"
-                  style={{ color: "#6C4735" }}
-                >
-                  {faq.a}
-                </p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-
-  const renderFAQ = () => (
-    <div className="animate-in fade-in duration-500 w-full">
-      <div className="text-center mb-10">
-        <h2
-          className="text-4xl font-black mb-4"
-          style={{ color: "#3B1F0E" }}
-        >
-          Frequently Asked Questions
-        </h2>
-        <p className="text-base" style={{ color: "#8B6352" }}>
-          Find answers to common questions about Mamabear
-          products and orders.
-        </p>
-      </div>
-      {renderFaqSection("Product FAQs", productFaqs, 0)}
-      {renderFaqSection(
-        "Order FAQs",
-        orderFaqs,
-        productFaqs.length,
-      )}
-    </div>
-  );
 
   const renderPolicies = () => (
     <div className="animate-in fade-in duration-500 w-full space-y-12">
@@ -807,7 +640,6 @@ export default function AboutPage() {
       <div className="w-full bg-[#FAFAFA] flex-1">
         <div className="px-6 sm:px-12 lg:px-16 py-16">
           {activeTab === "story" && renderStory()}
-          {activeTab === "faq" && renderFAQ()}
           {activeTab === "policies" && renderPolicies()}
           {activeTab === "contact" && renderContact()}
         </div>

@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
+  CreditCard,
   ChevronRight,
   Heart,
   Loader2,
@@ -19,6 +21,7 @@ import { toast } from "sonner";
 
 import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";
+import { useCheckout } from "@/context/CheckoutContext";
 import { resolveProductImageUrl } from "@/lib/images/resolve-product-image";
 import { fetchWishlistProducts } from "@/lib/wishlist/fetch-wishlist-products";
 import { effectivePrice, formatPrice } from "@/lib/utils";
@@ -31,8 +34,10 @@ const PINK = "#D5557E";
 const BORDER = "#FACBD8";
 
 export default function WishlistPageContent() {
-  const { ids, remove, clear, count } = useWishlist();
+  const router = useRouter();
+  const { ids, remove, clear, count, refresh } = useWishlist();
   const { addItem } = useCart();
+  const { postItems } = useCheckout();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -59,7 +64,11 @@ export default function WishlistPageContent() {
   }, []);
 
   useEffect(() => {
-    void loadProducts(ids);
+    void refresh();
+  }, [refresh]);
+
+  useEffect(() => {
+    void Promise.resolve().then(() => loadProducts(ids));
   }, [ids, loadProducts]);
 
   const handleClearAll = () => {
@@ -88,6 +97,27 @@ export default function WishlistPageContent() {
       image: resolveProductImageUrl(product.images?.[0]?.imageUrl),
     });
     toast.success("Added to cart");
+  };
+
+  const handleCheckout = (product: Product) => {
+    if (product.stock <= 0) {
+      toast.error("Product is out of stock");
+      return;
+    }
+
+    postItems([
+      {
+        id: nanoid(),
+        productId: product.id,
+        quantity: 1,
+        name: product.name,
+        basePrice: product.basePrice,
+        discountPrice: product.discountPrice ?? undefined,
+        image: resolveProductImageUrl(product.images?.[0]?.imageUrl),
+      },
+    ]);
+
+    router.push("/checkout/info");
   };
 
   const isEmpty = ids.length === 0;
@@ -248,6 +278,16 @@ export default function WishlistPageContent() {
                         >
                           <ShoppingCart size={16} />
                           Add to Cart
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleCheckout(product)}
+                          disabled={outOfStock}
+                          className="inline-flex items-center gap-1.5 rounded-2xl border px-4 py-2 text-sm font-semibold transition hover:bg-[#FFF5F8] disabled:cursor-not-allowed disabled:opacity-50"
+                          style={{ borderColor: BORDER, color: PINK }}
+                        >
+                          <CreditCard size={16} />
+                          Checkout
                         </button>
                         <button
                           type="button"

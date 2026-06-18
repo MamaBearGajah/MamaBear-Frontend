@@ -591,4 +591,8 @@ export interface bundleHamperParams {
   }[];
 }
 
+export interface wishlistItem{
+  productId: string;
+}
+
 export type AddressPayload = Omit<Address, "id">;
