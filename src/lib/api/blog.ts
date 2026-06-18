@@ -16,11 +16,35 @@ export async function getAllBlogs(
   return data.data
 }
 
+export async function getAllAdminBlogs(
+  // id: string,
+  params: BlogListParams = {}
+): Promise<BlogList[]> {
+  const { data } = await apiClient.get(
+    `/blog/admin/all`,
+    {    
+    params: params,    
+    },
+  );
+  return data.data
+}
+
 export async function getBlogById(
   id: string,
 ): Promise<BlogList> {
   const { data } = await apiClient.get<ApiResponse<BlogList>>(
     `/blog/${id}`,
+    {
+    }
+  );
+  return data.data;
+}
+
+export async function getBlogBySlug(
+  slug: string,
+): Promise<BlogList> {
+  const { data } = await apiClient.get<ApiResponse<BlogList>>(
+    `/blog/${slug}`,
     {
     }
   );
