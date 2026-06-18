@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import ChatbotWidget from "@/components/chat/ChatbotWidget";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
 import { CheckoutProvider } from "@/context/CheckoutContext";
@@ -108,6 +109,7 @@ export default function RootLayout({
           </>
         )}
           </body>
+          <ChatbotWidget />
           </CheckoutProvider>
         </CartProvider>
       </AuthProvider>

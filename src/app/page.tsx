@@ -68,7 +68,7 @@ export default async function Home() {
             <SubscribeSection />
           </div>
         </section>
-        <FloatingChatButton href="#" />
+        {/* <FloatingChatButton href="#" /> */}
       </main>
       <Footer />
     </div>
