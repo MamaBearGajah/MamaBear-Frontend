@@ -57,7 +57,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/customers",
     icon: Users,
     roles: ["admin", "super_admin"],
-    disabled: true,
+    disabled: false,
   },
   {
     label: "Categories",
@@ -72,13 +72,13 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     icon: BarChart3,
     roles: ["admin", "super_admin"],
   },
-  {
-    label: "Content",
-    href: "/admin/content",
-    icon: FileText,
-    roles: ["admin", "super_admin"],
-    disabled: true,
-  },
+  // {
+  //   label: "Content",
+  //   href: "/admin/content",
+  //   icon: FileText,
+  //   roles: ["admin", "super_admin"],
+  //   disabled: true,
+  // },
   {
     label: "Widgets",
     href: "/admin/widget",
