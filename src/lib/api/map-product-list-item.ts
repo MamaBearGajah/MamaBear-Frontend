@@ -37,8 +37,24 @@ export function mapProductListItem(row: Record<string, unknown>): ProductListIte
         }))
     : undefined;
 
+  const normalizedId = (() => {
+    const rawId = row.id;
+    if (typeof rawId === "number") {
+      return Number.isFinite(rawId) ? String(rawId) : undefined;
+    }
+    if (typeof rawId === "string") {
+      const trimmed = rawId.trim();
+      if (trimmed && trimmed.toLowerCase() !== "nan") {
+        return trimmed;
+      }
+    }
+    return undefined;
+  })();
+
+  const fallbackId = String(row.slug ?? row.name ?? row.categoryId ?? "");
+
   return {
-    id: String(row.id),
+    id: normalizedId ?? (fallbackId || `product-${Math.random().toString(36).slice(2, 10)}`),
     name: String(row.name),
     slug: String(row.slug),
     basePrice: toNumber(row.basePrice) ?? 0,

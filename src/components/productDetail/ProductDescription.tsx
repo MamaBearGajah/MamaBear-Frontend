@@ -20,7 +20,7 @@ export default function ProductDescription({
 
   return (
     <div>
-      <p className="mt-2 mb-2 text-sm text-gray-500">
+      <p className="mt-2 mb-2 text-[15px] leading-6 text-gray-500 md:text-base">
         {displayText}
       </p>
 

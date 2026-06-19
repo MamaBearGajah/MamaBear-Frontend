@@ -78,11 +78,11 @@ export default function FAQSection({
     <section className="w-full bg-[#FEF2F5] pt-6 pb-8 md:pt-8 md:pb-12">
       {/* Desktop: complex layout (keep unchanged) */}
       <div className="hidden w-full px-0 md:block">
-        <div className="relative grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-start">
-          <div className="relative flex h-[520px] items-center justify-center">
-            <div className="relative flex h-[520px] w-full items-center justify-center px-6">
+        <div className="relative grid grid-cols-1 gap-6 xl:grid-cols-2 xl:items-start">
+          <div className="relative flex min-h-[420px] items-center justify-center xl:h-[520px]">
+            <div className="relative flex min-h-[420px] w-full items-center justify-center px-4 xl:h-[520px] xl:px-6">
               <div
-                className="absolute top-[23px] left-[52px] h-[520px] w-[470px] overflow-hidden rounded-[24px]"
+                className="absolute top-[23px] left-4 h-[520px] w-full max-w-[470px] overflow-hidden rounded-[24px] xl:left-[52px]"
                 style={{
                   boxShadow:
                     "0px 8px 10px -6px rgba(0,0,0,0.1), 0px 20px 25px -5px rgba(0,0,0,0.1)",
@@ -93,6 +93,7 @@ export default function FAQSection({
                     src={imageSrc}
                     alt={alt}
                     fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
                     className="object-cover"
                   />
                 ) : (
@@ -137,9 +138,9 @@ export default function FAQSection({
             </div>
           </div>
 
-          <div className="relative w-full lg:w-[552px]">
+          <div className="relative w-full max-w-[552px]">
             <div className="w-full">
-              <div className="h-[49px] w-full lg:top-[90px] lg:left-0 lg:w-[614px]">
+              <div className="h-[49px] w-full max-w-[614px] lg:top-[90px] lg:left-0">
                 <h3
                   style={{
                     fontFamily: "Quicksand, sans-serif",
@@ -161,7 +162,7 @@ export default function FAQSection({
               </div>
             </div>
             <div
-              className="mt-10 overflow-visible lg:mt-6 lg:flex lg:w-[552px] lg:flex-col lg:gap-3"
+              className="mt-10 overflow-visible lg:mt-6 lg:flex lg:w-full lg:max-w-[552px] lg:flex-col lg:gap-3"
               suppressHydrationWarning
             >
               {items.map((it) => (

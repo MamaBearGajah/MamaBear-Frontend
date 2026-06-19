@@ -13,18 +13,13 @@ import {
 import { useShopFilters } from "@/hooks/useShopFilters";
 import { DEFAULT_PRICE_BOUNDS } from "@/lib/shop/product-list-params";
 import { cn } from "@/lib/utils";
-import type { Category, ShopPriceBounds } from "@/types";
+import type { Category, ShopPriceBounds, VariantOption } from "@/types";
 import CategoryTreeFilter from "./CategoryTreeFilter";
 import FilterSidebarSearch from "./FilterSidebarSearch";
 import PriceRangePresets from "./PriceRangePresets";
 import PriceRangeSlider from "./PriceRangeSlider";
 
 export type ShopFilterBasePath = "/products" | "/search";
-
-export interface VariantOption {
-  name: string;
-  value: string;
-}
 
 interface FilterSidebarProps {
   categories: Category[];

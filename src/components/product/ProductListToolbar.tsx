@@ -56,7 +56,7 @@ export default function ProductListToolbar() {
   const view = searchParams.get("view") === "list" ? "list" : "grid";
 
   return (
-    <div className="mb-4 flex flex-wrap items-center justify-end gap-3">
+    <div className="mb-4 flex items-center justify-end gap-2 sm:flex-wrap sm:gap-3">
       <Select
         value={current}
         onValueChange={(value) => {
@@ -68,7 +68,7 @@ export default function ProductListToolbar() {
           });
         }}
       >
-        <SelectTrigger className="h-10 w-[200px] rounded-full border-border bg-white text-sm text-brown sm:w-[220px]">
+        <SelectTrigger className="border-border text-brown h-10 w-[160px] rounded-full bg-white text-sm sm:w-[220px]">
           <SelectValue placeholder="Sort by" />
         </SelectTrigger>
         <SelectContent>
@@ -80,7 +80,7 @@ export default function ProductListToolbar() {
         </SelectContent>
       </Select>
 
-      <div className="flex overflow-hidden rounded-full border border-border bg-white">
+      <div className="border-border flex overflow-hidden rounded-full border bg-white">
         <button
           type="button"
           aria-label="Grid view"
@@ -89,7 +89,7 @@ export default function ProductListToolbar() {
             "p-2.5 transition-colors",
             view === "grid"
               ? "bg-dark-pink text-white"
-              : "text-brown hover:bg-light-pink/50",
+              : "text-brown hover:bg-light-pink/50"
           )}
         >
           <LayoutGrid className="size-4" />
@@ -99,10 +99,10 @@ export default function ProductListToolbar() {
           aria-label="List view"
           onClick={() => updateFilter({ view: "list" }, { resetPage: false })}
           className={cn(
-            "border-l border-border p-2.5 transition-colors",
+            "border-border border-l p-2.5 transition-colors",
             view === "list"
               ? "bg-dark-pink text-white"
-              : "text-brown hover:bg-light-pink/50",
+              : "text-brown hover:bg-light-pink/50"
           )}
         >
           <List className="size-4" />

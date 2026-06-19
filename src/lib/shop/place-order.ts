@@ -6,6 +6,7 @@ export type PlaceShopOrderInput = {
   courier: string;
   service: string;
   provider?: "xendit" | "midtrans";
+  notes?: string;
 };
 
 export type PlaceShopOrderResult = {
@@ -44,8 +45,13 @@ export async function placeShopOrder(
   const orderRes = await createOrder({
     addressId,
     courier: input.courier.toLowerCase(),
-    service: input.service.toLowerCase(),
-    paymentMethod: provider,
+    // FIX: jangan lowercase `service` — kode service dari RajaOngkir (REG/YES/OKE)
+    // case-sensitive secara konvensi. BE sekarang membandingkan secara
+    // case-insensitive juga, jadi ini cuma untuk konsistensi & menghindari
+    // bug serupa kalau matching BE diketatkan lagi nanti.
+    service: input.service,
+    // FIX: paymentMethod dihapus — BE tidak terima field ini (VALIDATION_ERROR)
+    notes: input.notes,
   });
 
   const orderId = orderRes.data?.orderId;

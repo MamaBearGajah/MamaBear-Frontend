@@ -16,7 +16,7 @@ import {
   toStorefrontProductListParams,
 } from "@/lib/shop/product-list-params";
 import { filterStorefrontProducts } from "@/lib/shop/storefront-products";
-import type { PaginationMeta } from "@/types";
+import type { PaginationMeta, ProductListItem, VariantOption } from "@/types";
 
 export const metadata: Metadata = {
   title: "All Products | MamaBear",
@@ -27,11 +27,10 @@ interface ProductsPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-<<<<<<< HEAD
 /** Extract distinct variant name+value dari semua produk di halaman */
-function extractVariantOptions(products: any[]): Array<{ name: string; value: string }> {
+function extractVariantOptions(products: ProductListItem[]): VariantOption[] {
   const seen = new Set<string>();
-  const options: Array<{ name: string; value: string }> = [];
+  const options: VariantOption[] = [];
 
   for (const product of products) {
     for (const v of product.variantOptions ?? []) {
@@ -46,12 +45,9 @@ function extractVariantOptions(products: any[]): Array<{ name: string; value: st
   return options;
 }
 
-export default async function ProductsPage({ searchParams }: ProductsPageProps) {
-=======
 export default async function ProductsPage({
   searchParams,
 }: ProductsPageProps) {
->>>>>>> e2235cf15fce7010a2619a2e84377f3de0a499f5
   const params = await searchParams;
   const filters = parseShopListParamsFromRecord(params);
   const listParams = toStorefrontProductListParams(filters);
@@ -81,27 +77,16 @@ export default async function ProductsPage({
   ]);
 
   const products = filterStorefrontProducts(productsRes.data);
+  const variantOptions = extractVariantOptions(products);
   const categoryCounts = computeCategoryCounts(allProductsRes.data);
 
-<<<<<<< HEAD
-  // Selalu pakai allProductsRes (semua produk tanpa filter)
-  // supaya variant chips tampil lengkap dari semua produk, bukan hanya kategori aktif
-  const variantOptions = extractVariantOptions(allProductsRes.data);
-
   // Backend category endpoint pakai key 'total', products endpoint pakai 'totalItems'
-  const rawMeta = productsRes.meta as any;
-  const meta: PaginationMeta = {
-    page: rawMeta?.page ?? filters.page,
-    limit: rawMeta?.limit ?? filters.limit,
-    totalItems: rawMeta?.totalItems ?? rawMeta?.total ?? products.length,
-    totalPages: rawMeta?.totalPages ?? 1,
-=======
+
   const meta: PaginationMeta = productsRes.meta ?? {
     page: filters.page,
     limit: filters.limit,
     total: products.length,
     totalPages: 1,
->>>>>>> e2235cf15fce7010a2619a2e84377f3de0a499f5
   };
 
   return (
@@ -122,20 +107,49 @@ export default async function ProductsPage({
           <CategoryGrid categories={categoriesRes.data} />
         </Suspense>
 
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-          <FilterSidebar
-            categories={categoriesRes.data}
-            categoryCounts={categoryCounts}
-            basePath="/products"
-            priceBounds={DEFAULT_PRICE_BOUNDS}
-            variantOptions={variantOptions}
-          />
+        <div className="space-y-6">
+          <div className="-mt-4 flex items-start gap-2 lg:hidden">
+            <FilterSidebar
+              categories={categoriesRes.data}
+              categoryCounts={categoryCounts}
+              basePath="/products"
+              priceBounds={DEFAULT_PRICE_BOUNDS}
+              variantOptions={variantOptions}
+            />
 
-          <div className="min-w-0 flex-1 space-y-4">
-            <Suspense fallback={null}>
-              <ProductListToolbar />
-            </Suspense>
+            <div className="min-w-0 flex-1 self-start">
+              <Suspense fallback={null}>
+                <ProductListToolbar />
+              </Suspense>
+            </div>
+          </div>
 
+          <div className="hidden flex-col gap-6 lg:flex lg:flex-row lg:items-start">
+            <FilterSidebar
+              categories={categoriesRes.data}
+              categoryCounts={categoryCounts}
+              basePath="/products"
+              priceBounds={DEFAULT_PRICE_BOUNDS}
+              variantOptions={variantOptions}
+            />
+
+            <div className="min-w-0 flex-1 space-y-4">
+              <Suspense fallback={null}>
+                <ProductListToolbar />
+              </Suspense>
+
+              <ShopProductGrid
+                products={products}
+                categories={categoriesRes.data}
+              />
+
+              <Suspense fallback={null}>
+                <Pagination meta={meta} />
+              </Suspense>
+            </div>
+          </div>
+
+          <div className="space-y-4 lg:hidden">
             <ShopProductGrid
               products={products}
               categories={categoriesRes.data}
@@ -149,8 +163,4 @@ export default async function ProductsPage({
       </div>
     </main>
   );
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> e2235cf15fce7010a2619a2e84377f3de0a499f5

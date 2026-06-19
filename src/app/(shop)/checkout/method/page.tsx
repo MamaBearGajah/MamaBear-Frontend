@@ -152,12 +152,12 @@ export default function CheckoutPageMethod() {
   };
 
   return (
-    <div className="min-h-screen bg-pink-50 px-4 py-10">
+    <div className="min-h-screen bg-pink-50 px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-8 lg:grid-cols-3">
           {/* LEFT - FORM */}
-          <div className="col-span-2 rounded-2xl bg-white p-6 shadow-sm">
-            <div className="mb-4 flex items-center gap-2">
+          <div className="rounded-2xl bg-white p-5 shadow-sm sm:p-6 lg:col-span-2">
+            <div className="mb-6 flex items-center gap-2">
               <Truck size={24} className="text-pink-600" />
               <h1 className="text-2xl font-bold">Metode Pengiriman</h1>
             </div>
@@ -258,18 +258,17 @@ export default function CheckoutPageMethod() {
                   </label>
                 ))
               )}
-
-              <div className="mt-6 flex w-full justify-between gap-2">
+              <div className="mt-5 flex w-full flex-col gap-3 sm:flex-row">
                 <button
                   type="button"
                   onClick={handleBack}
-                  className="w-1/4 cursor-pointer rounded-xl border border-gray-300 px-4 py-2 hover:bg-pink-50"
+                  className="w-full cursor-pointer rounded-xl border border-gray-300 px-4 py-2 hover:bg-pink-50 sm:w-32"
                 >
                   Kembali
                 </button>
                 <button
                   onClick={handleContinue}
-                  className="w-3/4 cursor-pointer rounded-xl bg-[var(--mamabear-dark-pink)] px-4 py-2 text-white hover:bg-pink-700"
+                  className="w-full cursor-pointer rounded-xl bg-[var(--mamabear-dark-pink)] px-4 py-2 text-white hover:bg-pink-700 sm:flex-1"
                 >
                   Lanjutkan
                 </button>
