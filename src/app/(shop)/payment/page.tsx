@@ -1,47 +1,78 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/hooks/useCart";
-import { ArrowLeft, CreditCard, Loader2 } from "lucide-react";
+import { ArrowLeft, CreditCard, Loader2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import PaymentSelector, { PaymentMethod } from "@/components/checkout/PaymentSelector";
 import { useCheckout } from "@/context/CheckoutContext";
 import { safeFormatPrice } from "@/lib/utils";
 import { placeShopOrder } from "@/lib/shop/place-order";
+import { apiClient } from "@/lib/api/client";
+
+const POLL_INTERVAL_MS = 3000;
 
 const PaymentPage = () => {
   const { clearCart } = useCart();
   const router = useRouter();
-  // FIX: ambil `hydrated` dari context — true setelah state checkout
-  // selesai di-restore dari localStorage di client.
   const { state: checkoutState, clearCheckout, subtotal, hydrated } = useCheckout();
   const { items, method: shippingMethod, discount } = checkoutState;
 
   const [method, setMethod] = useState<PaymentMethod>("va");
   const [loading, setLoading] = useState(false);
 
+  // State setelah order dibuat — tampilkan iframe
+  const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [polling, setPolling] = useState(false);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const shipping = shippingMethod?.cost ?? 0;
   const total = subtotal - (discount ?? 0) + shipping;
 
-  // Guard: redirect jika cart kosong.
-  // FIX: tunggu sampai `hydrated` true, supaya tidak salah redirect ke /cart
-  // sebelum data checkout dari localStorage selesai dimuat (yang sebelumnya
-  // juga jadi sumber hydration mismatch karena render pertama client &
-  // server bisa berbeda).
+  // ─── Guard: redirect jika cart kosong ────────────────────────────────────
   useEffect(() => {
     if (!hydrated) return;
-    if (items.length === 0) router.replace("/cart");
-  }, [hydrated, items.length, router]);
+    if (items.length === 0 && !paymentUrl) router.replace("/cart");
+  }, [hydrated, items.length, paymentUrl, router]);
 
-  // FIX: selama belum hydrated, render null (sama di server & client)
-  // alih-alih langsung mengevaluasi items.length yang baru valid di client.
-  if (!hydrated) {
-    return null;
-  }
+  // ─── Polling status pembayaran ────────────────────────────────────────────
+  useEffect(() => {
+    if (!orderId || !paymentUrl) return;
 
-  if (items.length === 0) {
+    setPolling(true);
+    pollRef.current = setInterval(async () => {
+      try {
+        const res = await apiClient.get(`/orders/${orderId}`);
+        const paymentStatus = res.data?.data?.paymentStatus;
+
+        if (paymentStatus === "paid") {
+          clearInterval(pollRef.current!);
+          setPolling(false);
+          router.push(`/order-success?orderId=${encodeURIComponent(orderId)}`);
+        } else if (paymentStatus === "expired" || paymentStatus === "failed") {
+          clearInterval(pollRef.current!);
+          setPolling(false);
+          toast.error("Pembayaran gagal atau kedaluwarsa. Silakan coba lagi.");
+          setPaymentUrl(null);
+          setOrderId(null);
+        }
+      } catch {
+        // abaikan error sementara, polling tetap jalan
+      }
+    }, POLL_INTERVAL_MS);
+
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [orderId, paymentUrl, router]);
+
+  // ─── Hydration guard ──────────────────────────────────────────────────────
+  if (!hydrated) return null;
+
+  if (items.length === 0 && !paymentUrl) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-pink-50">
         <div className="text-center">
@@ -54,6 +85,7 @@ const PaymentPage = () => {
     );
   }
 
+  // ─── Handler: buat order & tampilkan iframe ───────────────────────────────
   const handlePayment = async () => {
     const courier = shippingMethod?.courier;
     const service = shippingMethod?.service;
@@ -76,7 +108,9 @@ const PaymentPage = () => {
       clearCheckout();
 
       if (result.paymentUrl) {
-        window.location.href = result.paymentUrl;
+        // Simpan ke state — tampilkan iframe, jangan redirect
+        setPaymentUrl(result.paymentUrl);
+        setOrderId(result.orderId);
         return;
       }
 
@@ -93,6 +127,50 @@ const PaymentPage = () => {
     }
   };
 
+  // ─── View: iframe Xendit ──────────────────────────────────────────────────
+  if (paymentUrl) {
+    return (
+      <div className="min-h-screen bg-pink-50 flex flex-col items-center py-8 px-4">
+        <div className="w-full max-w-2xl">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-xl font-bold text-slate-800">Selesaikan Pembayaran</h1>
+            {polling && (
+              <div className="flex items-center gap-2 text-sm text-slate-500">
+                <Loader2 className="h-4 w-4 animate-spin text-pink-500" />
+                Menunggu konfirmasi...
+              </div>
+            )}
+          </div>
+
+          {/* Iframe Xendit */}
+          <div className="w-full rounded-2xl overflow-hidden shadow-lg bg-white border border-pink-100">
+            <iframe
+              src={paymentUrl}
+              className="w-full"
+              style={{ height: "75vh", border: "none" }}
+              title="Xendit Payment"
+              allow="payment"
+            />
+          </div>
+
+          {/* Fallback: buka di tab baru kalau iframe tidak load */}
+          <p className="text-xs text-slate-400 mt-3 text-center">
+            Halaman tidak tampil?{" "}
+            <a
+              href={paymentUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-pink-600 underline inline-flex items-center gap-1"
+            >
+              Buka di tab baru <ExternalLink className="h-3 w-3" />
+            </a>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── View: halaman pilih metode pembayaran ────────────────────────────────
   return (
     <div className="min-h-screen bg-pink-50 py-10 px-4">
 
@@ -102,8 +180,8 @@ const PaymentPage = () => {
           <div className="flex flex-col items-center gap-3 rounded-2xl bg-white/95 px-8 py-8 shadow-lg">
             <Loader2 className="h-10 w-10 animate-spin text-pink-600" />
             <div className="text-center">
-              <div className="text-lg font-semibold text-slate-900">Memproses pembayaran</div>
-              <div className="text-sm text-slate-500">Mohon tunggu, kamu akan diarahkan ke halaman Xendit...</div>
+              <div className="text-lg font-semibold text-slate-900">Membuat pesanan...</div>
+              <div className="text-sm text-slate-500">Mohon tunggu sebentar</div>
             </div>
           </div>
         </div>
@@ -127,7 +205,7 @@ const PaymentPage = () => {
           {/* Info Xendit */}
           <div className="mt-6 rounded-2xl border border-pink-200 bg-pink-50 p-4 text-sm text-slate-700">
             <strong>Xendit:</strong> Pembayaran diproses secara aman melalui Xendit.
-            Kamu akan diarahkan ke halaman Xendit untuk menyelesaikan pembayaran via{" "}
+            Form pembayaran akan muncul langsung di halaman ini via{" "}
             {method === "va" ? "Virtual Account"
               : method === "card" ? "Kartu Kredit/Debit"
               : method.toUpperCase()}.
