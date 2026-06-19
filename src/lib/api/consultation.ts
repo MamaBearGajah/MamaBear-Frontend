@@ -10,8 +10,10 @@ export interface Consultation {
   phone?: string;
   subject: string;
   message: string;
+  price: number;
   status: ConsultationStatus;
   adminNote?: string;
+  consultationDate: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -22,6 +24,8 @@ export interface CreateConsultationPayload {
   phone?: string;
   subject: string;
   message: string;
+  price: number;
+  consultationDate: string;
 }
 
 export const consultationApi = {
@@ -31,6 +35,38 @@ export const consultationApi = {
     const norm = normalizeApiResponse<Consultation>(res.data);
     return norm.data;
   },
+  
+
+  GetAll: async (params?: {
+    status?: ConsultationStatus;
+    page?: number;
+    limit?: number;
+  }): Promise<{ data: Consultation[]; meta: any }> => {
+    const res = await apiClient.get("/consultations", { params });
+    const norm = normalizeApiResponse<Consultation[]>(res.data);
+    return { data: Array.isArray(norm.data) ? norm.data : [], meta: norm.meta };
+  },
+
+  getById: async (id: string): Promise<Consultation> => {
+    const res = await apiClient.get(`/consultations/${id}`);
+    const norm = normalizeApiResponse<Consultation>(res.data);
+    return norm.data;
+  },
+
+  delete: async (id: string) => {
+    await apiClient.delete(`/consultations/${id}`);
+  },
+  updateConsultation: async (
+    id: string,
+    payload: Partial<CreateConsultationPayload>
+  ): Promise<Consultation> => {
+    const res = await apiClient.patch(`/consultations/${id}`, payload);
+    const norm = normalizeApiResponse<Consultation>(res.data);
+    return norm.data;
+  },
+
+
+
 
   adminGetAll: async (params?: {
     status?: ConsultationStatus;

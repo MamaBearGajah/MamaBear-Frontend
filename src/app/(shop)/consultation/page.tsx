@@ -1,8 +1,12 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import BackToTop from "@/components/common/BackToTop";
+import ScheduleVideoCallModal from "@/components/consultation/ScheduleVideoCallModal";
+import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 import {
   Calendar,
   Video,
@@ -15,10 +19,23 @@ import {
 } from "lucide-react";
 
 export default function ConsultationPage() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { state } = useAuth();
+  const router = useRouter();
+
   // Scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  const handleScheduleClick = () => {
+    if (!state.isAuthenticated) {
+      toast.error("Please log in to schedule a consultation");
+      router.push("/auth");
+      return;
+    }
+    setIsModalOpen(true);
+  };
 
   return (
     <div className="w-full" style={{ fontFamily: "'Urbanist', sans-serif" }}>
@@ -443,7 +460,8 @@ export default function ConsultationPage() {
               </li>
             </ul>
             <Link
-              href="/auth"
+              onClick={handleScheduleClick}
+              href="#"
               className="mt-auto block w-full rounded-full py-2.5 text-center text-sm font-bold text-white transition-transform hover:-translate-y-1 sm:py-4 sm:text-base"
               style={{ backgroundColor: "#D5557E" }}
             >
@@ -475,6 +493,12 @@ export default function ConsultationPage() {
           </button>
         </div>
       </section>
+
+      {/* Modal */}
+      <ScheduleVideoCallModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 }
