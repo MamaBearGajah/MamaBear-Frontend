@@ -157,6 +157,12 @@ export interface Review {
 
 export type ProductBadgeType = "best-seller" | "fan-favorite" | "new";
 
+export interface VariantOption {
+  name: string;
+  value: string;
+  stock?: number;
+}
+
 export interface ProductListItem {
   id: string;
   name: string;
@@ -172,6 +178,7 @@ export interface ProductListItem {
   images?: ProductImage[];
   badge?: ProductBadgeType;
   flavorTags?: string[];
+  variantOptions?: VariantOption[];
 }
 
 export interface ProductPayload {
@@ -299,7 +306,7 @@ export interface CreateOrderPayload {
   addressId: string;
   courier: string;
   service: string;
-  paymentMethod: "xendit" | "midtrans";
+  paymentMethod?: "xendit" | "midtrans";
   notes?: string;
 }
 
@@ -400,6 +407,8 @@ export interface ProductListParams {
   status?: ProductStatus;
   sortBy?: ProductSortBy;
   sortOrder?: SortOrder;
+  variantName?: string;
+  variantValue?: string;
 }
 
 export interface CategoryListParams {
@@ -481,6 +490,8 @@ export interface ShopFiltersState {
   limit: number;
   q?: string;
   categoryId?: string;
+  variantName?: string;
+  variantValue?: string;
   minPrice?: number;
   maxPrice?: number;
   inStock?: boolean;

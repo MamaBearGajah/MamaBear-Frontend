@@ -326,6 +326,7 @@ const Testimonial = async () => {
                         src={card.imageSrc}
                         alt={card.title}
                         fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         className="object-cover"
                       />
                       <div className="pointer-events-none absolute inset-y-0 left-0 w-[58%] bg-[linear-gradient(90deg,rgba(255,255,255,1)_0%,rgba(255,255,255,0.94)_28%,rgba(255,255,255,0.72)_58%,rgba(255,255,255,0)_100%)]" />
@@ -351,6 +352,7 @@ const Testimonial = async () => {
                       src={card.imageSrc}
                       alt={card.title}
                       fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       className="object-cover"
                     />
                     <div className="pointer-events-none absolute inset-y-0 left-0 w-[70%] bg-[linear-gradient(90deg,rgba(255,255,255,1)_0%,rgba(255,255,255,0.94)_24%,rgba(255,255,255,0.7)_56%,rgba(255,255,255,0)_100%)]" />

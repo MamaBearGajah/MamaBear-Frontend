@@ -1,16 +1,18 @@
 import {
   BarChart3,
   Drill,
-  FileText,
+  HelpCircle,
   LayoutDashboard,
+  MessageCircle,
   MonitorCog,
   Newspaper,
   Package,
   Settings,
   ShoppingCart,
+  Star,
   Tags,
   Flower2,
-  // Rose,
+  Tag,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -25,95 +27,30 @@ export type AdminNavItem = {
   disabled?: boolean;
 };
 
-/** Sidebar menu — filtered by role per API Contract RBAC. */
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
-  {
-    label: "Dashboard",
-    href: "/admin",
-    icon: LayoutDashboard,
-    roles: ["admin", "super_admin"],
-  },
-  {
-    label: "Products",
-    href: "/admin/products",
-    icon: Package,
-    roles: ["admin", "super_admin"],
-  },
-  {
-    label: "Variants",
-    href: "/admin/variants",
-    icon: Package,
-    roles: ["admin", "super_admin"],
-  },
-  {
-    label: "Orders",
-    href: "/admin/orders",
-    icon: ShoppingCart,
-    roles: ["admin", "super_admin"],
-    disabled: false,
-  },
-  {
-    label: "Customers",
-    href: "/admin/customers",
-    icon: Users,
-    roles: ["admin", "super_admin"],
-    disabled: false,
-  },
-  {
-    label: "Categories",
-    href: "/admin/categories",
-    icon: Tags,
-    roles: ["admin", "super_admin"],
-    disabled: false,
-  },
-  {
-    label: "Reports",
-    href: "/admin/reports",
-    icon: BarChart3,
-    roles: ["admin", "super_admin"],
-  },
-  // {
-  //   label: "Content",
-  //   href: "/admin/content",
-  //   icon: FileText,
-  //   roles: ["admin", "super_admin"],
-  //   disabled: true,
-  // },
-  {
-    label: "Widgets",
-    href: "/admin/widget",
-    icon: Drill,
-    roles: ["admin", "super_admin"],
-    disabled: false,
-  },
-  {
-    label: "Banner",
-    href: "/admin/HomeBanner",
-    icon: MonitorCog,
-    roles: ["admin", "super_admin"],
-    disabled: false,
-  },
-  {
-    label: "Bundles",
-    href: "/admin/bundles",
-    icon: Flower2,
-    roles: ["admin", "super_admin"],
-    disabled: false,
-  },
-  {
-    label: "Article",
-    href: "/admin/articles",
-    icon: Newspaper,
-    roles: ["admin", "super_admin"],
-    disabled: false,
-  },
-  {
-    label: "Settings",
-    href: "/admin/settings",
-    icon: Settings,
-    roles: ["super_admin"],
-    disabled: true,
-  },
+  // Core
+  { label: "Dashboard",  href: "/admin",           icon: LayoutDashboard, roles: ["admin", "super_admin"] },
+  { label: "Orders",     href: "/admin/orders",    icon: ShoppingCart,    roles: ["admin", "super_admin"] },
+  { label: "Customers",  href: "/admin/customers", icon: Users,           roles: ["admin", "super_admin"] },
+  // Catalog
+  { label: "Products",   href: "/admin/products",   icon: Package, roles: ["admin", "super_admin"] },
+  { label: "Categories", href: "/admin/categories", icon: Tags,    roles: ["admin", "super_admin"] },
+  { label: "Bundles",    href: "/admin/bundles",    icon: Flower2, roles: ["admin", "super_admin"] },
+  // Marketing
+  { label: "Voucher",    href: "/admin/vouchers",   icon: Tag,  roles: ["admin", "super_admin"] },
+  { label: "Membership", href: "/admin/membership", icon: Star, roles: ["admin", "super_admin"] },
+  // Content
+  { label: "Artikel",    href: "/admin/articles",      icon: Newspaper,     roles: ["admin", "super_admin"] },
+  { label: "FAQ",        href: "/admin/faq",           icon: HelpCircle,    roles: ["admin", "super_admin"] },
+  { label: "Konsultasi", href: "/admin/consultations", icon: MessageCircle, roles: ["admin", "super_admin"] },
+  { label: "Promosi",    href: "/admin/promotions",    icon: Tag,           roles: ["admin", "super_admin"] },
+  { label: "Banner",     href: "/admin/HomeBanner",    icon: MonitorCog,    roles: ["admin", "super_admin"] },
+  // Analytics
+  { label: "Reports",    href: "/admin/reports", icon: BarChart3, roles: ["admin", "super_admin"] },
+  // Dev
+  { label: "Widgets",    href: "/admin/widget",   icon: Drill,    roles: ["admin", "super_admin"] },
+  // Super Admin
+  { label: "Settings",   href: "/admin/settings", icon: Settings, roles: ["super_admin"] },
 ];
 
 export const SUPER_ADMIN_ROUTE_PREFIXES = ["/admin/settings"] as const;

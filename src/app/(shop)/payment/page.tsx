@@ -1,78 +1,40 @@
 "use client";
 
-/**
- * FIX: src/app/(shop)/payment/page.tsx
- *
- * Bug sebelumnya:
- * 1. handlePayment memanggil fetch("../lib/api/payment/create") — path salah,
- *    relative path ini tidak akan resolve ke Next.js API route
- * 2. Tidak menggunakan placeShopOrder yang sudah ada
- * 3. Tidak menggunakan shipping dari CheckoutContext
- * 4. Tidak ada integrasi Midtrans Snap
- * 5. Tidak clear cart setelah order berhasil
- *
- * Fix:
- * - Gunakan placeShopOrder() yang sudah benar (createOrder → checkoutPayment → BE)
- * - Support Xendit (redirect ke paymentUrl) dan Midtrans Snap (popup)
- * - Clear cart setelah berhasil
- */
-
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/hooks/useCart";
-import { ArrowLeft, CreditCard, Loader2, ShieldCheck } from "lucide-react";
+import { ArrowLeft, CreditCard, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import PaymentSelector, { PaymentMethod } from "@/components/checkout/PaymentSelector";
 import { useCheckout } from "@/context/CheckoutContext";
 import { safeFormatPrice } from "@/lib/utils";
 import { placeShopOrder } from "@/lib/shop/place-order";
 
-type Gateway = "xendit" | "midtrans";
-
-const GATEWAY_OPTIONS: { value: Gateway; label: string; desc: string }[] = [
-  {
-    value: "xendit",
-    label: "Xendit",
-    desc: "Transfer bank, VA, QRIS, e-wallet",
-  },
-  {
-    value: "midtrans",
-    label: "Midtrans",
-    desc: "Kartu kredit, GoPay, OVO, VA",
-  },
-];
-
-export default function PaymentPage() {
-  const { state: cartState, clearCart } = useCart();
-  const {
-    state: checkoutState,
-    clearCheckout,
-    subtotal,
-  } = useCheckout();
-
+const PaymentPage = () => {
+  const { clearCart } = useCart();
   const router = useRouter();
-  const [gateway, setGateway] = useState<Gateway>("xendit");
+  const { state: checkoutState, clearCheckout, subtotal } = useCheckout();
+  const { items, method: shippingMethod, discount } = checkoutState;
+
+  const [method, setMethod] = useState<PaymentMethod>("va");
   const [loading, setLoading] = useState(false);
 
-  const shippingCost = checkoutState.method?.cost ?? 0;
-  const discount = checkoutState.discount ?? 0;
-  const total = subtotal - discount + shippingCost;
+  const shipping = shippingMethod?.cost ?? 0;
+  const total = subtotal - (discount ?? 0) + shipping;
 
-  // Guard: jangan bisa akses halaman ini tanpa item
-  const items = checkoutState.items ?? [];
+  // Guard: redirect jika cart kosong
   useEffect(() => {
-    if (items.length === 0) {
-      router.replace("/cart");
-    }
+    if (items.length === 0) router.replace("/cart");
   }, [items.length, router]);
 
   if (items.length === 0) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-pink-50">
+      <div className="min-h-screen flex items-center justify-center bg-pink-50">
         <div className="text-center">
           <h1 className="text-xl font-bold mb-3">Keranjang kosong</h1>
           <Link href="/products" className="text-pink-600 underline">
-            Belanja dulu yuk
+            Belanja dulu
           </Link>
         </div>
       </div>
@@ -80,184 +42,162 @@ export default function PaymentPage() {
   }
 
   const handlePayment = async () => {
-    const shippingMethod = checkoutState.method;
-    if (!shippingMethod?.courier || !shippingMethod?.service) {
+    const courier = shippingMethod?.courier;
+    const service = shippingMethod?.service;
+
+    if (!courier || !service) {
       toast.error("Pilih metode pengiriman dulu");
-      router.push("/checkout/shipping");
+      router.push("/checkout/method");
       return;
     }
 
     setLoading(true);
     try {
       const result = await placeShopOrder({
-        courier: shippingMethod.courier,
-        service: shippingMethod.service,
-        provider: gateway,
+        courier,
+        service,
+        provider: "xendit",
       });
 
-      // Sukses — clear semua state
       clearCart();
       clearCheckout();
 
       if (result.paymentUrl) {
-        // Xendit: redirect ke halaman pembayaran Xendit
-        // Midtrans Snap: juga pakai redirect_url kalau Snap token tidak ada di frontend
         window.location.href = result.paymentUrl;
         return;
       }
 
-      // Fallback: tidak ada paymentUrl (COD atau error non-fatal)
-      router.push(
-        `/order-success?orderId=${encodeURIComponent(result.orderId)}`
-      );
+      router.push(`/order-success?orderId=${encodeURIComponent(result.orderId)}`);
     } catch (err: any) {
-      console.error("Payment error:", err);
-      const message =
-        err?.response?.data?.message ??
+      console.error(err);
+      toast.error(
+        err?.response?.data?.error?.message ??
         err?.message ??
-        "Gagal memproses pembayaran";
-      toast.error(message);
+        "Pembayaran gagal, coba lagi"
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-pink-50 px-4 py-10">
-      <div className="mx-auto max-w-3xl">
-        {/* Back button */}
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 mb-6"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Kembali
-        </button>
+    <div className="min-h-screen bg-pink-50 py-10 px-4">
 
-        <div className="grid gap-6 lg:grid-cols-5">
-          {/* ── LEFT: Payment selector ─────────────────────── */}
-          <div className="lg:col-span-3 bg-white rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center gap-2 mb-6">
-              <CreditCard className="w-5 h-5 text-pink-600" />
-              <h1 className="text-xl font-bold">Pilih Metode Pembayaran</h1>
+      {/* Loading overlay */}
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="flex flex-col items-center gap-3 rounded-2xl bg-white/95 px-8 py-8 shadow-lg">
+            <Loader2 className="h-10 w-10 animate-spin text-pink-600" />
+            <div className="text-center">
+              <div className="text-lg font-semibold text-slate-900">Memproses pembayaran</div>
+              <div className="text-sm text-slate-500">Mohon tunggu, kamu akan diarahkan ke halaman Xendit...</div>
             </div>
-
-            {/* Gateway selector */}
-            <div className="space-y-3">
-              {GATEWAY_OPTIONS.map((opt) => (
-                <label
-                  key={opt.value}
-                  className={`flex items-start gap-3 border-2 rounded-xl p-4 cursor-pointer transition-colors ${
-                    gateway === opt.value
-                      ? "border-pink-500 bg-pink-50"
-                      : "border-gray-200 hover:border-pink-300"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="gateway"
-                    value={opt.value}
-                    checked={gateway === opt.value}
-                    onChange={() => setGateway(opt.value)}
-                    className="mt-1 accent-pink-600"
-                  />
-                  <div>
-                    <p className="font-semibold text-sm">{opt.label}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{opt.desc}</p>
-                  </div>
-                </label>
-              ))}
-            </div>
-
-            {/* Shipping info */}
-            {checkoutState.method && (
-              <div className="mt-6 p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
-                <p className="font-medium text-gray-800 mb-1">Pengiriman</p>
-                <p>
-                  {checkoutState.method.courier?.toUpperCase()}{" "}
-                  {checkoutState.method.service} —{" "}
-                  {safeFormatPrice(checkoutState.method.cost ?? 0)}
-                </p>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  Est. {checkoutState.method.etd ?? "-"} hari kerja
-                </p>
-              </div>
-            )}
-
-            {/* Security badge */}
-            <div className="mt-6 flex items-center gap-2 text-xs text-gray-400">
-              <ShieldCheck className="w-4 h-4 text-green-500" />
-              Pembayaran diproses secara aman oleh{" "}
-              {gateway === "xendit" ? "Xendit" : "Midtrans"}
-            </div>
-          </div>
-
-          {/* ── RIGHT: Order summary ───────────────────────── */}
-          <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm h-fit">
-            <h2 className="font-bold text-lg mb-4">Ringkasan Pesanan</h2>
-
-            {/* Items */}
-            <div className="space-y-2 mb-4 max-h-48 overflow-y-auto">
-              {items.map((item, idx) => (
-                <div
-                  key={item.productId + (item.variantId ?? "") + idx}
-                  className="flex justify-between text-sm"
-                >
-                  <span className="text-gray-600 truncate flex-1 mr-2">
-                    {item.name}
-                    {item.variantLabel ? ` (${item.variantLabel})` : ""} ×{" "}
-                    {item.quantity}
-                  </span>
-                  <span className="font-medium shrink-0">
-                    {safeFormatPrice(
-                      (item.discountPrice ?? item.basePrice) * item.quantity
-                    )}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <div className="border-t pt-3 space-y-2 text-sm">
-              <div className="flex justify-between text-gray-600">
-                <span>Subtotal</span>
-                <span>{safeFormatPrice(subtotal)}</span>
-              </div>
-              {discount > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <span>Diskon</span>
-                  <span>- {safeFormatPrice(discount)}</span>
-                </div>
-              )}
-              <div className="flex justify-between text-gray-600">
-                <span>Ongkos kirim</span>
-                <span>{safeFormatPrice(shippingCost)}</span>
-              </div>
-              <div className="flex justify-between font-bold text-base pt-2 border-t">
-                <span>Total</span>
-                <span className="text-pink-600">{safeFormatPrice(total)}</span>
-              </div>
-            </div>
-
-            <button
-              onClick={handlePayment}
-              disabled={loading}
-              className="mt-6 w-full flex items-center justify-center gap-2 bg-pink-600 text-white py-3 rounded-xl font-semibold hover:bg-pink-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Memproses...
-                </>
-              ) : (
-                <>
-                  <CreditCard className="w-4 h-4" />
-                  Bayar Sekarang
-                </>
-              )}
-            </button>
           </div>
         </div>
+      )}
+
+      <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-8">
+
+        {/* LEFT — PAYMENT METHOD */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm">
+          <div className="flex items-center gap-2 mb-6">
+            <button onClick={() => router.back()} className="text-pink-600 hover:text-pink-700">
+              <ArrowLeft size={18} />
+            </button>
+            <h1 className="text-2xl font-bold">Pembayaran</h1>
+          </div>
+
+          <h2 className="font-semibold mb-4">Pilih Metode Pembayaran</h2>
+
+          <PaymentSelector selected={method} onSelect={setMethod} />
+
+          {/* Info Xendit */}
+          <div className="mt-6 rounded-2xl border border-pink-200 bg-pink-50 p-4 text-sm text-slate-700">
+            <strong>Xendit:</strong> Pembayaran diproses secara aman melalui Xendit.
+            Kamu akan diarahkan ke halaman Xendit untuk menyelesaikan pembayaran via{" "}
+            {method === "va" ? "Virtual Account"
+              : method === "card" ? "Kartu Kredit/Debit"
+              : method.toUpperCase()}.
+          </div>
+
+          {/* Info pengiriman */}
+          {shippingMethod && (
+            <div className="mt-4 rounded-2xl border border-gray-100 bg-gray-50 p-4 text-sm text-slate-600">
+              <p className="font-medium text-slate-800 mb-1">Pengiriman</p>
+              <p>
+                {shippingMethod.courier?.toUpperCase()} {shippingMethod.service}{" "}
+                — {safeFormatPrice(shippingMethod.cost ?? 0)}
+              </p>
+              {shippingMethod.etd && (
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Estimasi {shippingMethod.etd} hari kerja
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT — ORDER SUMMARY */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm h-fit">
+          <h2 className="text-xl font-bold mb-4">Ringkasan Pesanan</h2>
+
+          <div className="space-y-2 text-sm mb-6 max-h-52 overflow-y-auto">
+            {items.map((item, idx) => {
+              const price = item.discountPrice ?? item.basePrice;
+              return (
+                <div key={item.productId + (item.variantId ?? "") + idx} className="flex justify-between">
+                  <span className="text-slate-600 truncate flex-1 mr-2">
+                    {item.name}{item.variantLabel ? ` (${item.variantLabel})` : ""} × {item.quantity}
+                  </span>
+                  <span className="font-medium shrink-0">
+                    {safeFormatPrice(price * item.quantity)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="border-t pt-4 space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-slate-600">Subtotal</span>
+              <span>{safeFormatPrice(subtotal)}</span>
+            </div>
+            {(discount ?? 0) > 0 && (
+              <div className="flex justify-between text-green-600">
+                <span>Diskon</span>
+                <span>- {safeFormatPrice(discount ?? 0)}</span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span className="text-slate-600">Ongkos kirim</span>
+              <span>{shipping === 0 ? "GRATIS" : safeFormatPrice(shipping)}</span>
+            </div>
+            <div className="flex justify-between font-bold text-lg border-t pt-3">
+              <span>Total</span>
+              <span className="text-pink-600">{safeFormatPrice(total)}</span>
+            </div>
+          </div>
+
+          <button
+            onClick={handlePayment}
+            disabled={loading}
+            className="w-full mt-6 inline-flex items-center justify-center gap-2 bg-pink-600 text-white py-3 rounded-xl font-bold hover:bg-pink-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              <><Loader2 className="h-5 w-5 animate-spin" /> Memproses...</>
+            ) : (
+              <><CreditCard className="h-5 w-5" /> Bayar via Xendit</>
+            )}
+          </button>
+
+          <p className="text-xs text-gray-400 mt-3 text-center">
+            Pembayaran aman diproses oleh Xendit
+          </p>
+        </div>
+
       </div>
     </div>
   );
-}
+};
+
+export default PaymentPage;

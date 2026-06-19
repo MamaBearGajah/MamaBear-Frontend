@@ -32,9 +32,6 @@ export const consultationApi = {
     return norm.data;
   },
 
-  // ─── Admin endpoints ──────────────────────────────────────────────────────
-
-  /** GET /admin/consultations — list semua konsultasi (admin) */
   adminGetAll: async (params?: {
     status?: ConsultationStatus;
     page?: number;
@@ -42,13 +39,9 @@ export const consultationApi = {
   }): Promise<{ data: Consultation[]; meta: any }> => {
     const res = await apiClient.get("/admin/consultations", { params });
     const norm = normalizeApiResponse<Consultation[]>(res.data);
-    return {
-      data: Array.isArray(norm.data) ? norm.data : [],
-      meta: norm.meta,
-    };
+    return { data: Array.isArray(norm.data) ? norm.data : [], meta: norm.meta };
   },
 
-  /** PUT /admin/consultations/:id — update status konsultasi (admin) */
   adminUpdateStatus: (
     id: string,
     payload: { status: ConsultationStatus; adminNote?: string }

@@ -256,6 +256,7 @@ const HomeBanner = () => {
                 src={bannerData[mobileIndex].image}
                 alt={bannerData[mobileIndex].title}
                 fill
+                sizes="100vw"
                 className="object-cover"
                 priority
               />

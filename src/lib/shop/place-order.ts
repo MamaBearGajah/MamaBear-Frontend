@@ -6,6 +6,7 @@ export type PlaceShopOrderInput = {
   courier: string;
   service: string;
   provider?: "xendit" | "midtrans";
+  notes?: string;
 };
 
 export type PlaceShopOrderResult = {
@@ -45,7 +46,8 @@ export async function placeShopOrder(
     addressId,
     courier: input.courier.toLowerCase(),
     service: input.service.toLowerCase(),
-    paymentMethod: provider,
+    // FIX: paymentMethod dihapus — BE tidak terima field ini (VALIDATION_ERROR)
+    notes: input.notes,
   });
 
   const orderId = orderRes.data?.orderId;
