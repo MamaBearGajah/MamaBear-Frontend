@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Product, Review } from "@/types";
 import { reviewsApi, getAllReviews } from "../../lib/api/reviews";
 import Stars from "@/components/productDetail/Stars";
@@ -7,12 +8,8 @@ import getDaysAgo from "./GetDaysAgo";
 import ProductDescription from "./ProductDescription";
 import {
   Card,
-  CardHeader,
   CardTitle,
-  CardContent,
   CardDescription,
-  CardFooter,
-  CardAction,
 } from "../ui/card";
 
 const mockReviews: Review[] = [
@@ -73,16 +70,16 @@ export default function ReviewCard({
   product: Product;
 }) {
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [usefulSent, setusefulSent] = useState(false);
+  const [helpfulVotes, setHelpfulVotes] = useState<Record<string, boolean>>({});
   const [isOpen, setIsOpen] = useState(false);
   const limit = 5;
   const [page, setPage] = useState(1);
-  const [meta, setMeta] = useState({
+  const meta = {
     page: 1,
     limit: 5,
     totalItems: 0,
     totalPages: 0,
-  });
+  };
   useEffect(() => {
     async function fetchReviews() {
       try {
@@ -99,7 +96,7 @@ export default function ReviewCard({
     }
 
     if (productId) fetchReviews();
-  }, [productId, page, usefulSent]);
+  }, [productId, page]);
 
   const nextPage = () => {
     if (page < meta.totalPages) {
@@ -114,12 +111,38 @@ export default function ReviewCard({
   };
 
   function addHelpfulVote(reviewId: string, isHelpful: boolean) {
-    reviewsApi
-      .voteHelpful(productId, reviewId, isHelpful)
-      .then(() => {
-        setusefulSent((prev) => !prev);
-      })
-      .catch(console.error);
+    setHelpfulVotes((prev) => ({ ...prev, [reviewId]: isHelpful }));
+    setReviews((prev) =>
+      prev.map((review) =>
+        review.id === reviewId
+          ? {
+              ...review,
+              helpfulCount: Math.max(
+                0,
+                review.helpfulCount + (isHelpful ? 1 : -1),
+              ),
+            }
+          : review,
+      ),
+    );
+
+    reviewsApi.voteHelpful(productId, reviewId, isHelpful).catch((error) => {
+      console.error(error);
+      setHelpfulVotes((prev) => ({ ...prev, [reviewId]: !isHelpful }));
+      setReviews((prev) =>
+        prev.map((review) =>
+          review.id === reviewId
+            ? {
+                ...review,
+                helpfulCount: Math.max(
+                  0,
+                  review.helpfulCount + (isHelpful ? -1 : 1),
+                ),
+              }
+            : review,
+        ),
+      );
+    });
   }
 
   switch (navValue) {
@@ -193,10 +216,20 @@ export default function ReviewCard({
 
           {reviews.length > 0 ? (
             reviews.map((review) => (
+              (() => {
+                const isHelpful = helpfulVotes[review.id] ?? false;
+
+                return (
               <div key={review.id} className="w-full border-b py-4">
                 <Card className="flex flex-col items-start justify-start rounded-lg border p-5">
                   <div className="flex w-full items-center justify-start gap-3">
-                    <img src="/Logo Mamabear.png" className="w-[40px]"></img>
+                      <Image
+                        src="/Logo Mamabear.png"
+                        alt="Mamabear logo"
+                        width={40}
+                        height={40}
+                        className="w-10"
+                      />
 
                     <div className="w-[90%]">
                       <div className="flex flex-col items-start gap-1">
@@ -204,8 +237,14 @@ export default function ReviewCard({
                           {review.user.name}
                         </CardTitle>
                         {review.isVerifiedPurchase ? (
-                          <div className="inline-flex items-center rounded-full bg-[var(--mamabear-light-pink)] px-2.5 py-1 text-xs font-medium text-[var(--mamabear-dark-pink)]">
-                            <img className="mr-1 w-[18px]" src="/check.svg" />
+                            <div className="inline-flex items-center rounded-full bg-light-pink px-2.5 py-1 text-xs font-medium text-dark-pink">
+                              <Image
+                                src="/check.svg"
+                                alt=""
+                                width={18}
+                                height={18}
+                                className="mr-1 w-4.5"
+                              />
                             Verified Purchase
                           </div>
                         ) : null}
@@ -218,10 +257,14 @@ export default function ReviewCard({
                       </p>
                     </div>
                     <button
-                      onClick={() => addHelpfulVote(review.id, true)}
-                      className="flex items-center gap-2 rounded-full bg-[var(--mamabear-dark-pink)] px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:bg-[var(--mamabear-light-pink)] hover:text-black hover:shadow-md active:scale-95"
+                      onClick={() => addHelpfulVote(review.id, !isHelpful)}
+                      className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium shadow-sm transition-all duration-200 active:scale-95 ${
+                        isHelpful
+                          ? "bg-light-pink text-dark-pink hover:bg-light-pink hover:text-black hover:shadow-md"
+                          : "bg-dark-pink text-white hover:bg-light-pink hover:text-black hover:shadow-md"
+                      }`}
                     >
-                      <img src="/thumb.svg" className="h-4 w-4" />
+                      <Image src="/thumb.svg" alt="" width={16} height={16} className="h-4 w-4" />
 
                       <span>{review.helpfulCount}</span>
                     </button>
@@ -231,6 +274,8 @@ export default function ReviewCard({
                   </div>
                 </Card>
               </div>
+                );
+              })()
             ))
           ) : (
             <p>No reviews yet.</p>
