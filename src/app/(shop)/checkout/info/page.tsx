@@ -222,6 +222,19 @@ const CheckoutPageInfo = () => {
   ) => {
     if (e) e.preventDefault();
 
+    const deliverySource =
+      !showNewAddressForm && selectedAddress
+        ? {
+            label: selectedAddress.label || "Alamat",
+            receiverName: selectedAddress.receiverName,
+            phone: selectedAddress.phone,
+            provinceId: String(selectedAddress.provinceId),
+            cityId: String(selectedAddress.cityId),
+            postalCode: selectedAddress.postalCode,
+            address: selectedAddress.address,
+          }
+        : form;
+
     const {
       receiverName,
       phone,
@@ -230,7 +243,12 @@ const CheckoutPageInfo = () => {
       postalCode,
       address,
       label,
-    } = form;
+    } = deliverySource;
+
+    if (!showNewAddressForm && addresses.length > 0 && !selectedAddress) {
+      toast.error("Please select a saved address or add a new one");
+      return;
+    }
 
     const newErrors: Record<string, string> = {};
     if (!label) newErrors.label = "Address Label is required";
@@ -252,8 +270,8 @@ const CheckoutPageInfo = () => {
     if (showNewAddressForm) {
       try {
         await shippingApi.addNewAddress({
-          ...form,
-          label: form.label, // Passed via the button group
+          ...deliverySource,
+          label: deliverySource.label,
         });
       } catch (error) {
         console.error("Failed to save new address:", error);
@@ -261,7 +279,11 @@ const CheckoutPageInfo = () => {
       }
     }
 
-    setShipping({ ...form, deliveryNotes: notes });
+    setForm((prev) => ({
+      ...prev,
+      ...deliverySource,
+    }));
+    setShipping({ ...deliverySource, deliveryNotes: notes });
     router.push("/checkout/method");
   };
 

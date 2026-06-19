@@ -1,14 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getProductId } from "../../../server";
 import ProductCarousel from "./ProductCarousel";
 import AddToCartQuantity from "./AddToCartQuantity";
 import { Product } from "@/types";
 import Stars from "./Stars";
 import StructuredSnippet from "./StructuredSnippet";
 import { ProductVariant } from "@/types";
-import ProductDescription from "./ProductDescription";
 import ShareThisProduct from "./ShareThisProduct";
 import KeyBenefit from "./KeyBenefit";
 import {
@@ -105,8 +103,6 @@ export default function ProductCard({
   const fetchedProduct = product;
   const productName = product.name;
   const productCategory = product?.category?.name ?? "No Category";
-  const productDescription = product.description;
-  // const productImageArray = product.images.map((item) => item.imageUrl) ?? [];
   const productStock = product.stock;
   const productWeight = product.weight;
   const productBasePrice = product.basePrice;
@@ -117,7 +113,6 @@ export default function ProductCard({
       100
     ).toFixed(0)
   );
-  // console.log("ProductVariant", productVariant)
   function NotVariantPrice() {
     setThePrice(Number(product.discountPrice));
   }
@@ -147,6 +142,7 @@ export default function ProductCard({
       <div className="rounded transition-transform duration-200 md:flex md:items-start">
         <div className="w-full md:w-[35%]">
           <ProductCarousel
+            productId={productId}
             images={imageArray}
             variantselectedimage={variantSelectedImage}
             setvariantselectedimage={setvariantSelectedImage}
@@ -205,7 +201,6 @@ export default function ProductCard({
           <div className="mb-0">
             {productVariantData.map((item) => {
               const isDisabled = item.stock === 0 || item.isActive === false;
-
               function variantSelected(item: ProductVariant) {
                 if (isDisabled) return;
                 setSelectedVariant(item);
@@ -259,9 +254,6 @@ export default function ProductCard({
             <br></br>
             <KeyBenefit productWeight={productWeight} />
           </div>
-
-          {/* <AddToCartQuantity price={Number(productDiscountPrice)} product={fetchedProduct}/> */}
-
           <div className="hidden md:block">
             <AddToCartQuantity
               price={theprice}

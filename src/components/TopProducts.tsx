@@ -367,7 +367,6 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
 
         <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
           {shownProducts.map((product, index) => {
-            const toggleId = `top-products-cart-toggle-${index}`;
             const productHref = getTopProductHref(product, index);
 
             return (
@@ -375,21 +374,15 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                 key={getTopProductKey(product, index)}
                 className="group relative flex flex-col overflow-hidden rounded-[18px] border border-[#F1D0DB] bg-white shadow-[0_8px_24px_rgba(108,67,53,0.08)]"
               >
-                <input
-                  id={toggleId}
-                  type="checkbox"
-                  className="peer sr-only md:hidden"
-                  aria-hidden="true"
+                <Link
+                  href={productHref}
+                  aria-label={`View details for ${product.name}`}
+                  className="absolute inset-0 z-10"
                 />
                 {/* Image Section - Full cover */}
                 <div
                   className={`relative h-[280px] w-full flex-shrink-0 overflow-hidden bg-gradient-to-br ${product.imageAccentClass}`}
                 >
-                  <label
-                    htmlFor={toggleId}
-                    className="absolute inset-0 z-10 cursor-pointer md:pointer-events-none md:cursor-default"
-                    aria-label={`Show add to cart for ${product.name}`}
-                  />
                   {/* Badge - Top Left Overlay (only primary/secondary labels) */}
                   {product.primaryBadgeLabel || product.secondaryBadgeLabel ? (
                     <div className="absolute top-4 left-4 z-10 inline-grid w-fit grid-rows-2 gap-1">
@@ -413,7 +406,9 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                   ) : null}
 
                   {product.id != null && (
-                    <BestsellerWishlistButton productId={String(product.id)} />
+                    <div className="relative z-20">
+                      <BestsellerWishlistButton productId={String(product.id)} />
+                    </div>
                   )}
 
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#6C4735]/35 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 peer-checked:opacity-100" />
@@ -495,6 +490,14 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                       </span>
                     ) : null}
                   </div>
+
+                  <Link
+                    href={productHref}
+                    className="relative z-20 mt-3 inline-flex w-fit items-center gap-2 rounded-lg bg-[#D5557E] px-3 py-2 text-[12px] font-semibold text-white transition hover:bg-[#C84E77]"
+                  >
+                    <ShoppingCart className="size-3.5" aria-hidden="true" />
+                    See Details
+                  </Link>
                 </div>
               </article>
             );
@@ -526,7 +529,6 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
 
         <div className="mt-5 grid grid-cols-2 gap-3 px-4">
           {shownProducts.map((product, index) => {
-            const toggleId = `top-products-mobile-cart-toggle-${index}`;
             const productHref = getTopProductHref(product, index);
 
             return (
@@ -534,20 +536,14 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                 key={getTopProductKey(product, index)}
                 className="group relative overflow-hidden rounded-[14px] border border-[#F1D0DB] bg-white shadow-[0_6px_18px_rgba(108,67,53,0.08)]"
               >
-                <input
-                  id={toggleId}
-                  type="checkbox"
-                  className="peer sr-only md:hidden"
-                  aria-hidden="true"
+                <Link
+                  href={productHref}
+                  aria-label={`View details for ${product.name}`}
+                  className="absolute inset-0 z-10"
                 />
                 <div
                   className={`relative h-[138px] w-full overflow-hidden bg-gradient-to-br ${product.imageAccentClass}`}
                 >
-                  <label
-                    htmlFor={toggleId}
-                    className="absolute inset-0 z-10 cursor-pointer md:pointer-events-none md:cursor-default"
-                    aria-label={`Show add to cart for ${product.name}`}
-                  />
                   {product.primaryBadgeLabel || product.secondaryBadgeLabel ? (
                     <div className="absolute top-2 left-2 z-10 inline-grid w-fit grid-rows-2 gap-1">
                       {product.primaryBadgeLabel ? (
@@ -570,7 +566,9 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                   ) : null}
 
                   {product.id != null && (
-                    <BestsellerWishlistButton productId={String(product.id)} />
+                    <div className="relative z-20">
+                      <BestsellerWishlistButton productId={String(product.id)} />
+                    </div>
                   )}
 
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#6C4735]/35 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 peer-checked:opacity-100" />
@@ -598,7 +596,7 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
 
                   <Link
                     href={productHref}
-                    className="absolute inset-x-2 bottom-2 z-20 flex translate-y-2 items-center justify-center gap-1.5 rounded-lg bg-[#D5557E] px-3 py-1.5 text-[10px] font-semibold text-white opacity-0 shadow-md transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100 peer-checked:translate-y-0 peer-checked:opacity-100 hover:bg-[#C84E77]"
+                    className="absolute inset-x-2 bottom-2 z-20 flex items-center justify-center gap-1.5 rounded-lg bg-[#D5557E] px-3 py-1.5 text-[10px] font-semibold text-white opacity-0 shadow-md transition-all duration-300 ease-out group-hover:opacity-100 hover:bg-[#C84E77]"
                   >
                     Shop Now
                   </Link>

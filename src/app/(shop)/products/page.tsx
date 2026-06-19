@@ -15,7 +15,12 @@ import {
   parseShopListParamsFromRecord,
   toStorefrontProductListParams,
 } from "@/lib/shop/product-list-params";
-import { filterStorefrontProducts } from "@/lib/shop/storefront-products";
+import {
+  applyStorefrontSort,
+  filterProductsByCategoryScope,
+  filterProductsByEffectivePrice,
+  filterStorefrontProducts,
+} from "@/lib/shop/storefront-products";
 import type { PaginationMeta, ProductListItem, VariantOption } from "@/types";
 
 export const metadata: Metadata = {
@@ -45,6 +50,24 @@ function extractVariantOptions(products: ProductListItem[]): VariantOption[] {
   return options;
 }
 
+function filterProductsByVariant(
+  products: ProductListItem[],
+  variantName?: string,
+  variantValue?: string,
+): ProductListItem[] {
+  if (!variantName && !variantValue) return products;
+
+  return products.filter((product) => {
+    const variants = product.variantOptions ?? [];
+
+    return variants.some((variant) => {
+      const matchesName = variantName ? variant.name === variantName : true;
+      const matchesValue = variantValue ? variant.value === variantValue : true;
+      return matchesName && matchesValue;
+    });
+  });
+}
+
 export default async function ProductsPage({
   searchParams,
 }: ProductsPageProps) {
@@ -68,7 +91,7 @@ export default async function ProductsPage({
           inStock: listParams.inStock,
           minPrice: listParams.minPrice,
           maxPrice: listParams.maxPrice,
-          variantName:  listParams.variantName,
+          variantName: listParams.variantName,
           variantValue: listParams.variantValue,
         })
       : getProductList(listParams),
@@ -77,7 +100,27 @@ export default async function ProductsPage({
   ]);
 
   const products = filterStorefrontProducts(productsRes.data);
-  const variantOptions = extractVariantOptions(products);
+  const storefrontProducts = filterProductsByCategoryScope(
+    products,
+    filters.categoryId,
+    categoriesRes.data,
+  );
+  const priceFilteredProducts = filterProductsByEffectivePrice(
+    storefrontProducts,
+    filters.minPrice,
+    filters.maxPrice,
+  );
+  const variantFilteredProducts = filterProductsByVariant(
+    priceFilteredProducts,
+    filters.variantName,
+    filters.variantValue,
+  );
+  const sortedProducts = applyStorefrontSort(
+    variantFilteredProducts,
+    filters.sortBy,
+    filters.sortOrder,
+  );
+  const variantOptions = extractVariantOptions(sortedProducts);
   const categoryCounts = computeCategoryCounts(allProductsRes.data);
 
   // Backend category endpoint pakai key 'total', products endpoint pakai 'totalItems'
@@ -85,7 +128,7 @@ export default async function ProductsPage({
   const meta: PaginationMeta = productsRes.meta ?? {
     page: filters.page,
     limit: filters.limit,
-    total: products.length,
+    total: sortedProducts.length,
     totalPages: 1,
   };
 
@@ -139,7 +182,7 @@ export default async function ProductsPage({
               </Suspense>
 
               <ShopProductGrid
-                products={products}
+                products={sortedProducts}
                 categories={categoriesRes.data}
               />
 
@@ -151,7 +194,7 @@ export default async function ProductsPage({
 
           <div className="space-y-4 lg:hidden">
             <ShopProductGrid
-              products={products}
+              products={sortedProducts}
               categories={categoriesRes.data}
             />
 

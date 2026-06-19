@@ -8,7 +8,8 @@ function OrderSummary() {
   const { state: checkoutState, subtotal } = useCheckout();
   const { items, method, discount, shipping } = checkoutState;
 
-  const total = subtotal - (discount ?? 0) + (method?.cost ?? 0);
+  const shippingCost = method ? method.cost : 0;
+  const total = subtotal - (discount ?? 0) + shippingCost;
 
   return (
     <div className="h-fit rounded-2xl border border-pink-200 bg-white p-6 shadow-sm">
@@ -82,7 +83,7 @@ function OrderSummary() {
         <div className="flex justify-between">
           <span>Ongkos kirim</span>
           <span className="font-medium text-gray-800">
-            {method?.cost ? safeFormatPrice(method.cost) : "—"}
+            {method ? safeFormatPrice(method.cost) : "—"}
           </span>
         </div>
 
