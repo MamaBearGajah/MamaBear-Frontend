@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useState, useEffect } from "react";
 import { getProductId } from "../../../server";
@@ -18,18 +18,25 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
+} from "@/components/ui/breadcrumb";
 
 export default function ProductCard({
-  productId, product, productVariant, isTop5BestsellerFlag
+  productId,
+  product,
+  productVariant,
+  isTop5BestsellerFlag,
 }: {
   productId: string;
   product: Product;
   productVariant: ProductVariant[];
   isTop5BestsellerFlag: boolean;
-})  {
-  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
-  const [variantSelectedImage, setvariantSelectedImage] = useState<string | null>(null);
+}) {
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
+    null
+  );
+  const [variantSelectedImage, setvariantSelectedImage] = useState<
+    string | null
+  >(null);
   const [theprice, setThePrice] = useState<number>(Number(product.basePrice));
   const productVariantData = productVariant;
 
@@ -60,7 +67,9 @@ export default function ProductCard({
       try {
         const parsed = JSON.parse(stored);
         if (parsed?.id) {
-          initialVariant = productVariantData.find((variant) => variant.id === parsed.id) ?? null;
+          initialVariant =
+            productVariantData.find((variant) => variant.id === parsed.id) ??
+            null;
         }
       } catch {
         // malformed JSON
@@ -73,8 +82,10 @@ export default function ProductCard({
 
     if (initialVariant) {
       setSelectedVariant(initialVariant);
-      // console.log("selected variant", selectedVariant);
-      setThePrice(Number(initialVariant.discountPrice ?? initialVariant.basePrice));
+      console.log("selected variant", selectedVariant);
+      setThePrice(
+        Number(initialVariant.discountPrice ?? initialVariant.basePrice)
+      );
       setvariantSelectedImage(initialVariant.imageUrl ?? "/Logo Mamabear.png");
       saveVariant(initialVariant);
 
@@ -90,101 +101,116 @@ export default function ProductCard({
     }
   }, [productId, productVariantData]);
 
-  const imageArray = product.images.map((item) => item.imageUrl)
+  const imageArray = product.images.map((item) => item.imageUrl);
   const fetchedProduct = product;
   const productName = product.name;
   const productCategory = product?.category?.name ?? "No Category";
   const productDescription = product.description;
   // const productImageArray = product.images.map((item) => item.imageUrl) ?? [];
-  const productStock = product.stock; 
+  const productStock = product.stock;
   const productWeight = product.weight;
   const productBasePrice = product.basePrice;
   const productDiscountPrice = product.discountPrice;
-  const discountPercent = (((productBasePrice - productDiscountPrice) / productBasePrice) * 100).toFixed(0);
+  const discountPercent = Number(
+    (
+      ((productBasePrice - productDiscountPrice) / productBasePrice) *
+      100
+    ).toFixed(0)
+  );
   // console.log("ProductVariant", productVariant)
-  function NotVariantPrice(){
+  function NotVariantPrice() {
     setThePrice(Number(product.discountPrice));
   }
   return (
     <div>
-        <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/">Home</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/products">Products</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{productCategory}</BreadcrumbPage>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{productName}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-          <br></br>
-          <hr></hr>
-          <br></br>
+      <Breadcrumb>
+        <BreadcrumbList className="gap-x-1 gap-y-1 text-[11px] leading-tight sm:text-sm">
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">Home</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/products">Products</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{productCategory}</BreadcrumbPage>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{productName}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+      <div className="my-4 h-px w-full bg-pink-200/70" />
 
-    <div className=" md:flex md:items-start rounded transition-transform duration-200">
-
-        <div className='md:w-[35%]'>
-            <ProductCarousel productId={productId} images={imageArray} variantselectedimage={variantSelectedImage} setvariantselectedimage={setvariantSelectedImage} NotVariantPrice={NotVariantPrice} discountPercent={discountPercent}/>
+      <div className="rounded transition-transform duration-200 md:flex md:items-start">
+        <div className="w-full md:w-[35%]">
+          <ProductCarousel
+            images={imageArray}
+            variantselectedimage={variantSelectedImage}
+            setvariantselectedimage={setvariantSelectedImage}
+            NotVariantPrice={NotVariantPrice}
+            discountPercent={discountPercent}
+          />
         </div>
-        <div className='p-2 md:pl-10 rounded-md w-[90%] md:w-[60%] flex flex-col gap-2'>
-            <h4 className='text-xs text-dark-pink'>{productCategory}</h4>
-            <h2 className='text-2xl font-bold'>{productName}</h2>
-            <div className='flex justify-start items-center'> 
-              <Stars rating={product.avgRating ?? 0}/>
-              <div className='ml-2 mr-2 md:ml-6 md:mr-6 md:block hidden'>({product.reviewCount ?? 0} reviews)</div>
-              {isTop5BestsellerFlag ? 
-                (<span className='bg-pink-300 text-[var(--mamabear-dark-pink)] rounded-full md:pl-4 md:pr-4 pl-5 pr-5 pt-2 pb-2 ml-4'>🏆Bestseller</span>) 
-                : null
-              }
-              </div>
-            <div className='flex items-end justify-start'>
-              <p className='text-[var(--mamabear-dark-pink)] md:text-4xl text-2xl font-bold font-[var(--font-quicksand)]'>Rp {productDiscountPrice}</p>
-              <p className='md:text-xl text-md ml-4 opacity-35'><s>Rp {theprice}</s></p>
-              <div className='ml-4 pl-6 pr-6 pt-2 pb-2 font-bold rounded-full text-sm md:text-xl bg-[var(--mamabear-dark-pink)] text-[var(--mamabear-light-pink)]'>
-                Save {(((productBasePrice - productDiscountPrice) / productBasePrice) * 100).toFixed(0)}%
-              </div>
+        <div className="flex w-full flex-col gap-2 py-2 md:w-[60%] md:pl-10">
+          <h4 className="text-dark-pink text-xs">{productCategory}</h4>
+          <h2 className="text-xl font-bold md:text-3xl">{productName}</h2>
+          <div className="flex items-center justify-start">
+            <Stars rating={product.avgRating ?? 0} />
+            <div className="mr-2 ml-2 hidden md:mr-6 md:ml-6 md:block">
+              ({product.reviewCount ?? 0} reviews)
             </div>
-            <p>{productStock ? 
-                (
-                  <span className="flex items-center gap-1">
-                    <img className="w-[20px]" src="/check.svg" alt="check" />
-                    In Stock
-                  </span>
-                ) :
-                (
-                  <span className="flex items-center gap-1">
-                    <img className="w-[20px]" src="/cross.svg" alt="cross" />
-                    Not Available
-                  </span>
-                )
-              }
+            {isTop5BestsellerFlag ? (
+              <span className="ml-3 rounded-full bg-pink-300 px-3 py-1 text-sm text-[var(--mamabear-dark-pink)] md:px-4 md:py-2 md:text-sm">
+                🏆Bestseller
+              </span>
+            ) : null}
+          </div>
+          <div className="flex items-end justify-start">
+            <p className="text-2xl font-[var(--font-quicksand)] font-bold text-[var(--mamabear-dark-pink)] md:text-3xl">
+              Rp {productDiscountPrice}
             </p>
-            <p className='mt-2 mb-2 text-sm text-gray-500'><ProductDescription productDescription={productDescription}></ProductDescription></p>
-            <p><span className='text-[var(--mamabear-dark-pink)] font-bold'>{productVariantData[0].name}</span></p>
-            <div className='mt-3 mb-2'>
-          {
-            productVariantData.map((item) => {
-              const isDisabled =
-                item.stock === 0 || item.isActive === false;
+            <p className="ml-3 text-base opacity-35 md:text-lg">
+              <s>Rp {theprice}</s>
+            </p>
+            <div className="ml-3 rounded-full bg-[var(--mamabear-dark-pink)] px-4 py-1.5 text-sm font-bold whitespace-nowrap text-[var(--mamabear-light-pink)] md:px-4 md:py-2 md:text-sm">
+              Save{" "}
+              {(
+                ((productBasePrice - productDiscountPrice) / productBasePrice) *
+                100
+              ).toFixed(0)}
+              %
+            </div>
+          </div>
+          <p>
+            {productStock ? (
+              <span className="flex items-center gap-1 text-sm md:text-sm">
+                <img className="w-[20px]" src="/check.svg" alt="check" />
+                In Stock
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-sm md:text-sm">
+                <img className="w-[20px]" src="/cross.svg" alt="cross" />
+                Not Available
+              </span>
+            )}
+          </p>
+          <p className="mt-6 md:mt-10">
+            <span className="text-sm font-bold text-[var(--mamabear-dark-pink)] md:text-lg">
+              {productVariantData[0].name}
+            </span>
+          </p>
+          <div className="mb-0">
+            {productVariantData.map((item) => {
+              const isDisabled = item.stock === 0 || item.isActive === false;
 
               function variantSelected(item: ProductVariant) {
                 if (isDisabled) return;
                 setSelectedVariant(item);
-                setThePrice(
-                  Number(item.discountPrice ?? item.basePrice)
-                );
-                setvariantSelectedImage(
-                  item.imageUrl ?? "/Logo Mamabear.png"
-                );
+                setThePrice(Number(item.discountPrice ?? item.basePrice));
+                setvariantSelectedImage(item.imageUrl ?? "/Logo Mamabear.png");
                 try {
                   localStorage.setItem(
                     `selectedVariant:${productId}`,
@@ -211,54 +237,46 @@ export default function ProductCard({
                   key={item.value}
                   onClick={() => variantSelected(item)}
                   disabled={isDisabled}
-                  className={`
-                    rounded-full
-                    md:px-8 px-4
-                    py-2 md:py-4
-                    mb-3 mt-3
-                    border-2
-                    whitespace-nowrap
-                    transition-all duration-300
-
-                    ${
-                      selectedVariant?.id === item.id
-                        ? "bg-[var(--mamabear-dark-pink)] text-white border-[var(--mamabear-dark-pink)]"
-                        : "bg-white text-black border-gray-300"
-                    }
-
-                    ${
-                      isDisabled
-                        ? "opacity-40 line-through cursor-not-allowed"
-                        : "cursor-pointer hover:shadow-lg hover:scale-105"
-                    }
-                  `}
+                  className={`mt-1 mb-1 rounded-full border-2 px-3 py-1 text-sm whitespace-nowrap transition-all duration-300 md:mt-3 md:mb-3 md:px-5 md:py-2 md:text-base ${
+                    selectedVariant?.id === item.id
+                      ? "border-[var(--mamabear-dark-pink)] bg-[var(--mamabear-dark-pink)] text-white"
+                      : "border-gray-300 bg-white text-black"
+                  } ${
+                    isDisabled
+                      ? "cursor-not-allowed line-through opacity-40"
+                      : "cursor-pointer hover:scale-105 hover:shadow-lg"
+                  } `}
                 >
                   {item.value}
 
                   {item.stock === 0 && (
-                    <span className="ml-2 text-xs">
-                      (Out of Stock)
-                    </span>
+                    <span className="ml-2 text-xs">(Out of Stock)</span>
                   )}
                 </button>
               );
             })}
-              <br></br><br></br>
-              <KeyBenefit productWeight={productWeight}/>
-            </div>
+            <br></br>
+            <br></br>
+            <KeyBenefit productWeight={productWeight} />
+          </div>
 
-            {/* <AddToCartQuantity price={Number(productDiscountPrice)} product={fetchedProduct}/> */}
-            
-            <AddToCartQuantity price={theprice} product={fetchedProduct} variant={selectedVariant}/>
-            <div>
-              <StructuredSnippet/>
-            </div>
-            <div>
-              <ShareThisProduct/>
-            </div>
+          {/* <AddToCartQuantity price={Number(productDiscountPrice)} product={fetchedProduct}/> */}
+
+          <div className="hidden md:block">
+            <AddToCartQuantity
+              price={theprice}
+              product={fetchedProduct}
+              variant={selectedVariant}
+            />
+          </div>
+          <div>
+            <StructuredSnippet />
+          </div>
+          <div>
+            <ShareThisProduct />
+          </div>
         </div>
-
-    </div>
+      </div>
     </div>
   );
 }

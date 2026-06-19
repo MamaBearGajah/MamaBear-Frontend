@@ -134,6 +134,9 @@ export interface CheckoutState {
 interface CheckoutContextType {
   state: CheckoutState;
   subtotal: number;
+  // FIX: terekspos supaya halaman bisa menunda redirect/cek state sampai
+  // data dari localStorage selesai dimuat (mencegah hydration mismatch).
+  hydrated: boolean;
 
   postItems: (selected: CheckoutItem[]) => void;
   deleteItem: (id: string) => void;
@@ -193,18 +196,37 @@ export function CheckoutProvider({
 }: {
   children: ReactNode;
 }) {
-  const [state, setState] = useState<CheckoutState>(() =>
-    readFromStorage()
-  );
+  // FIX: jangan baca localStorage di initializer useState — itu dijalankan
+  // langsung saat render pertama, dan karena `window` tidak ada di server,
+  // hasilnya beda antara render server (initialState) dan render client
+  // pertama (isi localStorage). Ini yang menyebabkan
+  // "Hydration failed because the server rendered HTML didn't match the client".
+  //
+  // Solusinya: render pertama selalu pakai initialState (sama persis di
+  // server & client), baru di-hydrate dari localStorage setelah mount via
+  // useEffect (yang hanya berjalan di client).
+  const [state, setState] = useState<CheckoutState>(initialState);
+  const [hydrated, setHydrated] = useState(false);
 
+  // ── Hydrate dari localStorage setelah mount ─────────────────────────────
+  useEffect(() => {
+    setState(readFromStorage());
+    setHydrated(true);
+  }, []);
+
+  // ── Persist ke localStorage setiap state berubah ───────────────────────
   useEffect(() => {
     if (typeof window === "undefined") return;
+    // FIX: jangan tulis ke localStorage sebelum hydration selesai, supaya
+    // initialState (kosong) tidak menimpa data yang sudah tersimpan
+    // sebelum proses hydrate di atas selesai.
+    if (!hydrated) return;
 
     localStorage.setItem(
       LS_KEY,
       JSON.stringify(state)
     );
-  }, [state]);
+  }, [state, hydrated]);
 
   const subtotal = state.items.reduce((sum, item) => {
     const price = item.discountPrice ?? item.basePrice;
@@ -297,6 +319,7 @@ export function CheckoutProvider({
       value={{
         state,
         subtotal,
+        hydrated,
 
         postItems,
         deleteItem,

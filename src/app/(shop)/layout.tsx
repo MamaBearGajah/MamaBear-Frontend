@@ -1,19 +1,16 @@
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { CheckoutProvider } from "@/context/CheckoutContext";
 import { Toaster } from "sonner";
-export default function MainLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+import ChatbotWidget from "@/components/chat/ChatbotWidget";
+
+export default function ShopLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Header />
-      {/* <CheckoutProvider>       */}
-        {children}
-      {/* </CheckoutProvider> */}
-
+      {children}
       <Footer />
       <Toaster richColors position="top-right" />
+      <ChatbotWidget />
     </>
   );
 }

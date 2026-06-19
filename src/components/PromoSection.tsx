@@ -103,6 +103,7 @@ function MobilePromoCard({ card }: { card: PromoCard }) {
             src={imageSrc}
             alt={card.title}
             fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover"
           />
         </div>
@@ -184,6 +185,7 @@ export default function PromoSection() {
                   src="/Image%20HomePage/promo1.png"
                   alt="promo"
                   fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   className="object-cover"
                 />
               </div>

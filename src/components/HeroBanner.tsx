@@ -14,10 +14,11 @@ import {
 interface CarouselBannerItem {
   id: number;
   label: string;
+  desc: string;
   extraText: string;
   image: string;
   title: string;
-  description: string;
+  path: string;
 }
 
 const HomeBanner = () => {
@@ -28,58 +29,47 @@ const HomeBanner = () => {
   const [loading, setLoading] = React.useState(true);
   const [mobileIndex, setMobileIndex] = React.useState(0);
 
-  const bannerFallbackData: CarouselBannerItem[] = [
-    {
-      id: 1,
-      label: "#1 Trusted by 50,000+ Mamas",
-      extraText: "We just help you unlock it. 🐻",
-      image:
-        "https://images.unsplash.com/photo-1648375975494-30e0629799a4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxicmVhc3RmZWVkaW5nJTIwbW90aGVyJTIwYmFieSUyMHdlbGxuZXNzJTIwaGFwcHl8ZW58MXx8fHwxNzc3NjM5MzE4fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      title: "Your Milk, Your Superpower.",
-      description:
-        "Mamabear's superfood range is specially crafted to support breastfeeding mamas with delicious, effective, and natural ASI boosters.",
-    },
-    {
-      id: 2,
-      label: "No preservatives • All natural",
-      extraText: "Lactation snacks that actually taste good 🍪",
-      image:
-        "https://images.unsplash.com/photo-1596510915005-2cd3c22b37df?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx5b3VuZyUyMG1vdGhlciUyMGhhcHB5JTIwZmFtaWx5JTIwbGlmZXN0eWxlfGVufDF8fHx8MTc3NzYzOTMyM3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      title: "Snack Smart. Nurse Longer.",
-      description:
-        "From Kookie Bites to Almond Oat Cookies — our range of lactation snacks make supporting your milk supply a delicious daily ritual.",
-    },
-    {
-      id: 3,
-      label: "Free for Mamabear members",
-      extraText: "Talk to our certified lactation consultants 👩‍⚕️",
-      image:
-        "https://images.unsplash.com/photo-1753758541974-e9e1d66cfbd9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxuYXR1cmFsJTIwd2VsbG5lc3MlMjBwcm9kdWN0JTIwcGFja2FnaW5nJTIwcGlua3xlbnwxfHx8fDE3Nzc2MzkzMjZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      title: "Got Questions? We've Got Answers.",
-      description:
-        "Breastfeeding challenges are real, but you don't have to face them alone. Book a free consultation with our lactation experts anytime.",
-    },
-  ];
-
   React.useEffect(() => {
-    // TODO: Replace with API call when backend is ready
-    // const fetchBannerData = async () => {
-    //   try {
-    //     const response = await fetch('/api/carousel-banner');
-    //     const data = await response.json();
-    //     setBannerData(data);
-    //   } catch (error) {
-    //     console.error('Failed to fetch banner data:', error);
-    //     setBannerData(bannerFallbackData);
-    //   } finally {
-    //     setLoading(false);
-    //   }
-    // };
-    // fetchBannerData();
+    const fetchBannerData = async () => {
+      try {
+        const baseUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+        const response = await fetch(`${baseUrl}/banners`, {
+          method: "GET",
+          cache: "no-store",
+        });
 
-    // Temporary static content until banner API is available.
-    setBannerData(bannerFallbackData);
-    setLoading(false);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch banners: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const banners = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.data)
+            ? data.data
+            : [];
+
+        const mappedBanners = banners.map((item: any) => ({
+          id: Number(item.id),
+          label: item.label ?? "",
+          desc: item.desc ?? "",
+          extraText: item.extraText ?? "",
+          image: item.imageUrl ?? "/Logo Mamabear.png",
+          title: item.title ?? "",
+          path: item.path ?? "/",
+        }));
+
+        setBannerData(mappedBanners);
+      } catch (error) {
+        console.error("Failed to fetch banner data:", error);
+        setBannerData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBannerData();
   }, []);
 
   React.useEffect(() => {
@@ -147,6 +137,16 @@ const HomeBanner = () => {
     return <div className="h-[460px] w-full bg-gray-200" />;
   }
 
+  if (!loading && bannerData.length === 0) {
+    return (
+      <section className="flex h-[calc(100svh-105px)] w-full items-center justify-center bg-[#FCEFF3] px-4 text-center">
+        <p className="text-2xl font-bold text-[#6C4735]">
+          banner belum tersedia
+        </p>
+      </section>
+    );
+  }
+
   const prevMobile = () => {
     setMobileIndex((s) => (s - 1 + bannerData.length) % bannerData.length);
   };
@@ -202,10 +202,10 @@ const HomeBanner = () => {
                                 {item.title}
                               </h2>
                               <p className="mt-4 text-base leading-relaxed font-semibold text-[#FACBD8] sm:text-lg md:text-xl">
-                                {item.extraText}
+                                {item.desc}
                               </p>
                               <p className="mt-3 text-sm leading-relaxed text-white/95 sm:text-base md:text-lg">
-                                {item.description}
+                                {item.extraText}
                               </p>
                             </div>
                           </div>
@@ -256,6 +256,7 @@ const HomeBanner = () => {
                 src={bannerData[mobileIndex].image}
                 alt={bannerData[mobileIndex].title}
                 fill
+                sizes="100vw"
                 className="object-cover"
                 priority
               />
@@ -284,10 +285,10 @@ const HomeBanner = () => {
                     {bannerData[mobileIndex].title}
                   </h3>
                   <p className="mt-3 text-base leading-relaxed font-semibold text-[#FACBD8] sm:text-lg">
-                    {bannerData[mobileIndex].extraText}
+                    {bannerData[mobileIndex].desc}
                   </p>
                   <p className="mt-2 text-sm leading-relaxed text-white/95 sm:text-lg">
-                    {bannerData[mobileIndex].description}
+                    {bannerData[mobileIndex].extraText}
                   </p>
                 </div>
               </div>

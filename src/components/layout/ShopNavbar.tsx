@@ -9,7 +9,6 @@ import WishlistNavLink from "@/components/layout/WishlistNavLink";
 import SearchBar from "./SearchBar";
 import { cn } from "@/lib/utils";
 import { useAuth } from "../../context/AuthContext";
-// Pastikan path import ini sesuai dengan lokasi kamu menyimpan ProfileDropdown
 import ProfileDropdown from "@/components/layout/ProfileDropdown";
 import { useCart } from "@/hooks/useCart";
 
@@ -73,8 +72,6 @@ function NavbarContent() {
   const isAdmin = user?.role === "admin" || user?.role === "super_admin";
   const firstName = user?.name?.split(" ")[0];
 
-  // Asumsi state.user memiliki properti name dan email.
-  // Jika auth kamu belum menyimpan data user, kita beri nilai fallback sementara.
   const currentUser = state.user || {
     name: "Member MamaBear",
     email: "member@mamabear.co.id",
@@ -107,33 +104,22 @@ function NavbarContent() {
           <SearchBar />
         </div>
 
-        <CartButton
-            href="/cart"
-            className="text-brown hover:bg-light-pink/60 hover:text-dark-pink rounded-full p-2 transition-colors"
-        />
-
         {/* Right actions */}
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           {!isLoading && (
             <>
+              {/* Wishlist — selalu tampil */}
               <WishlistNavLink className="text-brown hover:bg-light-pink/60 hover:text-dark-pink inline-flex rounded-full p-2 transition-colors" />
 
+              {/* Cart — selalu tampil */}
               <CartButton
                 href="/cart"
                 className="text-brown hover:bg-light-pink/60 hover:text-dark-pink rounded-full p-2 transition-colors"
               />
+
               {isAuthenticated && (
                 <>
-<<<<<<< HEAD
-                  <WishlistNavLink className="text-brown hover:bg-light-pink/60 hover:text-dark-pink inline-flex rounded-full p-2 transition-colors" />
-
-                  {/* <CartButton
-                    href="/cart"
-                    className="text-brown hover:bg-light-pink/60 hover:text-dark-pink rounded-full p-2 transition-colors"
-                  /> */}
-
-=======
->>>>>>> e2235cf15fce7010a2619a2e84377f3de0a499f5
+                  {/* Nama user (non-admin) */}
                   {!isAdmin && (
                     <Link
                       href="/account/profile"
@@ -143,6 +129,7 @@ function NavbarContent() {
                     </Link>
                   )}
 
+                  {/* Admin: profile dropdown + link admin panel */}
                   {isAdmin && (
                     <>
                       <ProfileDropdown user={currentUser} onLogout={logout} />
@@ -156,6 +143,7 @@ function NavbarContent() {
                     </>
                   )}
 
+                  {/* Logout */}
                   <button
                     onClick={logout}
                     className="bg-dark-pink hover:bg-dark-pink/90 inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-white transition-colors lg:px-4"
@@ -269,78 +257,62 @@ function MobileHeaderInline() {
             ))}
 
             {isAuthenticated && (
-              <p className="text-brown/60 px-4 py-1 text-xs">
-                <Link
-                  href="/account/profile"
-                  onClick={() => setMenuOpen(false)}
-                  className="inline-flex h-10 min-w-[100px] flex-1 items-center justify-center gap-1.5 rounded-full bg-[#FACBD8] px-4 text-sm font-semibold text-[#6C4735] transition hover:bg-[#D5557E]/10 hover:opacity-90"
-                >
-                  Hi, {firstName} 👋
-                </Link>
-                <br></br>
-                {/* <CartButton
-                        href="/cart"
-                        className="text-brown hover:bg-light-pink/60 hover:text-dark-pink inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors"
-                      />
-                      <Link
-                        href="/wishlist"
-                        aria-label="Wishlist"
-                        className="text-brown hover:bg-light-pink/60 hover:text-dark-pink inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors"
-                      >
-                        <Heart className="size-4" strokeWidth={1.75} />
-                      </Link> */}
-              </p>
+              <Link
+                href="/account/profile"
+                onClick={() => setMenuOpen(false)}
+                className="mt-1 inline-flex h-10 items-center gap-1.5 rounded-full bg-[#FACBD8] px-4 text-sm font-semibold text-[#6C4735] transition hover:opacity-90"
+              >
+                Hi, {firstName} 👋
+              </Link>
             )}
 
             <div className="my-2 h-px bg-[#D5557E]/30" />
 
             {!isLoading && (
-              <>
-                <div className="mt-2 flex gap-2">
-                  {isAuthenticated ? (
-                    <>
-                      {isAdmin && (
-                        <Link
-                          href="/admin"
-                          onClick={() => setMenuOpen(false)}
-                          className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full border-2 border-[#D5557E] bg-white px-4 text-sm font-semibold text-[#D5557E] transition hover:bg-[#D5557E]/10"
-                        >
-                          <Settings className="size-4" />
-                          <span>Admin</span>
-                        </Link>
-                      )}
-                      <button
-                        onClick={() => {
-                          setMenuOpen(false);
-                          logout();
-                        }}
-                        className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#D5557E] px-4 text-sm font-semibold text-white transition hover:opacity-90"
-                      >
-                        <LogOut className="size-4" />
-                        <span>Logout</span>
-                      </button>
-                    </>
-                  ) : (
-                    <>
+              <div className="mt-2 flex gap-2">
+                {isAuthenticated ? (
+                  <>
+                    {isAdmin && (
                       <Link
-                        href="/register"
+                        href="/admin"
                         onClick={() => setMenuOpen(false)}
                         className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full border-2 border-[#D5557E] bg-white px-4 text-sm font-semibold text-[#D5557E] transition hover:bg-[#D5557E]/10"
                       >
-                        Register
+                        <Settings className="size-4" />
+                        <span>Admin</span>
                       </Link>
-                      <Link
-                        href="/login"
-                        onClick={() => setMenuOpen(false)}
-                        className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#D5557E] px-4 text-sm font-semibold text-white transition hover:opacity-90"
-                      >
-                        <User className="size-4" />
-                        <span>Login</span>
-                      </Link>
-                    </>
-                  )}
-                </div>
-              </>
+                    )}
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false);
+                        logout();
+                      }}
+                      className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#D5557E] px-4 text-sm font-semibold text-white transition hover:opacity-90"
+                    >
+                      <LogOut className="size-4" />
+                      <span>Logout</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/register"
+                      onClick={() => setMenuOpen(false)}
+                      className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full border-2 border-[#D5557E] bg-white px-4 text-sm font-semibold text-[#D5557E] transition hover:bg-[#D5557E]/10"
+                    >
+                      Register
+                    </Link>
+                    <Link
+                      href="/login"
+                      onClick={() => setMenuOpen(false)}
+                      className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#D5557E] px-4 text-sm font-semibold text-white transition hover:opacity-90"
+                    >
+                      <User className="size-4" />
+                      <span>Login</span>
+                    </Link>
+                  </>
+                )}
+              </div>
             )}
           </div>
         </div>

@@ -1,135 +1,90 @@
+/**
+ * src/lib/api/profile.ts
+ * Replace mock data dengan real API calls ke BE.
+ * BE endpoints:
+ *   GET  /users/me
+ *   PATCH /users/me
+ *   PATCH /users/me/change-password
+ *   GET  /users/me/addresses
+ *   POST /users/me/addresses
+ *   PATCH /users/me/addresses/:id
+ *   PATCH /users/me/addresses/:id/default
+ *   DELETE /users/me/addresses/:id
+ *   GET  /users/me/orders
+ */
+
+import { apiClient } from "./client";
+import { normalizeApiResponse } from "./normalize-api-response";
 import type { Address, AddressPayload, UpdateProfilePayload, UserProfile } from "@/types";
 
-// Mock Data Awal (Sudah disesuaikan dengan BE)
-let MOCK_PROFILE: UserProfile = {
-  id: "u-123",
-  name: "Nad Tiarsono",
-  email: "nad@example.com",
-  phone: "081234567890",
-  role: "customer",
-  isVerified: true,
-  createdAt: "2024-01-01T00:00:00.000Z",
-  updatedAt: "2024-01-01T00:00:00.000Z",
-  dateOfBirth: "1995-08-15",
-  memberSince: "2024-01",
-  preferences: {
-    newsletter: true,
-    emailOrderUpdates: true,
-    smsNotifications: false,
-  },
-  addresses: [
-    {
-      id: "addr-1",
-      label: "Home",
-      name: "Nad Tiarsono",
-      phone: "081234567890",
-      province: "DKI Jakarta",
-      city: "Central Jakarta",
-      postalCode: "10110",
-      address: "Jl. Sudirman No. 1, Kos Area",
-      isDefault: true,
-    },
-  ],
-};
-
-export const getOrders = async (): Promise<{ data: any[] }> => {
-    await delay(500);
-    return {
-      data: [
-        {
-          id: "ORD-2026-8921",
-          createdAt: new Date().toISOString(),
-          status: "delivered",
-          total: 98000,
-          items: [
-            {
-              quantity: 2,
-              price: 49000,
-              variant: {
-                product: { name: "ASI Booster Tea – Thai Milk Tea" }
-              }
-            }
-          ]
-        },
-        {
-          id: "ORD-2026-7732",
-          createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), // 3 hari lalu
-          status: "processing",
-          total: 176000,
-          items: [
-            {
-              quantity: 3,
-              price: 39000,
-              variant: { product: { name: "Kookie Bites – Chocolate Chip" } }
-            },
-            {
-              quantity: 1,
-              price: 59000,
-              variant: { product: { name: "Almon Mix – Vanilla" } }
-            }
-          ]
-        }
-      ]
-    };
-  }
-
-const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+function unwrap<T>(raw: unknown): T {
+  if (raw && typeof raw === "object" && "data" in raw)
+    return (raw as { data: T }).data;
+  return raw as T;
+}
 
 export const profileApi = {
+  /** GET /users/me */
   getProfile: async (): Promise<{ data: UserProfile }> => {
-    await delay(500);
-    return { data: { ...MOCK_PROFILE } };
+    const res = await apiClient.get("/users/me");
+    const data = unwrap<UserProfile>(res.data);
+    return { data };
   },
 
+  /** PATCH /users/me */
   updateProfile: async (payload: UpdateProfilePayload): Promise<{ data: UserProfile }> => {
-    await delay(500);
-    MOCK_PROFILE = { ...MOCK_PROFILE, ...payload } as UserProfile;
-    return { data: { ...MOCK_PROFILE } };
+    const res = await apiClient.patch("/users/me", payload);
+    const data = unwrap<UserProfile>(res.data);
+    return { data };
   },
 
-  addAddress: async (payload: AddressPayload): Promise<{ data: UserProfile }> => {
-    await delay(500);
-    const newAddress: Address = { ...payload, id: `addr-${Date.now()}` };
-    
-    if (newAddress.isDefault) {
-      MOCK_PROFILE.addresses.forEach(a => a.isDefault = false);
-    }
-    
-    MOCK_PROFILE.addresses.push(newAddress);
-    return { data: { ...MOCK_PROFILE } };
-  },
-
-  updateAddress: async (id: string, payload: AddressPayload): Promise<{ data: UserProfile }> => {
-    await delay(500);
-    if (payload.isDefault) {
-      MOCK_PROFILE.addresses.forEach(a => a.isDefault = false);
-    }
-    MOCK_PROFILE.addresses = MOCK_PROFILE.addresses.map(a => 
-      a.id === id ? { ...a, ...payload } : a
-    );
-    return { data: { ...MOCK_PROFILE } };
-  },
-
-  deleteAddress: async (id: string): Promise<{ data: UserProfile }> => {
-    await delay(500);
-    MOCK_PROFILE.addresses = MOCK_PROFILE.addresses.filter(a => a.id !== id);
-    return { data: { ...MOCK_PROFILE } };
-  },
-
-  setDefaultAddress: async (id: string): Promise<{ data: UserProfile }> => {
-    await delay(500);
-    MOCK_PROFILE.addresses = MOCK_PROFILE.addresses.map(a => ({
-      ...a,
-      isDefault: a.id === id
-    }));
-    return { data: { ...MOCK_PROFILE } };
-  },
-
-  changePassword: async (payload: any): Promise<{ success: boolean }> => {
-    await delay(800);
+  /** PATCH /users/me/change-password */
+  changePassword: async (payload: {
+    oldPassword: string;
+    newPassword: string;
+  }): Promise<{ success: boolean }> => {
+    await apiClient.patch("/users/me/change-password", payload);
     return { success: true };
-  }
+  },
 
+  /** GET /users/me/addresses */
+  getAddresses: async (): Promise<Address[]> => {
+    const res = await apiClient.get("/users/me/addresses");
+    const norm = normalizeApiResponse<Address[]>(res.data);
+    return Array.isArray(norm.data) ? norm.data : [];
+  },
 
+  /** POST /users/me/addresses */
+  addAddress: async (payload: AddressPayload): Promise<{ data: UserProfile }> => {
+    await apiClient.post("/users/me/addresses", payload);
+    return profileApi.getProfile();
+  },
 
+  /** PATCH /users/me/addresses/:id */
+  updateAddress: async (
+    id: string,
+    payload: AddressPayload
+  ): Promise<{ data: UserProfile }> => {
+    await apiClient.patch(`/users/me/addresses/${id}`, payload);
+    return profileApi.getProfile();
+  },
+
+  /** PATCH /users/me/addresses/:id/default */
+  setDefaultAddress: async (id: string): Promise<{ data: UserProfile }> => {
+    await apiClient.patch(`/users/me/addresses/${id}/default`);
+    return profileApi.getProfile();
+  },
+
+  /** DELETE /users/me/addresses/:id */
+  deleteAddress: async (id: string): Promise<{ data: UserProfile }> => {
+    await apiClient.delete(`/users/me/addresses/${id}`);
+    return profileApi.getProfile();
+  },
+
+  /** GET /users/me/orders */
+  getOrders: async (): Promise<{ data: any[] }> => {
+    const res = await apiClient.get("/users/me/orders");
+    const norm = normalizeApiResponse<any[]>(res.data);
+    return { data: Array.isArray(norm.data) ? norm.data : [] };
+  },
 };
