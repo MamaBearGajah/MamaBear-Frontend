@@ -25,6 +25,13 @@ export interface Reward {
   description?: string;
 }
 
+export interface RedeemPointsPayload {
+  rewardId?: string;
+  orderId?: string;
+  amount?: number;
+  points?: number;
+}
+
 export const membershipApi = {
   /** GET /membership/me */
   getMyMembership: async (): Promise<MembershipData> => {
@@ -50,9 +57,17 @@ export const membershipApi = {
   },
 
   /** POST /membership/points/redeem */
-  redeemPoints: async (rewardId: string): Promise<{ remainingPoints: number }> => {
-    const res = await apiClient.post("/membership/points/redeem", { rewardId });
+  redeemPoints: async (
+    payload: { rewardId?: string; orderId?: string; amount?: number; points?: number }
+  ): Promise<{ remainingPoints: number }> => {
+    const res = await apiClient.post("/membership/points/redeem", payload);
     const norm = normalizeApiResponse<{ remainingPoints: number }>(res.data);
+    return norm.data;
+  },
+
+  givePoints: async (userId: string, points: number): Promise<{ newTotalPoints: number }> => {
+    const res = await apiClient.post(`/membership/points/redeem`, { userId, points });
+    const norm = normalizeApiResponse<{ newTotalPoints: number }>(res.data);
     return norm.data;
   },
 
