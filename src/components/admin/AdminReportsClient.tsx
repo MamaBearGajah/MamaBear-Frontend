@@ -1,8 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  addDays,
   differenceInCalendarDays,
   endOfMonth,
   endOfQuarter,
@@ -26,8 +25,9 @@ import {
 } from "recharts";
 import { Bell, ChevronDown, Download, Search } from "lucide-react";
 
+import { getTopProducts } from "@/lib/api/reports";
 import { formatPrice } from "@/lib/utils";
-import type { Order } from "@/types";
+import type { Order, TopProductReport } from "@/types";
 
 type ReportOrder = Order & {
   orderNumber: string;
@@ -58,12 +58,9 @@ type DailyOrderPoint = {
   orders: number;
 };
 
-type ProductRow = {
-  id: string;
-  name: string;
-  qty: number;
-  revenue: number;
-  badge: string;
+type DateRange = {
+  from: string;
+  to: string;
 };
 
 function getMonthKey(dateValue: string): string {
@@ -136,7 +133,7 @@ function filterOrdersByRange(orders: ReportOrder[], from: string, to: string): R
   return orders.filter((order) => isWithinDateBounds(order.createdAt, from, to));
 }
 
-function buildQuarterBounds(year: string, quarter: Exclude<QuarterValue, "all">) {
+function buildQuarterBounds(year: string, quarter: Exclude<QuarterValue, "all">): DateRange {
   const quarterIndex = Number(quarter.slice(1)) - 1;
   const baseDate = new Date(Number(year), quarterIndex * 3, 1);
   return {
@@ -151,7 +148,7 @@ function buildPreviousComparisonRange(options: {
   selectedQuarter: QuarterValue;
   dateFrom: string;
   dateTo: string;
-}): { from: string; to: string } | null {
+}): DateRange | null {
   const { selectedMonth, selectedYear, selectedQuarter, dateFrom, dateTo } = options;
 
   if (dateFrom && dateTo) {
@@ -188,6 +185,46 @@ function buildPreviousComparisonRange(options: {
   return null;
 }
 
+/**
+ * Resolve the date range the currently active filters (custom range > month
+ * > quarter > "all") represent, so the BE top-products report can be asked
+ * for exactly the same window as the rest of this page.
+ */
+function resolveActiveDateRange(options: {
+  orders: ReportOrder[];
+  selectedMonth: string;
+  selectedYear: string;
+  selectedQuarter: QuarterValue;
+  dateFrom: string;
+  dateTo: string;
+}): DateRange {
+  const { orders, selectedMonth, selectedYear, selectedQuarter, dateFrom, dateTo } = options;
+
+  if (dateFrom && dateTo) {
+    return { from: dateFrom, to: dateTo };
+  }
+
+  if (selectedMonth !== "all") {
+    const monthDate = parse(`${selectedMonth}-01`, "yyyy-MM-dd", new Date());
+    return {
+      from: format(startOfMonth(monthDate), "yyyy-MM-dd"),
+      to: format(endOfMonth(monthDate), "yyyy-MM-dd"),
+    };
+  }
+
+  if (selectedQuarter !== "all") {
+    return buildQuarterBounds(selectedYear, selectedQuarter);
+  }
+
+  if (orders.length === 0) {
+    const today = format(new Date(), "yyyy-MM-dd");
+    return { from: today, to: today };
+  }
+
+  const dates = orders.map((order) => order.createdAt.slice(0, 10)).sort();
+  return { from: dates[0], to: dates[dates.length - 1] };
+}
+
 function percentageChange(current: number, previous: number): string {
   if (previous <= 0) return current > 0 ? "+100%" : "0%";
   const delta = ((current - previous) / previous) * 100;
@@ -210,32 +247,6 @@ function buildDailyOrders(orders: ReportOrder[]): DailyOrderPoint[] {
       label: format(parseISO(date), "MMM d"),
       orders: count,
     }));
-}
-
-function buildTopProducts(orders: ReportOrder[]): ProductRow[] {
-  const bucket = new Map<string, ProductRow>();
-
-  for (const order of orders) {
-    for (const item of order.items) {
-      const key = item.productId || item.name;
-      const current = bucket.get(key) ?? {
-        id: key,
-        name: item.name || "Unknown product",
-        qty: 0,
-        revenue: 0,
-        badge: `#${bucket.size + 1}`,
-      };
-
-      current.qty += item.quantity;
-      current.revenue += item.quantity * item.price;
-      bucket.set(key, current);
-    }
-  }
-
-  return [...bucket.values()]
-    .sort((left, right) => right.revenue - left.revenue)
-    .slice(0, 5)
-    .map((row, index) => ({ ...row, badge: `#${index + 1}` }));
 }
 
 function DailyOrdersTooltip({
@@ -329,7 +340,47 @@ export default function AdminReportsClient({ orders, userName }: AdminReportsCli
   const previousCustomers = new Set(previousOrders.map((order) => order.userId)).size;
 
   const dailyOrders = useMemo(() => buildDailyOrders(filteredOrders), [filteredOrders]);
-  const topProducts = useMemo(() => buildTopProducts(filteredOrders), [filteredOrders]);
+
+  const activeRange = useMemo(
+    () =>
+      resolveActiveDateRange({
+        orders,
+        selectedMonth,
+        selectedYear,
+        selectedQuarter,
+        dateFrom,
+        dateTo,
+      }),
+    [orders, selectedMonth, selectedYear, selectedQuarter, dateFrom, dateTo],
+  );
+
+  // "Top Selling Products" used to be derived from order.items on the orders
+  // fetched for this page, but GET /orders/admin never includes order line
+  // items (only an items _count), so that panel was always empty against
+  // the real BE. Pull it from the dedicated BE report instead, scoped to
+  // whichever date range the filters above currently resolve to.
+  const [topProducts, setTopProducts] = useState<TopProductReport[]>([]);
+  const [topProductsLoading, setTopProductsLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setTopProductsLoading(true);
+
+    getTopProducts({ from: activeRange.from, to: activeRange.to, limit: 5 })
+      .then((res) => {
+        if (!cancelled) setTopProducts(res.data ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setTopProducts([]);
+      })
+      .finally(() => {
+        if (!cancelled) setTopProductsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeRange.from, activeRange.to]);
 
   const exportCsv = () => {
     const header = ["Order Number", "Customer", "Status", "Total", "Date"];
@@ -526,16 +577,20 @@ export default function AdminReportsClient({ orders, userName }: AdminReportsCli
           <section className="rounded-3xl border border-[#F1E9EB] bg-white p-5 shadow-sm">
             <h3 className="text-lg font-semibold text-[#4C3437]">Top Selling Products</h3>
             <div className="mt-5 space-y-4">
-              {topProducts.length === 0 ? (
+              {topProductsLoading ? (
+                <div className="py-10 text-center text-sm text-[#9E9196]">
+                  Loading top products…
+                </div>
+              ) : topProducts.length === 0 ? (
                 <div className="py-10 text-center text-sm text-[#9E9196]">
                   No product sales found for the selected filters.
                 </div>
               ) : (
-                topProducts.map((product) => (
-                  <div key={product.id} className="flex items-center justify-between gap-4">
+                topProducts.map((product, index) => (
+                  <div key={product.productId} className="flex items-center justify-between gap-4">
                     <div className="flex min-w-0 items-center gap-3">
                       <span className="w-6 shrink-0 text-xs font-semibold text-[#D95A87]">
-                        {product.badge}
+                        {`#${index + 1}`}
                       </span>
                       <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#F7ECEF] text-[10px] font-semibold text-[#AF7C8D]">
                         {product.name.slice(0, 2).toUpperCase()}
@@ -544,7 +599,7 @@ export default function AdminReportsClient({ orders, userName }: AdminReportsCli
                         <p className="truncate text-sm font-medium text-[#4C3437]">
                           {product.name}
                         </p>
-                        <p className="text-xs text-[#B0A2A7]">{product.qty} orders</p>
+                        <p className="text-xs text-[#B0A2A7]">{product.qty} terjual</p>
                       </div>
                     </div>
 
