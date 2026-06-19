@@ -222,6 +222,32 @@ function normalizeImageSrc(src?: string | null) {
   return encodeURI(prefixed);
 }
 
+function getTopProductKey(product: BestsellerProduct, index: number) {
+  if (product.id != null && product.id !== "" && !Number.isNaN(Number(product.id))) {
+    return String(product.id);
+  }
+
+  if (product.slug) {
+    return product.slug;
+  }
+
+  if (product.name) {
+    return product.name;
+  }
+
+  return `top-product-${index}`;
+}
+
+function getTopProductHref(product: BestsellerProduct, index: number) {
+  const path =
+    product.slug ??
+    (product.id != null && !Number.isNaN(Number(product.id)) ? String(product.id) : undefined) ??
+    product.name ??
+    `product-${index}`;
+
+  return `/products/${encodeURIComponent(String(path))}`;
+}
+
 function mapBestSellerToCard(product: BestSellerApiProduct): BestsellerProduct {
   const mainImage =
     product.images?.find((image) => image.imageType === "main") ??
@@ -342,11 +368,11 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
         <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
           {shownProducts.map((product, index) => {
             const toggleId = `top-products-cart-toggle-${index}`;
-            const productHref = `/product/${product.slug ?? product.id ?? product.name}`;
+            const productHref = getTopProductHref(product, index);
 
             return (
               <article
-                key={product.name}
+                key={getTopProductKey(product, index)}
                 className="group relative flex flex-col overflow-hidden rounded-[18px] border border-[#F1D0DB] bg-white shadow-[0_8px_24px_rgba(108,67,53,0.08)]"
               >
                 <input
@@ -398,6 +424,7 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                       src={product.imageUrl}
                       alt={product.name}
                       fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       className="object-cover transition-transform duration-300 group-hover:scale-110"
                     />
                   ) : (
@@ -438,9 +465,9 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                     <div className="mt-2 flex flex-wrap items-center gap-[3px]">
                       {product.variant
                         .filter((t) => !t.trim().startsWith("+"))
-                        .map((variant) => (
+                        .map((variant, variantIndex) => (
                           <span
-                            key={variant}
+                            key={`variant-${variantIndex}-${variant}`}
                             className="rounded-full bg-[#F6D6DF] px-2 py-[2px] text-[10px] leading-none text-[#6C4735]"
                           >
                             {variant}
@@ -500,11 +527,11 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
         <div className="mt-5 grid grid-cols-2 gap-3 px-4">
           {shownProducts.map((product, index) => {
             const toggleId = `top-products-mobile-cart-toggle-${index}`;
-            const productHref = `/products/${product.slug ?? product.id ?? product.name}`;
+            const productHref = getTopProductHref(product, index);
 
             return (
               <article
-                key={product.name}
+                key={getTopProductKey(product, index)}
                 className="group relative overflow-hidden rounded-[14px] border border-[#F1D0DB] bg-white shadow-[0_6px_18px_rgba(108,67,53,0.08)]"
               >
                 <input
@@ -553,6 +580,7 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                       src={product.imageUrl}
                       alt={product.name}
                       fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       className="object-cover transition-transform duration-300 group-hover:scale-110"
                     />
                   ) : (
@@ -599,9 +627,9 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                       {product.variant
                         .filter((t) => !t.trim().startsWith("+"))
                         .slice(0, 2)
-                        .map((variant) => (
+                        .map((variant, variantIndex) => (
                           <span
-                            key={variant}
+                            key={`variant-${variantIndex}-${variant}`}
                             className="rounded-full bg-[#F6D6DF] px-1.5 py-[1px] text-[8px] leading-none text-[#6C4735]"
                           >
                             {variant}

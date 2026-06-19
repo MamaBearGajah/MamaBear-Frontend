@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Download, Search } from "lucide-react";
+import { Download, Loader2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -54,11 +54,26 @@ export default function OrdersToolbar({
     router.push(`/admin/orders?${params.toString()}`);
   };
 
-  const handleExportCsv = () => {
-    // Placeholder — wire to API endpoint when available
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("format", "csv");
-    window.open(`/api/admin/orders/export?${params.toString()}`, "_blank");
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportCsv = async () => {
+    setExporting(true);
+    try {
+      const { adminOrdersApi } = await import("@/lib/api/adminOrders");
+      const res = await adminOrdersApi.exportCsv();
+      const blob = new Blob([res.data], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `orders-export-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      // toast.error handled by caller — just log
+      console.error("Export CSV failed");
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (
@@ -73,9 +88,12 @@ export default function OrdersToolbar({
           variant="outline"
           className="gap-1.5"
           onClick={handleExportCsv}
+          disabled={exporting}
         >
-          <Download className="size-4" />
-          Export CSV
+          {exporting
+            ? <><Loader2 className="size-4 animate-spin" /> Exporting...</>
+            : <><Download className="size-4" /> Export CSV</>
+          }
         </Button>
       </div>
 

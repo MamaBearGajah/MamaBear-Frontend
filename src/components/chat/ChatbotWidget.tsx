@@ -1,30 +1,28 @@
 "use client";
 
 /**
- * src/components/chat/ChatbotWidget.tsx
+ * src/components/chat/ChatbotWidget.tsx — FIX HYDRATION ERROR
  *
- * Floating chatbot bubble — muncul di semua halaman shop.
- * Taruh di src/app/(shop)/layout.tsx:
+ * ROOT CAUSE: Widget ini dipasang di RootLayout (layout.tsx) yang server-rendered.
+ * <button> tidak boleh jadi child dari <html> langsung.
+ *
+ * FIX: Gunakan `useEffect` + `document.body` appendChild — widget di-mount ke body
+ * setelah hydration selesai, sehingga tidak ada mismatch SSR/CSR.
+ * Alternatif lebih simpel: cukup taruh di (shop)/layout.tsx, BUKAN di app/layout.tsx.
+ *
+ * CARA PAKAI YANG BENAR:
+ * Taruh HANYA di src/app/(shop)/layout.tsx:
+ *
  *   import ChatbotWidget from "@/components/chat/ChatbotWidget";
  *   // dalam JSX setelah <Footer />:
  *   <ChatbotWidget />
  *
- * BE: POST /chatbot/query
- * Fitur:
- * - Floating button kanan bawah, responsive mobile/desktop
- * - Chat window dengan scroll
- * - Quick reply suggestions dari FAQ
- * - Loading indicator saat menunggu BE
- * - Menyimpan history chat selama session
- * - Auto-scroll ke pesan terbaru
- * - ESC / klik backdrop untuk tutup di mobile
+ * JANGAN taruh di src/app/layout.tsx (root layout).
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MessageCircle, X, Send, Loader2, Bot, User, ChevronRight } from "lucide-react";
 import { chatbotApi } from "@/lib/api/chatbot";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 type Role = "user" | "bot";
 
@@ -36,8 +34,6 @@ interface Message {
   time: string;
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
 function nowTime() {
   return new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
 }
@@ -46,28 +42,39 @@ const WELCOME: Message = {
   id: "welcome",
   role: "bot",
   text: "Halo! Saya asisten Mamabear 🐻 Ada yang bisa saya bantu? Tanya soal produk, pengiriman, atau pembayaran ya!",
-  suggestions: ["Produk apa yang tersedia?", "Cara order produk", "Berapa ongkos kirim?", "Metode pembayaran apa saja?"],
+  suggestions: [
+    "Produk apa yang tersedia?",
+    "Cara order produk",
+    "Berapa ongkos kirim?",
+    "Metode pembayaran apa saja?",
+  ],
   time: nowTime(),
 };
-
-// ─── Message bubble ───────────────────────────────────────────────────────────
 
 function Bubble({ msg, onSuggestion }: { msg: Message; onSuggestion: (s: string) => void }) {
   const isBot = msg.role === "bot";
   return (
     <div className={`flex gap-2 ${isBot ? "items-start" : "items-start flex-row-reverse"}`}>
-      {/* Avatar */}
-      <div className={`flex size-7 shrink-0 items-center justify-center rounded-full text-white text-xs font-bold mt-0.5 ${isBot ? "bg-[#D95A87]" : "bg-[#6C4735]"}`}>
+      <div
+        className={`flex size-7 shrink-0 items-center justify-center rounded-full text-white mt-0.5 ${
+          isBot ? "bg-[#D95A87]" : "bg-[#6C4735]"
+        }`}
+      >
         {isBot ? <Bot className="size-4" /> : <User className="size-4" />}
       </div>
 
       <div className={`max-w-[80%] space-y-2 ${isBot ? "" : "items-end flex flex-col"}`}>
-        <div className={`rounded-2xl px-3 py-2 text-sm leading-relaxed ${isBot ? "rounded-tl-none bg-[#FDF0F5] text-[#4C3437]" : "rounded-tr-none bg-[#D95A87] text-white"}`}>
+        <div
+          className={`rounded-2xl px-3 py-2 text-sm leading-relaxed ${
+            isBot
+              ? "rounded-tl-none bg-[#FDF0F5] text-[#4C3437]"
+              : "rounded-tr-none bg-[#D95A87] text-white"
+          }`}
+        >
           {msg.text}
         </div>
         <p className="text-[10px] text-gray-400 px-1">{msg.time}</p>
 
-        {/* Quick reply suggestions */}
         {isBot && msg.suggestions && msg.suggestions.length > 0 && (
           <div className="flex flex-wrap gap-1.5 pt-0.5">
             {msg.suggestions.map((s) => (
@@ -87,9 +94,8 @@ function Bubble({ msg, onSuggestion }: { msg: Message; onSuggestion: (s: string)
   );
 }
 
-// ─── Main Widget ──────────────────────────────────────────────────────────────
-
 export default function ChatbotWidget() {
+  const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([WELCOME]);
   const [input, setInput] = useState("");
@@ -97,7 +103,11 @@ export default function ChatbotWidget() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-scroll ke bawah saat pesan baru
+  // ✅ FIX: mount hanya di client setelah hydration
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     if (open) {
       setTimeout(() => {
@@ -106,78 +116,89 @@ export default function ChatbotWidget() {
     }
   }, [messages, open]);
 
-  // Focus input saat buka
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 100);
   }, [open]);
 
-  // ESC untuk tutup
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
-  const sendMessage = useCallback(async (text: string) => {
-    const trimmed = text.trim();
-    if (!trimmed || loading) return;
+  const sendMessage = useCallback(
+    async (text: string) => {
+      const trimmed = text.trim();
+      if (!trimmed || loading) return;
 
-    const userMsg: Message = { id: Date.now().toString(), role: "user", text: trimmed, time: nowTime() };
-    setMessages((prev) => [...prev, userMsg]);
-    setInput("");
-    setLoading(true);
-
-    try {
-      const res = await chatbotApi.query(trimmed);
-
-      // Map suggestedFaqIds → quick reply labels (pakai FAQ question jika tersedia, fallback ke pertanyaan default)
-      const suggestions = res.suggestedFaqIds.length > 0
-        ? [] // bisa di-enhance: fetch FAQ by ID untuk dapat question text
-        : ["Cara order produk", "Status pesanan saya", "Hubungi CS"];
-
-      const botMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "bot",
-        text: res.answer,
-        suggestions,
+      const userMsg: Message = {
+        id: Date.now().toString(),
+        role: "user",
+        text: trimmed,
         time: nowTime(),
       };
-      setMessages((prev) => [...prev, botMsg]);
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
+      setMessages((prev) => [...prev, userMsg]);
+      setInput("");
+      setLoading(true);
+
+      try {
+        const res = await chatbotApi.query(trimmed);
+        const botMsg: Message = {
           id: (Date.now() + 1).toString(),
           role: "bot",
-          text: "Maaf, saya sedang gangguan. Silakan hubungi CS kami di WhatsApp atau email ya 😊",
-          suggestions: [],
+          text: res.answer,
+          suggestions:
+            res.suggestedFaqIds.length > 0
+              ? []
+              : ["Cara order produk", "Status pesanan saya", "Hubungi CS"],
           time: nowTime(),
-        },
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  }, [loading]);
+        };
+        setMessages((prev) => [...prev, botMsg]);
+      } catch {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            role: "bot",
+            text: "Maaf, saya sedang gangguan. Silakan hubungi CS kami di WhatsApp 😊",
+            suggestions: [],
+            time: nowTime(),
+          },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [loading]
+  );
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     sendMessage(input);
   }
 
+  // ✅ FIX: Jangan render apapun saat SSR / sebelum hydration
+  if (!mounted) return null;
+
   return (
     <>
-      {/* ── Floating Button ─────────────────────────────────────── */}
+      {/* Floating Button */}
       <button
         onClick={() => setOpen(true)}
         aria-label="Buka chatbot"
-        className={`fixed bottom-5 right-4 z-40 flex size-14 items-center justify-center rounded-full bg-[#D95A87] text-white shadow-lg transition-all duration-200 hover:scale-110 hover:bg-[#C04878] sm:bottom-6 sm:right-6 sm:size-16 ${open ? "scale-0 opacity-0 pointer-events-none" : "scale-100 opacity-100"}`}
+        className={`fixed bottom-5 right-4 z-40 flex size-14 items-center justify-center rounded-full bg-[#D95A87] text-white shadow-lg transition-all duration-200 hover:scale-110 hover:bg-[#C04878] sm:bottom-6 sm:right-6 sm:size-16 ${
+          open ? "scale-0 opacity-0 pointer-events-none" : "scale-100 opacity-100"
+        }`}
       >
         <MessageCircle className="size-6 sm:size-7" />
-        {/* Unread dot */}
-        <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-[#6C4735] text-[9px] font-bold text-white">1</span>
+        <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-[#6C4735] text-[9px] font-bold text-white">
+          1
+        </span>
       </button>
 
-      {/* ── Chat Window ─────────────────────────────────────────── */}
+      {/* Chat Window */}
       {open && (
         <>
           {/* Mobile backdrop */}
@@ -190,14 +211,7 @@ export default function ChatbotWidget() {
           <div
             role="dialog"
             aria-label="Chatbot Mamabear"
-            className={`
-              fixed z-50 flex flex-col overflow-hidden rounded-2xl border border-[#F1E9EB] bg-white shadow-2xl
-              transition-all duration-200
-              /* Mobile: full width bottom sheet */
-              bottom-0 left-0 right-0 h-[85vh] rounded-b-none
-              /* sm+: floating window */
-              sm:bottom-6 sm:left-auto sm:right-6 sm:h-[520px] sm:w-[380px] sm:rounded-2xl
-            `}
+            className="fixed z-50 flex flex-col overflow-hidden rounded-t-2xl border border-[#F1E9EB] bg-white shadow-2xl bottom-0 left-0 right-0 h-[85vh] sm:bottom-6 sm:left-auto sm:right-6 sm:h-[520px] sm:w-[380px] sm:rounded-2xl"
           >
             {/* Header */}
             <div className="flex items-center gap-3 border-b border-[#F1E9EB] bg-[#D95A87] px-4 py-3">
@@ -218,15 +232,10 @@ export default function ChatbotWidget() {
             </div>
 
             {/* Messages */}
-            <div
-              ref={scrollRef}
-              className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-4"
-            >
+            <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-4">
               {messages.map((msg) => (
                 <Bubble key={msg.id} msg={msg} onSuggestion={sendMessage} />
               ))}
-
-              {/* Loading indicator */}
               {loading && (
                 <div className="flex items-start gap-2">
                   <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#D95A87] text-white mt-0.5">
@@ -262,8 +271,8 @@ export default function ChatbotWidget() {
               </button>
             </form>
 
-            {/* Bottom safe area for mobile */}
-            <div className="h-[env(safe-area-inset-bottom)] sm:hidden" />
+            {/* iPhone safe area */}
+            <div className="h-[env(safe-area-inset-bottom,0px)] sm:hidden" />
           </div>
         </>
       )}

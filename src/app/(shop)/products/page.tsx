@@ -16,7 +16,7 @@ import {
   toStorefrontProductListParams,
 } from "@/lib/shop/product-list-params";
 import { filterStorefrontProducts } from "@/lib/shop/storefront-products";
-import type { PaginationMeta } from "@/types";
+import type { PaginationMeta, ProductListItem, VariantOption } from "@/types";
 
 export const metadata: Metadata = {
   title: "All Products | MamaBear",
@@ -28,9 +28,9 @@ interface ProductsPageProps {
 }
 
 /** Extract distinct variant name+value dari semua produk di halaman */
-function extractVariantOptions(products: any[]): Array<{ name: string; value: string }> {
+function extractVariantOptions(products: ProductListItem[]): VariantOption[] {
   const seen = new Set<string>();
-  const options: Array<{ name: string; value: string }> = [];
+  const options: VariantOption[] = [];
 
   for (const product of products) {
     for (const v of product.variantOptions ?? []) {
@@ -77,6 +77,7 @@ export default async function ProductsPage({
   ]);
 
   const products = filterStorefrontProducts(productsRes.data);
+  const variantOptions = extractVariantOptions(products);
   const categoryCounts = computeCategoryCounts(allProductsRes.data);
 
   // Backend category endpoint pakai key 'total', products endpoint pakai 'totalItems'
@@ -113,6 +114,7 @@ export default async function ProductsPage({
               categoryCounts={categoryCounts}
               basePath="/products"
               priceBounds={DEFAULT_PRICE_BOUNDS}
+              variantOptions={variantOptions}
             />
 
             <div className="min-w-0 flex-1 self-start">
@@ -128,6 +130,7 @@ export default async function ProductsPage({
               categoryCounts={categoryCounts}
               basePath="/products"
               priceBounds={DEFAULT_PRICE_BOUNDS}
+              variantOptions={variantOptions}
             />
 
             <div className="min-w-0 flex-1 space-y-4">
