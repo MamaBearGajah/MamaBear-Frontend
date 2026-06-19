@@ -14,7 +14,9 @@ import { placeShopOrder } from "@/lib/shop/place-order";
 const PaymentPage = () => {
   const { clearCart } = useCart();
   const router = useRouter();
-  const { state: checkoutState, clearCheckout, subtotal } = useCheckout();
+  // FIX: ambil `hydrated` dari context — true setelah state checkout
+  // selesai di-restore dari localStorage di client.
+  const { state: checkoutState, clearCheckout, subtotal, hydrated } = useCheckout();
   const { items, method: shippingMethod, discount } = checkoutState;
 
   const [method, setMethod] = useState<PaymentMethod>("va");
@@ -23,10 +25,21 @@ const PaymentPage = () => {
   const shipping = shippingMethod?.cost ?? 0;
   const total = subtotal - (discount ?? 0) + shipping;
 
-  // Guard: redirect jika cart kosong
+  // Guard: redirect jika cart kosong.
+  // FIX: tunggu sampai `hydrated` true, supaya tidak salah redirect ke /cart
+  // sebelum data checkout dari localStorage selesai dimuat (yang sebelumnya
+  // juga jadi sumber hydration mismatch karena render pertama client &
+  // server bisa berbeda).
   useEffect(() => {
+    if (!hydrated) return;
     if (items.length === 0) router.replace("/cart");
-  }, [items.length, router]);
+  }, [hydrated, items.length, router]);
+
+  // FIX: selama belum hydrated, render null (sama di server & client)
+  // alih-alih langsung mengevaluasi items.length yang baru valid di client.
+  if (!hydrated) {
+    return null;
+  }
 
   if (items.length === 0) {
     return (
