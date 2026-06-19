@@ -6,7 +6,6 @@ import PromoSection from "@/components/PromoSection";
 import TopProducts from "@/components/TopProducts";
 import SubscribeSection from "@/components/NewsletterForm";
 import HomeBanner from "@/components/HeroBanner";
-import FloatingChatButton from "@/components/FloatingChatButton";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import BackToTop from "@/components/common/BackToTop";
@@ -68,7 +67,6 @@ export default async function Home() {
             <SubscribeSection />
           </div>
         </section>
-        {/* <FloatingChatButton href="#" /> */}
       </main>
       <Footer />
     </div>

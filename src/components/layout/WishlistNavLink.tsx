@@ -1,9 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Heart } from "lucide-react";
 
-import { useWishlist } from "@/hooks/useWishlist";
+import { WISHLIST_CHANGED_EVENT, getWishlist } from "@/lib/wishlist";
 import { cn } from "@/lib/utils";
 
 type WishlistNavLinkProps = {
@@ -15,7 +16,21 @@ export default function WishlistNavLink({
   className,
   iconClassName,
 }: WishlistNavLinkProps) {
-  const { count } = useWishlist();
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const syncCount = () => setCount(getWishlist().length);
+
+    syncCount();
+
+    window.addEventListener(WISHLIST_CHANGED_EVENT, syncCount);
+    window.addEventListener("storage", syncCount);
+
+    return () => {
+      window.removeEventListener(WISHLIST_CHANGED_EVENT, syncCount);
+      window.removeEventListener("storage", syncCount);
+    };
+  }, []);
 
   return (
     <Link href="/wishlist" aria-label="Wishlist" className={className}>

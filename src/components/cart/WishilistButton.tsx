@@ -68,7 +68,7 @@ export default function WishlistButton({
     })();
 
     toast.success(
-      isNowLiked ? "Added to wishlist" : "Removed from wishlist",
+      isNowLiked ? "Item added to wishlist" : "Item removed from wishlist",
     );
   };
 

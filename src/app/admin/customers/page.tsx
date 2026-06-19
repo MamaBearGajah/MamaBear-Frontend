@@ -27,12 +27,24 @@ export default async function AdminCustomersPage() {
   const session = await getServerSession();
   const cookieStore = await cookies();
   const cookieHeader = cookieStore.toString();
+  let customersData: Customer[] = [];
 
-  const { data: customerRes } = await adminCustomerApi.getAll({
-    headers: { Cookie: cookieHeader },
-  });
+  try {
+    const { data: customerRes } = await adminCustomerApi.getAll({
+      headers: { Cookie: cookieHeader },
+    });
+    const payload = customerRes?.data ?? customerRes;
 
-  const customersData: Customer[] = customerRes?.data ?? [];
+    if (Array.isArray(payload?.user)) {
+      customersData = payload.user as Customer[];
+    } else if (Array.isArray(payload?.users)) {
+      customersData = payload.users as Customer[];
+    } else if (Array.isArray(payload)) {
+      customersData = payload as Customer[];
+    }
+  } catch {
+    customersData = [];
+  }
 
   return (
     <div className="flex flex-1 flex-col p-6 md:p-8">
