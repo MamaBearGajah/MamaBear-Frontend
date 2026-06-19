@@ -4,13 +4,6 @@ import { useState } from "react";
 import WishlistButton from "@/components/cart/WishilistButton";
 import Image from "next/image";
 
-// const image = [
-//   "https://picsum.photos/500/500?1",
-//   "https://picsum.photos/500/500?2",
-//   "https://picsum.photos/500/500?3",
-//   "https://picsum.photos/500/500?4",
-// ];
-
 interface ProductCarouselProps {
   productId: string;
   images: string[];
