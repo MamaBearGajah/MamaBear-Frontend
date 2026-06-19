@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Check, Mail, PartyPopper } from "lucide-react";
 import OrderEmailPreview from "@/components/order/OrderEmailPreview";
 import OrderStatusBadge from "@/components/order/OrderStatusBadge";
 import { useAuth } from "@/context/AuthContext";
 import { useOrderPolling } from "@/hooks/useOrderPolling";
+import { membershipApi } from "@/lib/api/membership";
 import {
   formatDisplayOrderId,
   getDeliveryEstimateLabel,
@@ -46,6 +48,23 @@ export default function OrderSuccessView({
     orderId,
     initialOrder,
   );
+  const [hasRedeemedOrderPoints, setHasRedeemedOrderPoints] = useState(false);
+
+  useEffect(() => {
+    if (!order || hasRedeemedOrderPoints) return;
+    if (order.paymentStatus !== "paid") return;
+    if (!state.user?.id) return;
+
+    const points = Math.floor(order.total / 1000);
+    if (points <= 0) return;
+
+    membershipApi
+      .givePoints(state.user.id, points)
+      .then(() => setHasRedeemedOrderPoints(true))
+      .catch((err) => {
+        console.error("Failed to give order points:", err);
+      });
+  }, [order, hasRedeemedOrderPoints, state.user?.id]);
 
   if (!orderId) {
     return (
@@ -100,6 +119,7 @@ export default function OrderSuccessView({
     order.courier,
   );
   const userName = state.user?.name?.split(" ")[0] ?? "Mama";
+  const pointsEarned = Math.max(0, Math.floor(order.total / 1000));
 
   return (
     <div className="mx-auto max-w-lg space-y-5">
@@ -118,6 +138,9 @@ export default function OrderSuccessView({
         </h1>
         <p className="mt-2 text-sm text-brown/80">
           Thank you, {userName}! Your order has been received.
+        </p>
+        <p className="mt-2 text-sm text-dark-pink">
+          You earned <strong>{pointsEarned.toLocaleString()}</strong> membership point{pointsEarned === 1 ? "" : "s"} from this order.
         </p>
         <div className="mt-3 flex justify-center">
           <OrderStatusBadge
@@ -153,6 +176,12 @@ export default function OrderSuccessView({
             <span className="text-brown/70">Total</span>
             <span className="font-bold text-dark-pink">
               {formatPrice(order.total)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between py-3">
+            <span className="text-brown/70">Membership points earned</span>
+            <span className="font-medium text-dark-pink">
+              {pointsEarned.toLocaleString()} point{pointsEarned === 1 ? "" : "s"}
             </span>
           </div>
         </div>
