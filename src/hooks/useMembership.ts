@@ -4,11 +4,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { apiClient } from "@/lib/api/client";
 import { getCurrentTier, getNextTier, getTierProgress, Tier } from "@/config/Tiers";
 
 export interface MembershipData {
   points: number;
-  lastDailyLoginAt: string;
+  tier: string;
+  totalSpent: number;
+  lastDailyLoginAt?: string | null;
+  streakCount?: number;
 }
 
 export interface UseMembershipReturn {
@@ -22,21 +26,29 @@ export interface UseMembershipReturn {
   claim: () => Promise<void>;
 }
 
-// Ganti fungsi ini dengan API asli (authApi.getMembership, dll)
 async function fetchMembership(): Promise<MembershipData> {
-  // await authApi.getMembership()
+  const res = await apiClient.get("/membership/me");
+  const raw = res.data?.data ?? res.data;
+  const membership = raw?.membership ?? raw;
   return {
-    points: 2450,
-    lastDailyLoginAt: "2024-05-01T10:00:00.000Z",
+    points: membership?.points ?? 0,
+    tier: membership?.tier ?? "bronze",
+    totalSpent: Number(membership?.totalSpent ?? 0),
+    lastDailyLoginAt: membership?.lastDailyLoginAt ?? null,
+    streakCount: membership?.streakCount ?? 0,
   };
 }
 
-async function postClaimDaily(): Promise<{ pointsAdded: number }> {
-  // await apiClient.post("/membership/claim-daily")
-  return new Promise((resolve) => setTimeout(() => resolve({ pointsAdded: 50 }), 800));
+async function postClaimDaily(): Promise<{ pointsAdded: number; alreadyClaimed?: boolean }> {
+  const res = await apiClient.post("/membership/daily-login");
+  const raw = res.data?.data ?? res.data;
+  return {
+    pointsAdded: raw?.pointsEarned ?? raw?.pointsAdded ?? 0,
+    alreadyClaimed: raw?.alreadyClaimed ?? false,
+  };
 }
 
-function hasClaimedToday(isoDate?: string): boolean {
+function hasClaimedToday(isoDate?: string | null): boolean {
   if (!isoDate) return false;
   return new Date(isoDate).toDateString() === new Date().toDateString();
 }
@@ -52,19 +64,35 @@ export function useMembership(
   useEffect(() => {
     fetchMembership()
       .then(setData)
+      .catch(() => {
+        // fallback ke data kosong kalau gagal fetch
+        setData({ points: 0, tier: "bronze", totalSpent: 0 });
+      })
       .finally(() => setIsLoading(false));
   }, []);
 
   const points = data?.points ?? 0;
 
   const claim = async () => {
-    if (!data || hasClaimedToday(data.lastDailyLoginAt)) return;
+    if (!data) return;
+    if (hasClaimedToday(data.lastDailyLoginAt)) {
+      onError?.("Kamu sudah klaim poin hari ini.");
+      return;
+    }
     setIsClaiming(true);
     try {
       const res = await postClaimDaily();
+      if (res.alreadyClaimed) {
+        onError?.("Kamu sudah klaim poin hari ini.");
+        return;
+      }
       setData((prev) =>
         prev
-          ? { ...prev, points: prev.points + res.pointsAdded, lastDailyLoginAt: new Date().toISOString() }
+          ? {
+              ...prev,
+              points: prev.points + res.pointsAdded,
+              lastDailyLoginAt: new Date().toISOString(),
+            }
           : prev,
       );
       onSuccess?.(`Yeay! Berhasil klaim ${res.pointsAdded} Poin!`);

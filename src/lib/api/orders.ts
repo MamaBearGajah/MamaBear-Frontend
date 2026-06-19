@@ -20,11 +20,12 @@ function ordersRequestConfig(options?: OrdersRequestOptions) {
   return { headers: { Cookie: options.cookieHeader } };
 }
 
+// ─── User: daftar order milik sendiri ────────────────────────────────────────
 export async function getOrderList(
   params: OrderListParams = {},
   options?: OrdersRequestOptions
 ): Promise<ApiResponse<Order[]>> {
-  const { data } = await apiClient.get<ApiResponse<Order[]>>("/orders/admin", {
+  const { data } = await apiClient.get<ApiResponse<Order[]>>("/users/me/orders", {
     params,
     ...ordersRequestConfig(options),
   });
@@ -35,6 +36,7 @@ export async function getOrderList(
   };
 }
 
+// ─── Detail order (user maupun admin) ────────────────────────────────────────
 export async function getOrderById(
   id: string,
   options?: OrdersRequestOptions
@@ -49,9 +51,9 @@ export async function getOrderById(
   };
 }
 
+// ─── Create order ─────────────────────────────────────────────────────────────
 function mapCreateOrderResult(raw: unknown): CreateOrderResult {
   const row = (raw ?? {}) as Record<string, unknown>;
-
   return {
     orderId: String(row.orderId ?? row.id ?? ""),
     status: String(row.status ?? ""),
@@ -75,6 +77,7 @@ export async function createOrder(
   };
 }
 
+// ─── Cancel order ─────────────────────────────────────────────────────────────
 export async function cancelOrder(
   id: string,
   options?: OrdersRequestOptions
