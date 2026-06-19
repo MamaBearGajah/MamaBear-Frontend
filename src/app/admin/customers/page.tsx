@@ -14,34 +14,85 @@ import { getServerSession } from "@/lib/auth/session";
 import { adminCustomerApi } from "../../../lib/api/customers";
 import { format } from "date-fns";
 import { formatPrice } from "../../../lib/utils";
-import { cookies } from "next/headers";
 
-interface CustomerOrder {
-  total: string;
-}
+const MOCK_CUSTOMERS = [
+  {
+    id: "1",
+    name: "Siti Rahma",
+    email: "siti@example.com",
+    city: "Jakarta",
+    orders: 8,
+    totalSpent: "Rp 980.000",
+    joined: "Jan 2024",
+    initials: "SR",
+    color: "bg-pink-500",
+  },
+  {
+    id: "2",
+    name: "Dewi Anggraeni",
+    email: "dewi@example.com",
+    city: "Surabaya",
+    orders: 5,
+    totalSpent: "Rp 650.000",
+    joined: "Feb 2024",
+    initials: "DA",
+    color: "bg-rose-500",
+  },
+  {
+    id: "3",
+    name: "Putri Maharani",
+    email: "putri@example.com",
+    city: "Bandung",
+    orders: 12,
+    totalSpent: "Rp 1.450.000",
+    joined: "Dec 2023",
+    initials: "PM",
+    color: "bg-red-400",
+  },
+  {
+    id: "4",
+    name: "Ayu Permata",
+    email: "ayu@example.com",
+    city: "Yogyakarta",
+    orders: 3,
+    totalSpent: "Rp 350.000",
+    joined: "Mar 2024",
+    initials: "AP",
+    color: "bg-pink-400",
+  },
+  {
+    id: "5",
+    name: "Nadia Safira",
+    email: "nadia@example.com",
+    city: "Medan",
+    orders: 6,
+    totalSpent: "Rp 720.000",
+    joined: "Jan 2024",
+    initials: "NS",
+    color: "bg-rose-400",
+  },
+];
 
 interface Customer {
   id: string;
   name: string;
   email: string;
-  createdAt: string;
-  _count: {
-    orders: number;
-  };
-  orders: CustomerOrder[];
+  createdAt: Date;
+  totalOrder: number;
+  totalSpent: number;
 }
+
+const { cookies } = await import("next/headers");
+const cookieStore = await cookies();
+const cookieHeader = cookieStore.toString();
+
+const { data: customerRes } = await adminCustomerApi.getAll({
+  headers: { Cookie: cookieHeader },
+});
+const customersData = customerRes?.data?.user ?? [];
 
 export default async function AdminCustomersPage() {
   const session = await getServerSession();
-
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore.toString();
-
-  const { data: customerRes } = await adminCustomerApi.getAll({
-    headers: { Cookie: cookieHeader },
-  });
-
-  const customersData: Customer[] = customerRes?.data ?? [];
 
   return (
     <div className="flex flex-1 flex-col p-6 md:p-8">
@@ -76,53 +127,46 @@ export default async function AdminCustomersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {customersData.map((customer) => {
-                const totalSpent = customer.orders.reduce(
-                  (sum, order) => sum + Number(order.total),
-                  0
-                );
-
-                return (
-                  <TableRow key={customer.id}>
-                    <TableCell className="py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="text-muted-foreground bg-primary/10 flex size-10 items-center justify-center rounded-full text-sm font-medium uppercase">
-                          {customer.name.substring(0, 2)}
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-foreground font-medium">
-                            {customer.name}
-                          </span>
-                          <span className="text-muted-foreground text-sm">
-                            {customer.email}
-                          </span>
-                        </div>
+              {customersData.map((customer: Customer) => (
+                <TableRow key={customer.id}>
+                  <TableCell className="py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="text-muted-foreground bg-primary/10 flex size-10 items-center justify-center rounded-full text-sm font-medium">
+                        {customer.name.charAt(0) + customer.name.charAt(1)}
                       </div>
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {customer._count.orders}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {formatPrice(totalSpent)}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {format(new Date(customer.createdAt), "MMMM yyyy")}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        asChild
-                        className="text-blue-500 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20"
-                      >
-                        <Link href={`#`}>
-                          <Eye className="size-4" />
-                        </Link>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+                      <div className="flex flex-col">
+                        <span className="text-foreground font-medium">
+                          {customer.name}
+                        </span>
+                        <span className="text-muted-foreground text-sm">
+                          {customer.email}
+                        </span>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {customer.totalOrder}
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {formatPrice(customer.totalSpent)}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {format(new Date(customer.createdAt), "MMMM yyyy")}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      asChild
+                      className="text-blue-500 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20"
+                    >
+                      <Link href={`#`}>
+                        <Eye className="size-4" />
+                      </Link>
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </div>
