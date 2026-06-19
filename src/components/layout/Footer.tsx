@@ -2,10 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Mail, MapPin, Phone, Check } from "lucide-react";
 import { FaInstagram, FaFacebook, FaYoutube, FaComments } from "react-icons/fa";
-
 const certifications = ["BPOM Certified", "Halal MUI", "ISO 9001"];
-
-import Newsletter from "../Newsletter";
 export default function Footer() {
   return (
     <footer className="bg-[#D5557E] font-[var(--font-quicksand)] text-white">
