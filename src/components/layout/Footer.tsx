@@ -156,7 +156,7 @@ export default function Footer() {
                   Contact Us
                 </Link>
                 <Link
-                  href="/about"
+                  href="/articles"
                   className="block transition hover:text-[#FACBD8]"
                 >
                   Articles
@@ -238,9 +238,6 @@ export default function Footer() {
               </Link>
               <Link href="/terms" className="transition hover:text-[#FACBD8]">
                 Terms of Service
-              </Link>
-              <Link href="#" className="transition hover:text-[#FACBD8]">
-                Cookie Policy
               </Link>
             </div>
           </div>
