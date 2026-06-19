@@ -49,16 +49,30 @@ export async function getOrderById(
   };
 }
 
+function mapCreateOrderResult(raw: unknown): CreateOrderResult {
+  const row = (raw ?? {}) as Record<string, unknown>;
+
+  return {
+    orderId: String(row.orderId ?? row.id ?? ""),
+    status: String(row.status ?? ""),
+    total: Number(row.total ?? row.amount ?? 0),
+  };
+}
+
 export async function createOrder(
   payload: CreateOrderPayload,
   options?: OrdersRequestOptions
 ): Promise<ApiResponse<CreateOrderResult>> {
-  const { data } = await apiClient.post<ApiResponse<CreateOrderResult>>(
+  const { data } = await apiClient.post<ApiResponse<unknown>>(
     "/orders",
     payload,
     ordersRequestConfig(options)
   );
-  return normalizeApiResponse<CreateOrderResult>(data);
+  const normalized = normalizeApiResponse<unknown>(data);
+  return {
+    ...normalized,
+    data: mapCreateOrderResult(normalized.data),
+  };
 }
 
 export async function cancelOrder(
