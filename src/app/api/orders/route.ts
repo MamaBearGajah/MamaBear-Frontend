@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { getAllOrders, createOrder } from "@/lib/api/orders";
+import { getOrderList, createOrder } from "@/lib/api/orders";
 
 export async function GET() {
-  const orders = await getAllOrders();
+  const orders = await getOrderList();
   return NextResponse.json(orders, { status: 200 });
 }
 
