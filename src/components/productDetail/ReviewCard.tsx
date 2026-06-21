@@ -72,26 +72,49 @@ export default function ReviewCard({
   const [reviews, setReviews] = useState<Review[]>([]);
   const [helpfulVotes, setHelpfulVotes] = useState<Record<string, boolean>>({});
   const [isOpen, setIsOpen] = useState(false);
+  const [orderId, setOrderId] = useState<string>("");
+  const [rating, setRating] = useState<number>(5);
+  const [reviewText, setReviewText] = useState<string>("");
+  const [submitError, setSubmitError] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const limit = 5;
   const [page, setPage] = useState(1);
-  const meta = {
+  const [meta, setMeta] = useState({
     page: 1,
     limit: 5,
     totalItems: 0,
     totalPages: 0,
-  };
+  });
   useEffect(() => {
     async function fetchReviews() {
       try {
         const response = await getAllReviews(productId, page, limit);
-        setReviews(
+        const reviewsData =
           Array.isArray(response) && response.length > 0
             ? response
-            : mockReviews
-        );
-        // setMeta(response.meta);
+            : mockReviews;
+        
+        setReviews(reviewsData);
+        
+        // Calculate pagination metadata
+        const totalItems = reviewsData.length;
+        const totalPages = Math.ceil(totalItems / limit);
+        setMeta({
+          page,
+          limit,
+          totalItems,
+          totalPages,
+        });
       } catch (error) {
         console.error("Error fetching reviews:", error);
+        setReviews(mockReviews);
+        const totalPages = Math.ceil(mockReviews.length / limit);
+        setMeta({
+          page,
+          limit,
+          totalItems: mockReviews.length,
+          totalPages,
+        });
       }
     }
 
@@ -163,7 +186,13 @@ export default function ReviewCard({
       return (
         <div className="flex flex-col items-start justify-start md:h-[60%] md:w-[60%]">
           <button
-            onClick={() => setIsOpen(true)}
+            onClick={() => {
+              setIsOpen(true);
+              setOrderId("");
+              setRating(5);
+              setReviewText("");
+              setSubmitError("");
+            }}
             className="bg-dark-pink cursor-pointer rounded-lg px-4 py-2 text-white"
           >
             Add Review
@@ -184,30 +213,126 @@ export default function ReviewCard({
                 </div>
 
                 {/* FORM */}
-                <form className="space-y-4">
+                <form 
+                  className="space-y-4"
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    setSubmitError("");
+                    
+                    // Validate inputs
+                    if (!orderId.trim()) {
+                      setSubmitError("Please enter an order ID");
+                      return;
+                    }
+                    
+                    if (!reviewText.trim()) {
+                      setSubmitError("Please enter a comment");
+                      return;
+                    }
+                    
+                    if (reviewText.trim().length < 10) {
+                      setSubmitError("Comment must be at least 10 characters");
+                      return;
+                    }
+                    
+                    setIsSubmitting(true);
+                    try {
+                      const payload = {
+                        orderId: orderId.trim(),
+                        rating: Number(rating),
+                        review: reviewText.trim()
+                      };
+                      console.log("Submitting review payload:", payload);
+                      
+                      await reviewsApi.create(productId, payload);
+                      setIsOpen(false);
+                      setOrderId("");
+                      setRating(5);
+                      setReviewText("");
+                      setSubmitError("");
+                      // Refresh reviews
+                      const response = await getAllReviews(productId, 1, limit);
+                      const reviewsData = Array.isArray(response) && response.length > 0 ? response : mockReviews;
+                      setReviews(reviewsData);
+                      const totalPages = Math.ceil(reviewsData.length / limit);
+                      setMeta({
+                        page: 1,
+                        limit,
+                        totalItems: reviewsData.length,
+                        totalPages,
+                      });
+                      setPage(1);
+                    } catch (error: any) {
+                      console.error("Error submitting review:", error);
+                      const errorMessage = error?.response?.data?.message || 
+                                         error?.message || 
+                                         "Failed to submit review. Please try again.";
+                      setSubmitError(errorMessage);
+                    } finally {
+                      setIsSubmitting(false);
+                    }
+                  }}
+                >
+                  {submitError && (
+                    <div className="rounded bg-red-100 p-2 text-sm text-red-700">
+                      {submitError}
+                    </div>
+                  )}
+                  
+                  <div>
+                    <label className="mb-1 block">Order ID</label>
+
+                    <input
+                      type="text"
+                      className="w-full rounded border p-2"
+                      value={orderId}
+                      onChange={(e) => setOrderId(e.target.value)}
+                      disabled={isSubmitting}
+                      placeholder="Enter your order ID"
+                      required
+                    />
+                  </div>
+                  
                   <div>
                     <label className="mb-1 block">Rating</label>
 
-                    <select className="w-full rounded border p-2">
-                      <option>5</option>
-                      <option>4</option>
-                      <option>3</option>
-                      <option>2</option>
-                      <option>1</option>
+                    <select 
+                      className="w-full rounded border p-2"
+                      value={rating}
+                      onChange={(e) => setRating(Number(e.target.value))}
+                      disabled={isSubmitting}
+                    >
+                      <option value={5}>5 - Excellent</option>
+                      <option value={4}>4 - Good</option>
+                      <option value={3}>3 - Average</option>
+                      <option value={2}>2 - Poor</option>
+                      <option value={1}>1 - Terrible</option>
                     </select>
                   </div>
 
                   <div>
-                    <label className="mb-1 block">Comment</label>
+                    <label className="mb-1 block">Comment (min. 10 characters)</label>
 
-                    <textarea className="w-full rounded border p-2" rows={4} />
+                    <textarea 
+                      className="w-full rounded border p-2" 
+                      rows={4}
+                      value={reviewText}
+                      onChange={(e) => setReviewText(e.target.value)}
+                      disabled={isSubmitting}
+                      placeholder="Share your experience with this product..."
+                      minLength={10}
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      {reviewText.length} characters
+                    </p>
                   </div>
 
                   <button
                     type="submit"
-                    className="w-full rounded bg-pink-500 py-2 text-white"
+                    disabled={isSubmitting || !reviewText.trim()}
+                    className="w-full rounded bg-pink-500 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Submit Review
+                    {isSubmitting ? "Submitting..." : "Submit Review"}
                   </button>
                 </form>
               </div>
@@ -215,11 +340,16 @@ export default function ReviewCard({
           )}
 
           {reviews.length > 0 ? (
-            reviews.map((review) => (
-              (() => {
-                const isHelpful = helpfulVotes[review.id] ?? false;
+            (() => {
+              const startIndex = (page - 1) * limit;
+              const endIndex = startIndex + limit;
+              const paginatedReviews = reviews.slice(startIndex, endIndex);
+              
+              return paginatedReviews.map((review) => (
+                (() => {
+                  const isHelpful = helpfulVotes[review.id] ?? false;
 
-                return (
+                  return (
               <div key={review.id} className="w-full border-b py-4">
                 <Card className="flex flex-col items-start justify-start rounded-lg border p-5">
                   <div className="flex w-full items-center justify-start gap-3">
@@ -276,7 +406,8 @@ export default function ReviewCard({
               </div>
                 );
               })()
-            ))
+              ));
+            })()
           ) : (
             <p>No reviews yet.</p>
           )}
@@ -289,9 +420,9 @@ export default function ReviewCard({
               Prev
             </button>
 
-            {/* <span className="text-sm">
-                                Page {meta.page} of {meta.totalPages}
-                            </span> */}
+            <span className="text-sm">
+              Page {meta.page} of {meta.totalPages}
+            </span>
 
             <button
               onClick={nextPage}
