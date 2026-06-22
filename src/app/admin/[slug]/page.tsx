@@ -1,12 +1,12 @@
 import ProductSection from "@/components/productDetail/ProductSection";
 import ReviewSection from "@/components/productDetail/ReviewSection";
-import { fetchProductSlug } from "../../../../services";
-import { fetchProducts } from "../../../../services";
-import { fetchProductVariantId } from "../../../../services";
-import { ProductVariant } from "../../../../types";
+import { fetchProductSlug } from "@/services";
+import { fetchProducts } from "@/services";
+import { fetchProductVariantId } from "@/services";
+import { ProductVariant } from "@/types";
 import FilterSection from "@/components/FilterSection";
-import { getProductSlug } from "../../../../server";
-import { PlatziProduct } from "../../../../types";
+import { getProductSlug } from "@/server";
+import { PlatziProduct } from "@/types";
 
 export default async function ProductDetailPage({
   params,
