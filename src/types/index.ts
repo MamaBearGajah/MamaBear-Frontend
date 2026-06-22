@@ -268,6 +268,28 @@ export interface OrderItem {
   quantity: number;
   price: number;
   name: string;
+  discountPrice?: number;
+  variant?: ProductVariant;
+}
+
+export interface ProductVariant {
+  basePrice: number;
+  discountPrice: number;
+  priceAdjustment: number;
+
+  // weight: number | null;
+
+  // imageUrl: string;
+  // altText: string | null;
+  // sku: string | null;
+
+  // isActive: boolean;
+  // sortOrder: number;
+
+  // createdAt: string;
+  // updatedAt: string;
+
+  // product: Product;
 }
 
 

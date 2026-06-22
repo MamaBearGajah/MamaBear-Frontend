@@ -57,19 +57,23 @@ export default function OrderEmailPreview({
         </div>
 
         <div className="space-y-2 text-sm text-brown">
-          {itemPreview.map((item) => (
-            <div
-              key={item.id}
-              className="flex justify-between gap-2 border-b border-pink-50 pb-2 last:border-0"
-            >
-              <span className="line-clamp-1">
-                {item.quantity}× {item.name}
-              </span>
-              <span className="shrink-0 font-medium">
-                {formatPrice(item.price * item.quantity)}
-              </span>
-            </div>
-          ))}
+          {itemPreview.map((item) => {
+            const itemPrice =
+              item.variant?.discountPrice ?? item.discountPrice ?? item.price;
+            return (
+              <div
+                key={item.id}
+                className="flex justify-between gap-2 border-b border-pink-50 pb-2 last:border-0"
+              >
+                <span className="line-clamp-1">
+                  {item.quantity}× {item.name}
+                </span>
+                <span className="shrink-0 font-medium">
+                  {formatPrice(itemPrice * item.quantity)}
+                </span>
+              </div>
+            );
+          })}
           {extraCount > 0 && (
             <p className="text-xs text-brown/60">
               +{extraCount} more item{extraCount > 1 ? "s" : ""}

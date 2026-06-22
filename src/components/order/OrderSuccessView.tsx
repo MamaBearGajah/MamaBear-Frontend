@@ -49,7 +49,7 @@ export default function OrderSuccessView({
     initialOrder,
   );
   const [hasRedeemedOrderPoints, setHasRedeemedOrderPoints] = useState(false);
-
+  console.log("order",order);
   useEffect(() => {
     if (!order || hasRedeemedOrderPoints) return;
     if (order.paymentStatus !== "paid") return;
@@ -191,22 +191,25 @@ export default function OrderSuccessView({
         <div className="rounded-2xl border border-pink-100 bg-white p-5 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-brown">Items</h2>
           <ul className="space-y-3">
-            {order.items.map((item) => (
-              <li
-                key={item.id}
-                className="flex items-start justify-between gap-3 text-sm"
-              >
-                <div className="min-w-0">
-                  <p className="line-clamp-2 font-medium text-brown">
-                    {item.name}
+            {order.items.map((item) => {
+              const unitPrice = item.variant?.discountPrice ?? item.discountPrice ?? item.price;
+              return (
+                <li
+                  key={item.id}
+                  className="flex items-start justify-between gap-3 text-sm"
+                >
+                  <div className="min-w-0">
+                    <p className="line-clamp-2 font-medium text-brown">
+                      {item.name}
+                    </p>
+                    <p className="text-xs text-brown/60">Qty {item.quantity}</p>
+                  </div>
+                  <p className="shrink-0 font-semibold text-brown">
+                    {formatPrice(unitPrice * item.quantity)}
                   </p>
-                  <p className="text-xs text-brown/60">Qty {item.quantity}</p>
-                </div>
-                <p className="shrink-0 font-semibold text-brown">
-                  {formatPrice(item.price * item.quantity)}
-                </p>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
