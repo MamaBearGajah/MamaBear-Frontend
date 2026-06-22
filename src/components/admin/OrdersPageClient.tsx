@@ -21,7 +21,7 @@ function OrdersPageContent({
 }: OrdersPageClientProps) {
   return (
     <>
-      <OrdersToolbar meta={meta} activeStatus={activeStatus} />
+      <OrdersToolbar orders={orders} meta={meta} activeStatus={activeStatus} />
       <OrdersTable orders={orders} />
       <div className="mt-6">
         <Pagination meta={meta} />
