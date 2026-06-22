@@ -103,7 +103,7 @@ export default function OrdersToolbar({
       {/* Top row: count + export */}
       <div className="flex items-center justify-between">
         <h2 className="font-heading text-foreground text-lg font-semibold">
-          Total Pesanan ({meta.total})
+          Total Pesanan ({meta.totalItems})
         </h2>
         <Button
           type="button"

@@ -318,6 +318,8 @@ export interface Order {
   user?: { name: string; email?: string };
 }
 
+export type OrderStatus = Order["status"];
+
 export interface OrderListParams {
   page?: number;
   limit?: number;
@@ -371,7 +373,7 @@ export interface Category {
 export interface PaginationMeta {
   page: number;
   limit: number;
-  total: number;
+  totalItems: number;
   totalPages: number;
 }
 

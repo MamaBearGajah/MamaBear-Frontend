@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/orders/${params.orderId}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/orders/${id}`,
     {
       headers: {
         // forward cookie/token dari request
