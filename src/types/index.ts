@@ -318,6 +318,8 @@ export interface Order {
   user?: { name: string; email?: string };
 }
 
+export type PaymentStatus = Order["paymentStatus"];
+
 export type OrderStatus = Order["status"];
 
 export interface OrderListParams {
@@ -415,7 +417,13 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
-export type ProductSortBy = "createdAt" | "name" | "price" | "avgRating";
+export interface ApiErrorBody {
+  message?: string;
+  errors?: Record<string, unknown> | unknown[];
+  error?: { message?: string; code?: string; details?: { field: string; message: string }[] } | null;
+}
+
+export type ProductSortBy = "createdAt" | "name" | "price" | "basePrice" | "avgRating";
 export type SortOrder = "asc" | "desc";
 
 export interface ProductListParams {

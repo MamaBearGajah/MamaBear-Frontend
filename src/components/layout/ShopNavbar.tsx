@@ -187,7 +187,9 @@ export default function ShopNavbar() {
           <NavbarContent />
         </Suspense>
       </div>
-      <MobileHeaderInline />
+      <Suspense fallback={<div className="h-[72px] border-b bg-white" />}>
+        <MobileHeaderInline />
+      </Suspense>
     </>
   );
 }

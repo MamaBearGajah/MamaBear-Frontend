@@ -558,6 +558,33 @@
 //                 <img
 //                   src={uploadedImageUrl}
 //                   alt="Variant image"
+//                 />
+//               </div>
+//             )}
+//           </div>
+//         </div>
+//       </form>
+//     </>
+//   );
+// }
+
+interface VariantFormProps {
+  mode: "create" | "edit";
+  variant?: any;
+  productId?: string;
+  variantId?: string;
+  productOptions?: any;
+}
+
+export default function VariantForm({
+  mode,
+  variant,
+  productId,
+  variantId,
+  productOptions,
+}: VariantFormProps) {
+  return null;
+}
 //                   className="w-full h-32 object-cover rounded-lg"
 //                 />
 //                 <button
