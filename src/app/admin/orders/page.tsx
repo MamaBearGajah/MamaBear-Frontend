@@ -54,7 +54,7 @@ export default async function AdminOrdersPage({
   if (q) listParams.q = q;
 
   let ordersData: Order[] = [];
-  let meta = { page: 1, limit: 20, total: 0, totalPages: 1 };
+  let meta = { page: 1, limit: 20, totalItems: 0, totalPages: 1 };
 
   const { cookies } = await import("next/headers");
   const cookieStore = await cookies();
@@ -68,7 +68,7 @@ export default async function AdminOrdersPage({
   meta = ordersRes?.meta ?? {
     page: 1,
     limit: 20,
-    total: ordersData.length,
+    totalItems: ordersData.length,
     totalPages: 1,
   };
 

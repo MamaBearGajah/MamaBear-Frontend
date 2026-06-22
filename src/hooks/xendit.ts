@@ -1,17 +1,20 @@
+import { updateOrder } from "@/lib/api/orders";
+
 export async function POST(req: Request) {
   const body = await req.json();
 
-  console.log(body);
+  console.log("xendit webhook:", body);
 
   if (body.status === "SUCCEEDED") {
-
-    await updateOrder(
-      body.reference_id,
-      "PAID"
-    );
+    try {
+      await updateOrder(body.reference_id, { status: "PAID" });
+    } catch (err) {
+      console.error("failed to update order from xendit webhook", err);
+    }
   }
 
-  return Response.json({
-    success: true,
+  return new Response(JSON.stringify({ success: true }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
   });
-}q
+}

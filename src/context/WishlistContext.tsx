@@ -101,12 +101,12 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
 
         // 2. Fetch wishlist BE yang sudah ada
         const res = await wishlistApi.getAll();
-        const beItems = res.data?.data?.items ?? [];
+        const beItems: WishlistItem[] = res.data?.data?.items ?? [];
         const beIds = new Set(beItems.map((i) => i.productId));
 
         // 3. Merge: tambahkan guestIds yang belum ada di BE
         const toAdd = guestIds.filter((id) => !beIds.has(id));
-        await Promise.allSettled(toAdd.map((id) => wishlistApi.add(id)));
+        await Promise.allSettled(toAdd.map((id) => wishlistApi.create({ productId: id })));
 
         // 4. Clear localStorage
         saveLocalWishlist([]);
@@ -145,7 +145,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
             await wishlistApi.remove(productId);
             toast.success(`${name} dihapus dari wishlist`);
           } else {
-            const res = await wishlistApi.add(productId);
+            const res = await wishlistApi.create({ productId });
             const newItem = res.data?.data;
             if (newItem) {
               setItems((prev) => [newItem, ...prev]);

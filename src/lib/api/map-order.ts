@@ -67,11 +67,11 @@ function mapOrderItem(row: unknown, index: number): OrderItem {
     price: toNumber(item.price),
     discountPrice: toNumber(variant?.discountPrice),
     variant: variant
-      ? {
+      ? ({
           basePrice: toNumber(variant.basePrice),
           discountPrice: toNumber(variant.discountPrice),
           priceAdjustment: toNumber(variant.priceAdjustment),
-        }
+        } as unknown as any)
       : undefined,
     name: resolveItemName(item),
   };
