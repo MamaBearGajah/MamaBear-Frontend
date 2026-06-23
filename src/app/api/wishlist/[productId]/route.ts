@@ -3,12 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 const WISHLIST_COOKIE = "mb_wishlist";
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 
-type Params = {
-  params: {
-    productId: string;
-  };
-};
-
 function readWishlistFromCookie(request: NextRequest): string[] {
   const raw = request.cookies.get(WISHLIST_COOKIE)?.value;
   if (!raw) return [];
@@ -35,8 +29,9 @@ function writeWishlistCookie(response: NextResponse, ids: string[]) {
   });
 }
 
-export async function DELETE(request: NextRequest, { params }: Params) {
-  const productId = String(params.productId ?? "").trim();
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ productId: string }> }) {
+  const { productId: productIdParam } = await params;
+  const productId = String(productIdParam ?? "").trim();
 
   if (!productId) {
     return NextResponse.json(

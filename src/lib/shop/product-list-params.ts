@@ -116,3 +116,34 @@ export function toStorefrontSearchListParams(
 
 /** @alias parseShopListParamsFromRecord — untuk backward compatibility */
 export const parseShopListParams = parseShopListParamsFromRecord;
+
+/** Determines if client-side catalog filtering is needed for complex filter combinations */
+export function needsStorefrontClientCatalog(
+  filters: ShopFiltersState,
+): boolean {
+  // Client-side catalog is needed when specific filter combinations require client-side processing
+  // For example: variant filtering or complex price+category combinations
+  return !!(filters.variantName || filters.variantValue);
+}
+
+/** Get full catalog params for client-side filtering — high limit to fetch comprehensive dataset */
+export function toStorefrontClientCatalogParams(
+  filters: ShopFiltersState,
+): ProductListParams {
+  const params: ProductListParams = {
+    page: 1,
+    limit: 1000, // Fetch large batch for client-side filtering
+    sortBy: filters.sortBy,
+    sortOrder: filters.sortOrder,
+  };
+
+  // Include search query if present
+  if (filters.q) params.q = filters.q;
+  
+  // Include category filter for more targeted results
+  if (filters.categoryId && filters.categoryId !== "cat-root") {
+    params.categoryId = filters.categoryId;
+  }
+
+  return params;
+}

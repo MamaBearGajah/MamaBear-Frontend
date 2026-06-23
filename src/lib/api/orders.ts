@@ -93,3 +93,21 @@ export async function cancelOrder(
     data: mapOrderFromApi(normalized.data),
   };
 }
+
+// ─── Update order (partial patch) ───────────────────────────────────────────
+export async function updateOrder(
+  id: string,
+  patch: any,
+  options?: OrdersRequestOptions
+): Promise<ApiResponse<Order>> {
+  const { data } = await apiClient.patch<ApiResponse<unknown>>(
+    `/orders/${id}`,
+    patch,
+    ordersRequestConfig(options)
+  );
+  const normalized = normalizeApiResponse<unknown>(data);
+  return {
+    ...normalized,
+    data: mapOrderFromApi(normalized.data),
+  };
+}

@@ -24,8 +24,8 @@ export interface CreateConsultationPayload {
   phone?: string;
   subject: string;
   message: string;
-  price: number;
-  consultationDate: string;
+  price?: number;
+  consultationDate?: string;
 }
 
 export const consultationApi = {

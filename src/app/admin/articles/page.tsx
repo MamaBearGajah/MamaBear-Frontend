@@ -167,15 +167,26 @@ export default function AdminArticlesPage() {
       };
 
       if (editTarget) {
-        await apiClient.patch(`/blog/${editTarget.id}`, payload);
+        const res = await apiClient.patch(`/blog/${editTarget.id}`, payload);
+        const data = normalizeApiResponse<BlogPost>(res.data);
+        const updatedPost = data.data ?? { ...editTarget, ...payload };
+        setPosts((prev) => prev.map((x) => (x.id === editTarget.id ? updatedPost : x)));
         toast.success("Artikel diperbarui");
       } else {
-        await apiClient.post("/blog", payload);
+        const res = await apiClient.post("/blog", payload);
+        const data = normalizeApiResponse<BlogPost>(res.data);
+        const createdPost = data.data ?? ({
+          id: String(res.data?.id ?? Date.now()),
+          ...payload,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          publishedAt: publishNow ? new Date().toISOString() : undefined,
+        } as BlogPost);
+        setPosts((prev) => [createdPost, ...prev]);
         toast.success(publishNow ? "Artikel dipublish" : "Draft disimpan");
       }
 
       setView("list");
-      fetchPosts();
     } catch (e: any) {
       toast.error(e?.response?.data?.error?.message ?? "Gagal menyimpan artikel");
     } finally {

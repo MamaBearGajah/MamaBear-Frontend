@@ -1,8 +1,8 @@
 "use client"
 
-import {useState,useEffect, React} from 'react';
+import { useState, useEffect } from "react";
 
-import ReviewCard from "./ReviewCard"
+import ReviewCard from "./ReviewCard" 
 // import ReviewModal from "../ReviewModal"
 import Search from "../Search"
 import { Product } from '@/types';

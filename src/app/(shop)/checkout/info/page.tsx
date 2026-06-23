@@ -8,10 +8,10 @@ import { ArrowLeft, CreditCard, Truck } from "lucide-react";
 import { useCheckout } from "@/context/CheckoutContext";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import OrderSummary from "../../../../components/checkout/OrderSummary";
-import { shippingApi } from "../../../../lib/api/shipping";
-import { useAuth } from "../../../../context/AuthContext";
-import { Card } from "../../../../components/ui/card";
+import OrderSummary from "@/components/checkout/OrderSummary";
+import { shippingApi } from "@/lib/api/shipping";
+import { useAuth } from "@/context/AuthContext";
+import { Card } from "@/components/ui/card";
 
 interface UserAddress {
   id: string;

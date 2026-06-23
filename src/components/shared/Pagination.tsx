@@ -28,7 +28,7 @@ export default function Pagination({ meta }: PaginationProps) {
       aria-label="Pagination"
     >
       <p className="text-muted-foreground text-sm">
-        Page {meta.page} of {meta.totalPages} ({meta.total} products)
+        Page {meta.page} of {meta.totalPages} ({meta.totalItems} products)
       </p>
       <div className="flex gap-2">
         <Link

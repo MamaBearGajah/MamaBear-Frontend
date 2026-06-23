@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Check, Mail, PartyPopper } from "lucide-react";
 import OrderEmailPreview from "@/components/order/OrderEmailPreview";
 import OrderStatusBadge from "@/components/order/OrderStatusBadge";
 import { useAuth } from "@/context/AuthContext";
 import { useOrderPolling } from "@/hooks/useOrderPolling";
+import { membershipApi } from "@/lib/api/membership";
 import {
   formatDisplayOrderId,
   getDeliveryEstimateLabel,
@@ -46,6 +48,23 @@ export default function OrderSuccessView({
     orderId,
     initialOrder,
   );
+  const [hasRedeemedOrderPoints, setHasRedeemedOrderPoints] = useState(false);
+  console.log("order",order);
+  useEffect(() => {
+    if (!order || hasRedeemedOrderPoints) return;
+    if (order.paymentStatus !== "paid") return;
+    if (!state.user?.id) return;
+
+    const points = Math.floor(order.total / 1000);
+    if (points <= 0) return;
+
+    membershipApi
+      .givePoints(state.user.id, points)
+      .then(() => setHasRedeemedOrderPoints(true))
+      .catch((err) => {
+        console.error("Failed to give order points:", err);
+      });
+  }, [order, hasRedeemedOrderPoints, state.user?.id]);
 
   if (!orderId) {
     return (
@@ -100,6 +119,7 @@ export default function OrderSuccessView({
     order.courier,
   );
   const userName = state.user?.name?.split(" ")[0] ?? "Mama";
+  const pointsEarned = Math.max(0, Math.floor(order.total / 1000));
 
   return (
     <div className="mx-auto max-w-lg space-y-5">
@@ -118,6 +138,9 @@ export default function OrderSuccessView({
         </h1>
         <p className="mt-2 text-sm text-brown/80">
           Thank you, {userName}! Your order has been received.
+        </p>
+        <p className="mt-2 text-sm text-dark-pink">
+          You earned <strong>{pointsEarned.toLocaleString()}</strong> membership point{pointsEarned === 1 ? "" : "s"} from this order.
         </p>
         <div className="mt-3 flex justify-center">
           <OrderStatusBadge
@@ -155,6 +178,12 @@ export default function OrderSuccessView({
               {formatPrice(order.total)}
             </span>
           </div>
+          <div className="flex items-center justify-between py-3">
+            <span className="text-brown/70">Membership points earned</span>
+            <span className="font-medium text-dark-pink">
+              {pointsEarned.toLocaleString()} point{pointsEarned === 1 ? "" : "s"}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -162,22 +191,25 @@ export default function OrderSuccessView({
         <div className="rounded-2xl border border-pink-100 bg-white p-5 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-brown">Items</h2>
           <ul className="space-y-3">
-            {order.items.map((item) => (
-              <li
-                key={item.id}
-                className="flex items-start justify-between gap-3 text-sm"
-              >
-                <div className="min-w-0">
-                  <p className="line-clamp-2 font-medium text-brown">
-                    {item.name}
+            {order.items.map((item) => {
+              const unitPrice = item.variant?.discountPrice ?? item.discountPrice ?? item.price;
+              return (
+                <li
+                  key={item.id}
+                  className="flex items-start justify-between gap-3 text-sm"
+                >
+                  <div className="min-w-0">
+                    <p className="line-clamp-2 font-medium text-brown">
+                      {item.name}
+                    </p>
+                    <p className="text-xs text-brown/60">Qty {item.quantity}</p>
+                  </div>
+                  <p className="shrink-0 font-semibold text-brown">
+                    {formatPrice(unitPrice * item.quantity)}
                   </p>
-                  <p className="text-xs text-brown/60">Qty {item.quantity}</p>
-                </div>
-                <p className="shrink-0 font-semibold text-brown">
-                  {formatPrice(item.price * item.quantity)}
-                </p>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}

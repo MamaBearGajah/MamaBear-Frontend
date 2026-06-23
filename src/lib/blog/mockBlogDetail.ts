@@ -3,6 +3,8 @@ import { BlogList } from "@/types";
 
 export const mockBlogDetail: BlogList = {
   id: "mock-blog-1",
+  slug: "the-ultimate-breastfeeding-guide",
+  authorId: "1",
   title: "The Ultimate Breastfeeding Guide for New Mothers",
   excerpt:
     "Learn practical breastfeeding tips, common challenges, and expert advice for a smoother motherhood journey.",
@@ -28,11 +30,16 @@ export const mockBlogDetail: BlogList = {
   `,
   coverImage: "/images/blog-placeholder.jpg",
   status: "published",
+  viewCount: 1024,
+  publishedAt: new Date(),
   author: {
     id: "1",
-    firstName: "Mama",
-    lastName: "Bear",
-    role: "Lactation Consultant",
+    name: "Mama Bear",
+    email: "mama@bear.example",
+    role: "admin",
+    isVerified: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),

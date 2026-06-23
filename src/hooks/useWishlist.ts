@@ -10,20 +10,26 @@ import {
   setWishlist,
   toggleWishlist,
 } from "@/lib/wishlist";
-import {
-  extractWishlistProductIds,
-  wishlistApi,
-} from "@/lib/api/wishlist";
+import { extractWishlistProductIds, wishlistApi } from "@/lib/api/wishlist";
 
-export function useWishlist() {
-  const [ids, setIds] = useState<string[]>([]);
+type UseWishlistReturn = {
+  ids: string[];
+  count: number;
+  toggle: (productId: string) => void;
+  remove: (productId: string) => void;
+  clear: () => void;
+  refresh: () => Promise<void>;
+};
+
+export function useWishlist(): UseWishlistReturn {
+  const [ids, setIds] = useState<string[]>(() => getWishlist());
 
   const syncFromStorage = useCallback(() => {
     setIds(getWishlist());
   }, []);
 
   const syncFromApi = useCallback(async () => {
-    const [ids, setIds] = useState<string[]>(() => getWishlist());
+    try {
       const { data } = await wishlistApi.getAll();
       const productIds = extractWishlistProductIds(data);
       setWishlist(productIds);
@@ -33,36 +39,14 @@ export function useWishlist() {
     }
   }, [syncFromStorage]);
 
-    type UseWishlistReturn = {
-      ids: string[];
-      count: number;
-      toggle: (productId: string) => void;
-      remove: (productId: string) => void;
-      clear: () => void;
-      refresh: () => Promise<void>;
-    };
-
-    export function useWishlist(): UseWishlistReturn {
-      const [ids, setIds] = useState<string[]>(() => getWishlist());
-
-        if (mergedIds.length > 0) {
-          setWishlist(mergedIds);
-        }
-
-        setIds(mergedIds.length > 0 ? mergedIds : localIds);
+  useEffect(() => {
+    // initial sync
+    void syncFromApi();
 
     const handleStorage = (event: StorageEvent) => {
       if (event.key === "wishlist") {
-          const localIds = getWishlist();
-          const mergedIds = Array.from(new Set([...localIds, ...productIds]));
-
-          if (mergedIds.length > 0) {
-            setWishlist(mergedIds);
-            setIds(mergedIds);
-            return;
-          }
-
-          setIds(localIds);
+        syncFromStorage();
+      }
     };
 
     const handleCustom = () => {
@@ -76,7 +60,7 @@ export function useWishlist() {
       window.removeEventListener("storage", handleStorage);
       window.removeEventListener(WISHLIST_CHANGED_EVENT, handleCustom);
     };
-  }, [syncFromApi]);
+  }, [syncFromApi, syncFromStorage]);
 
   return {
     ids,

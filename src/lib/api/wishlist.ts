@@ -60,3 +60,6 @@ export const wishlistApi = {
   check: (productId: string, config?: AxiosRequestConfig) =>
     apiClient.get(`/wishlist/check/${productId}`, config),
 };
+
+// Re-export type under PascalCase for consumers
+export type WishlistItem = wishlistItem;
