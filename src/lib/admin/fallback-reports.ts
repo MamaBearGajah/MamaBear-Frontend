@@ -29,8 +29,8 @@ const FALLBACK_TOP_CATEGORIES: Omit<TopCategoryReport, "categoryId">[] = [
   { name: "Zoya Mix", revenue: 2_100_000 },
 ];
 
-function withRange<T extends ReportDateRange>(range: ReportDateRange, data: T): T {
-  return { ...data, from: range.from, to: range.to };
+function withRange<T>(range: ReportDateRange, data: T): T & ReportDateRange {
+  return { ...data, from: range.from, to: range.to } as T & ReportDateRange;
 }
 
 export function getFallbackSalesReport(range: ReportDateRange): SalesReportSummary {

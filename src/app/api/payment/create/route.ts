@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   try {
     const { amount, orderId } = await req.json();
 
-    const checkout = await xenditClient.Checkout.createCheckoutSession({
+    const checkout = await (xenditClient as any).Checkout.createCheckoutSession({
       referenceId: orderId,
       amount,
       currency: "IDR",

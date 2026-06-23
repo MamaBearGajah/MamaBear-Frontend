@@ -66,7 +66,7 @@ export default function ProductsToolbar({
   const handleExport = async () => {
     setExporting(true);
     try {
-      const { downloadUrl } = await exportProducts(accessToken);
+      const { downloadUrl } = await exportProducts();
       window.open(downloadUrl, "_blank");
       toast.success("Export berhasil dibuka.");
     } catch (error) {

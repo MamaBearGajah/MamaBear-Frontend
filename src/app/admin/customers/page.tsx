@@ -11,6 +11,7 @@ import { adminCustomerApi } from "../../../lib/api/customers";
 import { format } from "date-fns";
 import { formatPrice } from "../../../lib/utils";
 import { cookies } from "next/headers";
+import CustomerExportButton from "@/components/admin/CustomerExportButton";
 
 interface CustomerOrder { total: string; }
 
@@ -55,13 +56,10 @@ export default async function AdminCustomersPage() {
           <h2 className="text-xl font-bold tracking-tight">
             Daftar Pelanggan ({customersData.length})
           </h2>
-          <a
-            href="/api/admin/customers/export"
+          <CustomerExportButton
+            customers={customersData}
             className="inline-flex items-center gap-2 rounded-lg border border-[var(--mamabear-dark-pink)] px-4 py-2 text-sm font-medium text-[var(--mamabear-dark-pink)] hover:bg-pink-50 transition-colors"
-          >
-            <Download className="size-4" />
-            Export
-          </a>
+          />
         </div>
 
         <div className="bg-card text-card-foreground rounded-xl border shadow-sm">

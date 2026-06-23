@@ -5,10 +5,10 @@ let reviews: any[] = [];
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { productId: string } }
+  { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
-    const productId = params.productId;
+    const { productId } = await params;
     const productReviews = reviews.filter((r) => r.productId === productId);
     return NextResponse.json(productReviews, { status: 200 });
   } catch (error) {
@@ -21,10 +21,10 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { productId: string } }
+  { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
-    const productId = params.productId;
+    const { productId } = await params;
     const body = await request.json();
 
     // Validate required fields

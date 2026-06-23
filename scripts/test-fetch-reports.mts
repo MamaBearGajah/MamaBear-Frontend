@@ -1,5 +1,5 @@
-import { fetchReportsWithFallback } from "../src/lib/admin/fetch-reports.ts";
-import { getDefaultReportDateRange } from "../src/lib/admin/report-date-range.ts";
+import { fetchReportsWithFallback } from "../src/lib/admin/fetch-reports";
+import { getDefaultReportDateRange } from "../src/lib/admin/report-date-range";
 
 async function main() {
   const range = getDefaultReportDateRange();

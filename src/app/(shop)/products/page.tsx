@@ -128,7 +128,7 @@ export default async function ProductsPage({
   const meta: PaginationMeta = productsRes.meta ?? {
     page: filters.page,
     limit: filters.limit,
-    total: sortedProducts.length,
+    totalItems: sortedProducts.length,
     totalPages: 1,
   };
 
@@ -137,7 +137,7 @@ export default async function ProductsPage({
       <div className="container-main space-y-4">
         <Suspense fallback={null}>
           <ProductsPageHeader
-            totalItems={meta.total}
+            totalItems={meta.totalItems}
             categories={categoriesRes.data}
           />
         </Suspense>

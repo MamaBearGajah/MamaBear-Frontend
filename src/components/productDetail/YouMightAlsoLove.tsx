@@ -20,7 +20,6 @@ const YouMightAlsoLove = ({product}:{product:Product[]}) => {
                     discountPrice: item.discountPrice ?? item.basePrice,
                     image: item.images[0].imageUrl,
                     stock: item.stock,
-                    createdAt: item.createdAt,
                     slug: item.slug,
                     ratingCount: item.reviewCount,
                   }}

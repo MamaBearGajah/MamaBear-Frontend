@@ -268,6 +268,28 @@ export interface OrderItem {
   quantity: number;
   price: number;
   name: string;
+  discountPrice?: number;
+  variant?: ProductVariant;
+}
+
+export interface ProductVariant {
+  basePrice: number;
+  discountPrice: number;
+  priceAdjustment: number;
+
+  // weight: number | null;
+
+  // imageUrl: string;
+  // altText: string | null;
+  // sku: string | null;
+
+  // isActive: boolean;
+  // sortOrder: number;
+
+  // createdAt: string;
+  // updatedAt: string;
+
+  // product: Product;
 }
 
 
@@ -295,6 +317,10 @@ export interface Order {
   /** Populated by admin endpoints when the API joins user info */
   user?: { name: string; email?: string };
 }
+
+export type PaymentStatus = Order["paymentStatus"];
+
+export type OrderStatus = Order["status"];
 
 export interface OrderListParams {
   page?: number;
@@ -349,7 +375,7 @@ export interface Category {
 export interface PaginationMeta {
   page: number;
   limit: number;
-  total: number;
+  totalItems: number;
   totalPages: number;
 }
 
@@ -391,7 +417,13 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
-export type ProductSortBy = "createdAt" | "name" | "price" | "avgRating";
+export interface ApiErrorBody {
+  message?: string;
+  errors?: Record<string, unknown> | unknown[];
+  error?: { message?: string; code?: string; details?: { field: string; message: string }[] } | null;
+}
+
+export type ProductSortBy = "createdAt" | "name" | "price" | "basePrice" | "avgRating";
 export type SortOrder = "asc" | "desc";
 
 export interface ProductListParams {

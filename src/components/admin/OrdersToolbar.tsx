@@ -11,6 +11,16 @@ import type { Order, PaginationMeta } from "@/types";
 
 type OrderStatus = Order["status"] | "all";
 
+function formatCsvValue(value: string | number | boolean | null | undefined) {
+  return `"${String(value ?? "").replace(/"/g, '""')}"`;
+}
+
+function formatOrderId(id: string, index: number) {
+  if (id.startsWith("MB-")) return id;
+  const year = new Date().getFullYear();
+  return `MB-${year}-${String(index + 1).padStart(4, "0")}`;
+}
+
 const STATUS_TABS: { value: OrderStatus; label: string }[] = [
   { value: "all", label: "All Orders" },
   { value: "pending", label: "Pending" },
@@ -22,11 +32,13 @@ const STATUS_TABS: { value: OrderStatus; label: string }[] = [
 ];
 
 interface OrdersToolbarProps {
+  orders: Order[];
   meta: PaginationMeta;
   activeStatus: OrderStatus;
 }
 
 export default function OrdersToolbar({
+  orders,
   meta,
   activeStatus,
 }: OrdersToolbarProps) {
@@ -56,21 +68,31 @@ export default function OrdersToolbar({
 
   const [exporting, setExporting] = useState(false);
 
-  const handleExportCsv = async () => {
+  const handleExportCsv = () => {
     setExporting(true);
     try {
-      const { adminOrdersApi } = await import("@/lib/api/adminOrders");
-      const res = await adminOrdersApi.exportCsv();
-      const blob = new Blob([res.data], { type: "text/csv;charset=utf-8;" });
+      const headers = ["Order ID", "Customer", "Email", "Date", "Total", "Status"];
+      const rows = orders.map((order, index) => [
+        formatOrderId(order.id, index),
+        order.user?.name ?? "",
+        order.user?.email ?? "",
+        new Date(order.createdAt).toISOString().slice(0, 10),
+        order.total,
+        order.status,
+      ]);
+      const csv = [headers, ...rows]
+        .map((row) => row.map(formatCsvValue).join(","))
+        .join("\r\n");
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = `orders-export-${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
-    } catch {
-      // toast.error handled by caller — just log
-      console.error("Export CSV failed");
+    } catch (error) {
+      console.error("Export CSV failed", error);
     } finally {
       setExporting(false);
     }
@@ -81,7 +103,7 @@ export default function OrdersToolbar({
       {/* Top row: count + export */}
       <div className="flex items-center justify-between">
         <h2 className="font-heading text-foreground text-lg font-semibold">
-          Total Pesanan ({meta.total})
+          Total Pesanan ({meta.totalItems})
         </h2>
         <Button
           type="button"
@@ -109,8 +131,8 @@ export default function OrdersToolbar({
               className={cn(
                 "cursor-pointer rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-[var(--mamabear-dark-pink)] text-white shadow-sm"
-                  : "text-muted-foreground bg-[var(--mamabear-light-pink)] hover:bg-[var(--mamabear-dark-pink)] hover:text-white"
+                  ? "bg-dark-pink text-white shadow-sm"
+                  : "text-muted-foreground bg-light-pink hover:bg-dark-pink hover:text-white"
               )}
             >
               {tab.label}

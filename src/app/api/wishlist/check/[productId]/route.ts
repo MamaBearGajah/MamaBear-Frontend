@@ -2,12 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 const WISHLIST_COOKIE = "mb_wishlist";
 
-type Params = {
-  params: {
-    productId: string;
-  };
-};
-
 function readWishlistFromCookie(request: NextRequest): string[] {
   const raw = request.cookies.get(WISHLIST_COOKIE)?.value;
   if (!raw) return [];
@@ -24,8 +18,9 @@ function readWishlistFromCookie(request: NextRequest): string[] {
   }
 }
 
-export async function GET(request: NextRequest, { params }: Params) {
-  const productId = String(params.productId ?? "").trim();
+export async function GET(request: NextRequest, { params }: { params: Promise<{ productId: string }> }) {
+  const { productId: productIdParam } = await params;
+  const productId = String(productIdParam ?? "").trim();
 
   if (!productId) {
     return NextResponse.json(

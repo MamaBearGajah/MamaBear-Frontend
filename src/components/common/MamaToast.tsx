@@ -1,6 +1,6 @@
 "use client";
 
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 export const MamaToast = {
   success(title: string, description?: string) {
