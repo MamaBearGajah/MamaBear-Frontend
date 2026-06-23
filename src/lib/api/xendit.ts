@@ -5,6 +5,8 @@ const xenditClient = new Xendit({
   secretKey: process.env.XENDIT_SECRET_KEY!,
 });
 
+console.log("Xendit secret key:", process.env.XENDIT_SECRET_KEY);
+
 export async function POST(req: NextRequest) {
   try {
     const { amount, orderId } = await req.json();
