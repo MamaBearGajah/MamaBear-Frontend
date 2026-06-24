@@ -22,33 +22,38 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader,
   DialogTitle, DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type DiscountType = "percentage" | "fixed";
+type DiscountType = "percentage" | "fixed" | "free_shipping";
 
 type Voucher = {
   id: string;
   code: string;
-  description?: string;
-  discountType: DiscountType;
-  discountValue: number;
+  // description?: string;
+  // discountType: DiscountType;
+  type: DiscountType;
+  source: string;
+  value: string;
+  // discountValue: number;
   minPurchase?: number;
   maxDiscount?: number;
   usageLimit?: number;
-  usageCount: number;
+  usedCount: number;
   isActive: boolean;
   startDate?: string;
   endDate?: string;
   createdAt: string;
+  owner: Owner;
 };
 
 type FormState = {
   code: string;
-  description: string;
-  discountType: DiscountType;
-  discountValue: number | "";
+  source: string;
+  type: DiscountType;
+  value: number | "";
   minPurchase: number | "";
   maxDiscount: number | "";
   usageLimit: number | "";
@@ -57,11 +62,18 @@ type FormState = {
   endDate: string;
 };
 
+type Owner = {
+  id: string;
+  name: string;
+  email: string;
+};
+
 const EMPTY_FORM: FormState = {
   code: "",
-  description: "",
-  discountType: "percentage",
-  discountValue: "",
+  // description: "",
+  type: "percentage",
+  source: "",
+  value: "",
   minPurchase: "",
   maxDiscount: "",
   usageLimit: "",
@@ -79,9 +91,9 @@ function fmtDate(s?: string) {
 }
 
 function fmtDiscount(v: Voucher) {
-  return v.discountType === "percentage"
-    ? `${v.discountValue}%`
-    : `Rp ${Number(v.discountValue).toLocaleString("id-ID")}`;
+  return v.type === "percentage"
+    ? `${v.value}%`
+    : `Rp ${Number(v.value).toLocaleString("id-ID")}`;
 }
 
 function generateCode() {
@@ -102,7 +114,7 @@ export default function AdminVouchersPage() {
   const fetchVouchers = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await apiClient.get("/voucher/admin");
+      const res = await apiClient.get("/vouchers");
       const norm = normalizeApiResponse<Voucher[]>(res.data);
       setVouchers(Array.isArray(norm.data) ? norm.data : []);
     } catch {
@@ -124,9 +136,9 @@ export default function AdminVouchersPage() {
     setEditTarget(v);
     setForm({
       code: v.code,
-      description: v.description ?? "",
-      discountType: v.discountType,
-      discountValue: v.discountValue,
+      type: v.type,
+      value: Number(v.value),
+      source: v.source,
       minPurchase: v.minPurchase ?? "",
       maxDiscount: v.maxDiscount ?? "",
       usageLimit: v.usageLimit ?? "",
@@ -139,15 +151,16 @@ export default function AdminVouchersPage() {
 
   async function handleSave() {
     if (!form.code.trim()) { toast.error("Kode voucher wajib diisi"); return; }
-    if (!form.discountValue) { toast.error("Nilai diskon wajib diisi"); return; }
+    if (!form.value) { toast.error("Nilai diskon wajib diisi"); return; }
 
     setSaving(true);
     try {
       const payload = {
         code: form.code.trim().toUpperCase(),
-        description: form.description.trim() || undefined,
-        discountType: form.discountType,
-        discountValue: Number(form.discountValue),
+        // description: form.description.trim() || undefined,
+        type: form.type,
+        value: Number(form.value),
+        source: form.source.trim() || undefined,
         minPurchase: form.minPurchase !== "" ? Number(form.minPurchase) : undefined,
         maxDiscount: form.maxDiscount !== "" ? Number(form.maxDiscount) : undefined,
         usageLimit: form.usageLimit !== "" ? Number(form.usageLimit) : undefined,
@@ -157,16 +170,17 @@ export default function AdminVouchersPage() {
       };
 
       if (editTarget) {
-        await apiClient.patch(`/voucher/${editTarget.id}`, payload);
+        await apiClient.patch(`/vouchers/${editTarget.id}`, payload);
         toast.success("Voucher diperbarui");
       } else {
-        await apiClient.post("/voucher", payload);
+        await apiClient.post("/vouchers", payload);
         toast.success("Voucher dibuat");
       }
       setDialogOpen(false);
       fetchVouchers();
-    } catch (e: any) {
-      toast.error(e?.response?.data?.error?.message ?? "Gagal menyimpan voucher");
+    } catch (e) {
+      const error = e as any;
+      toast.error(error?.response?.data?.error?.message ?? "Gagal menyimpan voucher");
     } finally {
       setSaving(false);
     }
@@ -253,7 +267,7 @@ export default function AdminVouchersPage() {
                           {copiedId === v.id ? <Check className="size-3.5 text-green-500" /> : <Copy className="size-3.5" />}
                         </button>
                       </div>
-                      {v.description && <p className="mt-0.5 text-xs text-gray-400">{v.description}</p>}
+                      {v.type && <p className="mt-0.5 text-xs text-gray-400">{v.type}</p>}
                     </td>
                     <td className="hidden px-5 py-4 sm:table-cell">
                       <span className="rounded-full bg-pink-50 px-2 py-0.5 text-xs font-medium text-pink-700">
@@ -269,7 +283,7 @@ export default function AdminVouchersPage() {
                       {fmtDate(v.startDate)} – {fmtDate(v.endDate)}
                     </td>
                     <td className="px-5 py-4 text-center text-sm text-gray-600">
-                      {v.usageCount}{v.usageLimit ? `/${v.usageLimit}` : ""}
+                      {v.usedCount}{v.usageLimit ? `/${v.usageLimit}` : ""}
                     </td>
                     <td className="px-5 py-4 text-center">
                       <button onClick={() => handleToggle(v)} className="inline-flex">
@@ -301,6 +315,9 @@ export default function AdminVouchersPage() {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>{editTarget ? "Edit Voucher" : "Buat Voucher Baru"}</DialogTitle>
+                      <DialogDescription>
+                        {editTarget ? "Edit data voucher yang sudah ada" : "Buat voucher promosi baru"}
+                      </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
@@ -320,23 +337,34 @@ export default function AdminVouchersPage() {
               </div>
             </div>
 
-            {/* Deskripsi */}
+
+          {/* Source */}
             <div className="space-y-1">
+              <Label>Source <span className="text-xs text-gray-400">— opsional</span></Label>
+              <Input
+                value={form.source}
+                onChange={(e) => setForm((f) => ({ ...f, source: e.target.value }))}
+                placeholder="Source Voucher"
+              />
+            </div>
+
+            {/* Deskripsi */}
+            {/* <div className="space-y-1">
               <Label>Deskripsi <span className="text-xs text-gray-400">— opsional</span></Label>
               <Input
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                 placeholder="Diskon spesial pelanggan baru"
               />
-            </div>
+            </div> */}
 
             {/* Tipe & Nilai */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="space-y-1">
                 <Label>Tipe Diskon *</Label>
                 <select
-                  value={form.discountType}
-                  onChange={(e) => setForm((f) => ({ ...f, discountType: e.target.value as DiscountType }))}
+                  value={form.type}
+                  onChange={(e) => setForm((f) => ({ ...f, type: e.target.value as DiscountType }))}
                   className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm"
                 >
                   <option value="percentage">Persentase (%)</option>
@@ -348,10 +376,10 @@ export default function AdminVouchersPage() {
                 <Input
                   type="number"
                   min={0}
-                  max={form.discountType === "percentage" ? 100 : undefined}
-                  value={form.discountValue}
-                  onChange={(e) => setForm((f) => ({ ...f, discountValue: e.target.value === "" ? "" : Number(e.target.value) }))}
-                  placeholder={form.discountType === "percentage" ? "10" : "50000"}
+                  max={form.type === "percentage" ? 100 : undefined}
+                  value={form.value}
+                  onChange={(e) => setForm((f) => ({ ...f, value: e.target.value === "" ? "" : Number(e.target.value) }))}
+                  placeholder={form.type === "percentage" ? "10" : "50000"}
                 />
               </div>
             </div>
@@ -367,7 +395,7 @@ export default function AdminVouchersPage() {
                   placeholder="100000"
                 />
               </div>
-              {form.discountType === "percentage" && (
+              {form.type === "percentage" && (
                 <div className="space-y-1">
                   <Label>Maks. Diskon <span className="text-xs text-gray-400">— opsional</span></Label>
                   <Input
