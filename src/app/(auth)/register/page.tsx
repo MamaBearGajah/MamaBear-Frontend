@@ -91,7 +91,7 @@ export default function Register() {
       name: data.name,
       email: data.email,
       password: data.password,
-      phone: data.phone?.trim() === "" ? null : data.phone,
+      phone: data.phone?.trim() === "" ? undefined : data.phone,
     };
     try {
       setError(null);

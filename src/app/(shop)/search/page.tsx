@@ -135,19 +135,22 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         totalItems: priceFilteredProducts.length,
         totalPages: Math.max(1, Math.ceil(priceFilteredProducts.length / limit)),
       }
-    : (productsRes.meta ?? {
-        page,
-        limit,
-        totalItems: products.length,
-        totalPages: 1,
-      });
+    : {
+        page: productsRes.meta?.page ?? page,
+        limit: productsRes.meta?.limit ?? limit,
+        totalItems:
+          productsRes.meta?.totalItems ??
+          productsRes.meta?.total ??
+          products.length,
+        totalPages: productsRes.meta?.totalPages ?? 1,
+      };
 
   return (
     <main className="bg-light-pink/25 min-h-[60vh] py-6 md:py-10">
       <div className="container-main space-y-4">
         <Suspense fallback={null}>
           <SearchPageHeader
-            totalItems={meta.totalItems}
+            totalItems={meta.totalItems ?? 0}
             categories={categoriesRes.data}
           />
         </Suspense>
