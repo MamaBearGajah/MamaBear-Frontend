@@ -6,6 +6,8 @@ import CartItem from "../../../components/cart/CartItem";
 import CartSummary from "../../../components/cart/CartSummary";
 import EmptyCart from "../../../components/cart/EmptyCart";
 import { useCheckout } from "@/context/CheckoutContext";
+import { apiClient } from "@/lib/api/client";
+import {voucherApi} from "@/lib/api/voucher";
 // import { useCheckout } from "@/context/CheckoutContext";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/hooks/useCart";
@@ -82,13 +84,107 @@ const CartPage = () => {
     setSelectedItemIds([]);
   };
 
-  const handleApplyPromo = () => {
-    if (promoCode.toUpperCase() === "MAMABEAR15") {
+  type VoucherValidateResult = {
+      success: boolean;
+  data:{
+    id: string;
+    code: string;
+    type: "percentage" | "fixed";
+    value: number;
+    source: string;
+    minPurchase?: number;
+    maxDiscount?: number;
+    usageLimit?: number;
+    usedCount: number;
+    isActive: boolean;
+    startDate?: string;
+    endDate?: string;
+    createdAt: string;
+    updatedAt: string;
+  }
+  discountAmount: number;
+  finalShippingCost: number;
+
+
+    // id: string;
+    // code: string;
+    // type: "percentage" | "fixed";
+    // value: number;
+    // source: string;
+    // minPurchase?: number;
+    // maxDiscount?: number;
+    // usageLimit?: number;
+    // usedCount: number;
+    // isActive: boolean;
+    // startDate?: string;
+    // endDate?: string;
+    // createdAt: string;
+    // updatedAt: string;
+    // code: string;
+    // totalAmount: number;
+    // shippingCost: number;
+  }
+
+  const handleApplyPromo = async () => {
+    setPromoError("");
+    setPromoApplied(false);
+    setDiscount(0);
+    if (!promoCode.trim()) {
+      setPromoError("Masukkan kode voucher");
+      return;
+    }
+
+    try {
+      const res = await voucherApi.validate(promoCode.trim(), selectedSubtotal, 0);
+
+      // API may return { success, data: { valid, voucher, discountAmount, ... } }
+      const success = (res as any)?.success ?? true;
+      const payload = (res as any)?.data ?? res;
+
+      if (!success || !payload) {
+        setPromoError("Voucher tidak valid");
+        return;
+      }
+
+      const valid = payload.valid ?? true;
+      const voucher = payload.voucher ?? payload;
+
+      // ensure numeric values
+      const minPurchase = Number(voucher?.minPurchase ?? 0) || 0;
+      const rawValue = Number(voucher?.value ?? voucher?.discountValue ?? 0) || 0;
+      const maxDiscount = Number(voucher?.maxDiscount ?? 0) || 0;
+
+      if (!valid || !voucher || !voucher.isActive) {
+        setPromoError("Voucher tidak valid atau sudah tidak aktif");
+        return;
+      }
+
+      if (minPurchase > 0 && selectedSubtotal < minPurchase) {
+        setPromoError(`Minimal pembelian Rp ${minPurchase.toLocaleString("id-ID")}`);
+        return;
+      }
+
+      // compute discount: percentage or fixed
+      let computedDiscount = 0;
+      if (voucher.type === "percentage") {
+        computedDiscount = Math.floor((rawValue / 100) * selectedSubtotal);
+        if (maxDiscount > 0) computedDiscount = Math.min(computedDiscount, maxDiscount);
+      } else {
+        computedDiscount = rawValue; // fixed nominal
+      }
+
+      // If API returned discountAmount, prefer it
+      const apiDiscount = Number(payload.discountAmount ?? 0) || 0;
+      if (apiDiscount > 0) computedDiscount = apiDiscount;
+
       setPromoApplied(true);
       setPromoError("");
-    } else {
+      setDiscount(computedDiscount);
+    } catch (err) {
+      console.error(err);
       setPromoApplied(false);
-      setPromoError("Invalid promo code. Try MAMABEAR15");
+      setPromoError("Gagal memvalidasi voucher");
+      setDiscount(0);
     }
   };
 
