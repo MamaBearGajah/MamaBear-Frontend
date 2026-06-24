@@ -14,11 +14,15 @@ export default function Pagination({ meta }: PaginationProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  if (meta.totalPages <= 1) return null;
+  const page = meta.page ?? 1;
+  const totalPages = meta.totalPages ?? 1;
+  const totalItems = meta.totalItems ?? meta.total ?? 0;
 
-  const buildHref = (page: number) => {
+  if (totalPages <= 1) return null;
+
+  const buildHref = (p: number) => {
     const params = new URLSearchParams(searchParams.toString());
-    params.set("page", String(page));
+    params.set("page", String(p));
     return `${pathname}?${params.toString()}`;
   };
 
@@ -28,26 +32,26 @@ export default function Pagination({ meta }: PaginationProps) {
       aria-label="Pagination"
     >
       <p className="text-muted-foreground text-sm">
-        Page {meta.page} of {meta.totalPages} ({meta.totalItems} products)
+        Page {page} of {totalPages} ({totalItems} products)
       </p>
       <div className="flex gap-2">
         <Link
-          href={buildHref(Math.max(1, meta.page - 1))}
-          aria-disabled={meta.page <= 1}
+          href={buildHref(Math.max(1, page - 1))}
+          aria-disabled={page <= 1}
           className={cn(
             "border-border hover:bg-muted inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm transition-colors",
-            meta.page <= 1 && "pointer-events-none opacity-40"
+            page <= 1 && "pointer-events-none opacity-40"
           )}
         >
           <ChevronLeft className="size-4" />
           Previous
         </Link>
         <Link
-          href={buildHref(Math.min(meta.totalPages, meta.page + 1))}
-          aria-disabled={meta.page >= meta.totalPages}
+          href={buildHref(Math.min(totalPages, page + 1))}
+          aria-disabled={page >= totalPages}
           className={cn(
             "border-border hover:bg-muted inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm transition-colors",
-            meta.page >= meta.totalPages && "pointer-events-none opacity-40"
+            page >= totalPages && "pointer-events-none opacity-40"
           )}
         >
           Next
