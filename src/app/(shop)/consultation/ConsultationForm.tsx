@@ -1,44 +1,125 @@
+
 "use client";
 
 /**
  * src/app/(shop)/consultation/ConsultationForm.tsx
  * Form submit konsultasi ke BE (POST /consultations)
- * Import di consultation/page.tsx yang sudah ada.
+ * Sinkron dengan CreateConsultationDto backend
  */
 
 import { useState } from "react";
 import { Send, CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+
 import { consultationApi } from "@/lib/api/consultation";
 
 export function ConsultationForm() {
   const [form, setForm] = useState({
-    name: "", email: "", phone: "", subject: "", message: "",
+    name: "",
+    email: "",
+    phone: "",
+    message: "",
   });
+
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-    setForm((f) => ({ ...f, [key]: e.target.value }));
+  const setField =
+    (key: keyof typeof form) =>
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLTextAreaElement
+      >
+    ) =>
+      setForm((prev) => ({
+        ...prev,
+        [key]: e.target.value,
+      }));
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(
+    e: React.FormEvent<HTMLFormElement>
+  ) {
     e.preventDefault();
-    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
-      toast.error("Nama, email, dan pesan wajib diisi");
+
+    const name = form.name.trim();
+    const email = form.email.trim();
+    const phone = form.phone.trim();
+    const message = form.message.trim();
+
+    if (!name || !email || !message) {
+      toast.error(
+        "Nama, email, dan pesan wajib diisi"
+      );
       return;
     }
+
+    if (name.length > 100) {
+      toast.error(
+        "Nama maksimal 100 karakter"
+      );
+      return;
+    }
+
+    if (phone.length > 30) {
+      toast.error(
+        "Nomor WhatsApp maksimal 30 karakter"
+      );
+      return;
+    }
+
+    if (message.length > 5000) {
+      toast.error(
+        "Pesan maksimal 5000 karakter"
+      );
+      return;
+    }
+
+    const phoneRegex =
+      /^(\+62|62|0)[0-9]{8,15}$/;
+
+    if (
+      phone &&
+      !phoneRegex.test(phone)
+    ) {
+      toast.error(
+        "Nomor WhatsApp tidak valid"
+      );
+      return;
+    }
+
     setSubmitting(true);
+
     try {
-      await consultationApi.submit({
-        name: form.name.trim(),
-        email: form.email.trim(),
-        phone: form.phone.trim() || undefined,
-        subject: form.subject.trim() || "Konsultasi Umum",
-        message: form.message.trim(),
+      await consultationApi.create({
+        name,
+        email,
+        phone: phone || undefined,
+        message,
       });
+
+      setForm({
+        name: "",
+        email: "",
+        phone: "",
+        message: "",
+      });
+
       setSubmitted(true);
-    } catch (e: any) {
-      toast.error(e?.response?.data?.error?.message ?? "Gagal mengirim, coba lagi");
+
+      toast.success(
+        "Konsultasi berhasil dikirim"
+      );
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.response?.data?.error?.message ||
+        "Gagal mengirim konsultasi";
+
+      toast.error(
+        Array.isArray(errorMessage)
+          ? errorMessage.join(", ")
+          : errorMessage
+      );
     } finally {
       setSubmitting(false);
     }
@@ -46,38 +127,86 @@ export function ConsultationForm() {
 
   if (submitted) {
     return (
-      <div id="booking" className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+      <div
+        id="booking"
+        className="flex flex-col items-center justify-center gap-4 py-16 text-center"
+      >
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
           <CheckCircle2 className="size-8 text-green-600" />
         </div>
-        <h3 className="text-xl font-bold" style={{ color: "#6C4735" }}>Pesan Terkirim!</h3>
-        <p className="max-w-sm text-sm" style={{ color: "#8B6352" }}>
-          Tim konsultan kami akan menghubungi kamu dalam 1×24 jam kerja. Terima kasih sudah mempercayai Mamabear 🐻
+
+        <h3
+          className="text-xl font-bold"
+          style={{ color: "#6C4735" }}
+        >
+          Pesan Terkirim!
+        </h3>
+
+        <p
+          className="max-w-sm text-sm"
+          style={{ color: "#8B6352" }}
+        >
+          Tim konsultan kami akan
+          menghubungi kamu dalam 1×24 jam
+          kerja. Terima kasih sudah
+          mempercayai Mamabear 🐻
         </p>
       </div>
     );
   }
 
   return (
-    <div id="booking" className="mx-auto w-full max-w-xl">
-      <form onSubmit={handleSubmit} className="rounded-3xl border border-pink-100 bg-white p-8 shadow-sm space-y-4">
-        <h3 className="text-xl font-bold" style={{ color: "#6C4735" }}>Kirim Pertanyaan</h3>
+    <div
+      id="booking"
+      className="mx-auto w-full max-w-xl"
+    >
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 rounded-3xl border border-pink-100 bg-white p-8 shadow-sm"
+      >
+        <h3
+          className="text-xl font-bold"
+          style={{ color: "#6C4735" }}
+        >
+          Kirim Pertanyaan
+        </h3>
 
         <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2 sm:col-span-1 space-y-1">
-            <label className="text-sm font-medium" style={{ color: "#6C4735" }}>Nama *</label>
+          <div className="col-span-2 space-y-1 sm:col-span-1">
+            <label
+              className="text-sm font-medium"
+              style={{ color: "#6C4735" }}
+            >
+              Nama *
+            </label>
+
             <input
-              value={form.name} onChange={set("name")} required
+              required
+              value={form.name}
+              onChange={setField("name")}
               placeholder="Nama lengkap"
+              maxLength={100}
+              autoComplete="name"
               className="h-11 w-full rounded-xl border border-pink-100 px-4 text-sm outline-none focus:border-pink-300"
               style={{ color: "#4C3437" }}
             />
           </div>
-          <div className="col-span-2 sm:col-span-1 space-y-1">
-            <label className="text-sm font-medium" style={{ color: "#6C4735" }}>Email *</label>
+
+          <div className="col-span-2 space-y-1 sm:col-span-1">
+            <label
+              className="text-sm font-medium"
+              style={{ color: "#6C4735" }}
+            >
+              Email *
+            </label>
+
             <input
-              type="email" value={form.email} onChange={set("email")} required
+              required
+              type="email"
+              value={form.email}
+              onChange={setField("email")}
               placeholder="email@contoh.com"
+              autoComplete="email"
               className="h-11 w-full rounded-xl border border-pink-100 px-4 text-sm outline-none focus:border-pink-300"
               style={{ color: "#4C3437" }}
             />
@@ -85,49 +214,65 @@ export function ConsultationForm() {
         </div>
 
         <div className="space-y-1">
-          <label className="text-sm font-medium" style={{ color: "#6C4735" }}>No. WhatsApp <span className="text-xs text-gray-400">— opsional</span></label>
+          <label
+            className="text-sm font-medium"
+            style={{ color: "#6C4735" }}
+          >
+            No. WhatsApp{" "}
+            <span className="text-xs text-gray-400">
+              — opsional
+            </span>
+          </label>
+
           <input
-            value={form.phone} onChange={set("phone")}
-            placeholder="08xxxxxxxxxx"
+            value={form.phone}
+            onChange={setField("phone")}
+            placeholder="081234567890"
+            maxLength={30}
+            inputMode="tel"
+            autoComplete="tel"
             className="h-11 w-full rounded-xl border border-pink-100 px-4 text-sm outline-none focus:border-pink-300"
             style={{ color: "#4C3437" }}
           />
         </div>
 
         <div className="space-y-1">
-          <label className="text-sm font-medium" style={{ color: "#6C4735" }}>Topik</label>
-          <select
-            value={form.subject} onChange={set("subject")}
-            className="h-11 w-full rounded-xl border border-pink-100 px-4 text-sm outline-none focus:border-pink-300 bg-white"
-            style={{ color: "#4C3437" }}
+          <label
+            className="text-sm font-medium"
+            style={{ color: "#6C4735" }}
           >
-            <option value="">Pilih topik...</option>
-            <option>Konsultasi Menyusui</option>
-            <option>Produk ASI Booster</option>
-            <option>Nutrisi Ibu Menyusui</option>
-            <option>Pijat Oksitosin</option>
-            <option>Lainnya</option>
-          </select>
-        </div>
+            Pesan / Pertanyaan *
+          </label>
 
-        <div className="space-y-1">
-          <label className="text-sm font-medium" style={{ color: "#6C4735" }}>Pesan / Pertanyaan *</label>
           <textarea
-            value={form.message} onChange={set("message")} required
+            required
             rows={5}
+            value={form.message}
+            onChange={setField("message")}
+            maxLength={5000}
             placeholder="Ceritakan kondisi & pertanyaanmu di sini..."
-            className="w-full rounded-xl border border-pink-100 px-4 py-3 text-sm outline-none focus:border-pink-300 resize-none"
+            className="w-full resize-none rounded-xl border border-pink-100 px-4 py-3 text-sm outline-none focus:border-pink-300"
             style={{ color: "#4C3437" }}
           />
         </div>
 
         <button
-          type="submit" disabled={submitting}
+          type="submit"
+          disabled={submitting}
           className="flex w-full items-center justify-center gap-2 rounded-xl py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-          style={{ backgroundColor: "#D5557E" }}
+          style={{
+            backgroundColor: "#D5557E",
+          }}
         >
-          {submitting ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-          {submitting ? "Mengirim..." : "Kirim Pesan"}
+          {submitting ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Send className="size-4" />
+          )}
+
+          {submitting
+            ? "Mengirim..."
+            : "Kirim Pesan"}
         </button>
       </form>
     </div>
