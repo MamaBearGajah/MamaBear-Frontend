@@ -1,11 +1,5 @@
 "use client";
 
-/**
- * src/app/admin/consultations/page.tsx
- * Lihat & kelola konsultasi masuk dari customer
- * BE: GET /admin/consultations, PUT /admin/consultations/:id
- */
-
 import { useCallback, useEffect, useState } from "react";
 import {
   MessageCircle, Loader2, ChevronLeft, ChevronRight,
@@ -14,10 +8,13 @@ import {
 import { format, parseISO } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { toast } from "sonner";
-import { consultationApi, type Consultation, type ConsultationStatus } from "@/lib/api/consultation";
+import {
+  consultationApi,
+  type Consultation,
+  type ConsultationStatus,
+  type ConsultationMeta,
+} from "@/lib/api/consultation";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 
 const STATUS_OPTS: { value: ConsultationStatus; label: string; color: string }[] = [
   { value: "new", label: "Baru", color: "bg-blue-100 text-blue-700" },
@@ -32,61 +29,78 @@ function fmtDate(s: string) {
 
 function StatusBadge({ status }: { status: ConsultationStatus }) {
   const opt = STATUS_OPTS.find((s) => s.value === status);
-  return <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${opt?.color ?? "bg-gray-100 text-gray-600"}`}>{opt?.label ?? status}</span>;
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${opt?.color ?? "bg-gray-100 text-gray-600"}`}>
+      {opt?.label ?? status}
+    </span>
+  );
 }
-
-type Meta = { totalItems: number; totalPages: number; currentPage: number; itemsPerPage: number };
 
 export default function AdminConsultationsPage() {
   const [items, setItems] = useState<Consultation[]>([]);
-  const [meta, setMeta] = useState<Meta | null>(null);
+  const [meta, setMeta] = useState<ConsultationMeta | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<ConsultationStatus | "all">("all");
   const [page, setPage] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
-  const [noteForm, setNoteForm] = useState<Record<string, { status: ConsultationStatus; note: string }>>({});
+  const [statusForm, setStatusForm] = useState<Record<string, ConsultationStatus>>({});
 
-  const fetch = useCallback(async () => {
+  // Debounce search — tunggu 400ms setelah user berhenti ketik
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1); // reset ke halaman 1 saat search berubah
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Reset page ke 1 saat filter status berubah
+  useEffect(() => {
+    setPage(1);
+  }, [filterStatus]);
+
+  const fetchPage = useCallback(async () => {
     setLoading(true);
     try {
       const { data, meta } = await consultationApi.adminGetAll({
-        status: filterStatus === "all" ? undefined : filterStatus,
         page,
         limit: 15,
+        ...(filterStatus !== "all" && { status: filterStatus }),
+        ...(debouncedSearch && { search: debouncedSearch }),
       });
       setItems(data);
       setMeta(meta);
-    } catch { toast.error("Gagal memuat konsultasi"); }
-    finally { setLoading(false); }
-  }, [filterStatus, page]);
+    } catch {
+      toast.error("Gagal memuat konsultasi");
+    } finally {
+      setLoading(false);
+    }
+  }, [page, filterStatus, debouncedSearch]);
 
-  useEffect(() => { fetch(); }, [fetch]);
+  useEffect(() => { fetchPage(); }, [fetchPage]);
 
-  function initNoteForm(c: Consultation) {
-    setNoteForm((prev) => ({ ...prev, [c.id]: { status: c.status, note: c.adminNote ?? "" } }));
+  function initStatusForm(c: Consultation) {
+    setStatusForm((prev) => ({ ...prev, [c.id]: c.status }));
   }
 
   async function handleUpdate(id: string) {
-    const val = noteForm[id];
-    if (!val) return;
+    const status = statusForm[id];
+    if (!status) return;
     setUpdatingId(id);
     try {
-      await consultationApi.adminUpdateStatus(id, { status: val.status, adminNote: val.note });
-      toast.success("Konsultasi diperbarui");
+      await consultationApi.adminUpdateStatus(id, { status });
+      toast.success("Status konsultasi diperbarui");
       setExpandedId(null);
-      fetch();
-    } catch { toast.error("Gagal memperbarui"); }
-    finally { setUpdatingId(null); }
+      fetchPage();
+    } catch {
+      toast.error("Gagal memperbarui status");
+    } finally {
+      setUpdatingId(null);
+    }
   }
-
-  const filtered = items.filter((c) =>
-    !search ||
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.email.toLowerCase().includes(search.toLowerCase()) ||
-    c.subject.toLowerCase().includes(search.toLowerCase())
-  );
 
   return (
     <div className="min-h-full bg-[#FAFAFB] px-4 py-6 sm:px-6 lg:px-8">
@@ -101,19 +115,30 @@ export default function AdminConsultationsPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
             <input
-              placeholder="Cari nama, email, subjek..."
+              placeholder="Cari nama, email, pesan..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="h-10 w-64 rounded-full border border-[#EFE6EA] bg-white pl-9 pr-4 text-sm outline-none focus:border-[#D95A87]"
             />
-            {search && <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><X className="size-3.5" /></button>}
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+              >
+                <X className="size-3.5" />
+              </button>
+            )}
           </div>
           <div className="flex gap-1">
             {([{ value: "all", label: "Semua" }, ...STATUS_OPTS] as const).map((s) => (
               <button
                 key={s.value}
-                onClick={() => { setFilterStatus(s.value as any); setPage(1); }}
-                className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${filterStatus === s.value ? "bg-[#D95A87] text-white" : "bg-white border border-[#EFE6EA] text-gray-600 hover:border-[#D95A87]"}`}
+                onClick={() => setFilterStatus(s.value as ConsultationStatus | "all")}
+                className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${
+                  filterStatus === s.value
+                    ? "bg-[#D95A87] text-white"
+                    : "bg-white border border-[#EFE6EA] text-gray-600 hover:border-[#D95A87]"
+                }`}
               >
                 {s.label}
               </button>
@@ -123,63 +148,68 @@ export default function AdminConsultationsPage() {
 
         {/* List */}
         {loading ? (
-          <div className="flex items-center justify-center py-20"><Loader2 className="size-6 animate-spin text-[#D95A87]" /></div>
-        ) : filtered.length === 0 ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="size-6 animate-spin text-[#D95A87]" />
+          </div>
+        ) : items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-gray-400">
             <MessageCircle className="size-10 mb-3 opacity-40" />
             <p className="text-sm">Tidak ada konsultasi</p>
           </div>
         ) : (
           <div className="space-y-2">
-            {filtered.map((c) => {
+            {items.map((c) => {
               const isOpen = expandedId === c.id;
-              const form = noteForm[c.id] ?? { status: c.status, note: c.adminNote ?? "" };
+              const selectedStatus = statusForm[c.id] ?? c.status;
               return (
                 <div key={c.id} className="overflow-hidden rounded-2xl border border-[#F1E9EB] bg-white shadow-sm">
                   {/* Header */}
                   <button
                     onClick={() => {
-                      if (!isOpen) initNoteForm(c);
+                      if (!isOpen) initStatusForm(c);
                       setExpandedId(isOpen ? null : c.id);
                     }}
                     className="flex w-full items-start justify-between gap-4 p-4 text-left hover:bg-[#FDF8FA]"
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="font-semibold text-[#4C3437] truncate">{c.subject}</p>
+                        <p className="font-semibold text-[#4C3437] truncate">{c.name}</p>
                         <StatusBadge status={c.status} />
                       </div>
-                      <p className="mt-0.5 text-xs text-gray-500">{c.name} · {c.email}{c.phone ? ` · ${c.phone}` : ""}</p>
+                      <p className="mt-0.5 text-xs text-gray-500">
+                        {c.email}{c.phone ? ` · ${c.phone}` : ""}
+                      </p>
                       <p className="mt-0.5 text-xs text-gray-400">{fmtDate(c.createdAt)}</p>
                     </div>
-                    {isOpen ? <ChevronUp className="size-4 shrink-0 text-gray-400 mt-1" /> : <ChevronDown className="size-4 shrink-0 text-gray-400 mt-1" />}
+                    {isOpen
+                      ? <ChevronUp className="size-4 shrink-0 text-gray-400 mt-1" />
+                      : <ChevronDown className="size-4 shrink-0 text-gray-400 mt-1" />
+                    }
                   </button>
 
                   {/* Detail */}
                   {isOpen && (
                     <div className="border-t border-[#F1E9EB] p-4 space-y-4">
-                      <div className="rounded-lg bg-gray-50 p-3 text-sm text-gray-700 whitespace-pre-wrap">{c.message}</div>
+                      <div className="rounded-lg bg-gray-50 p-3 text-sm text-gray-700 whitespace-pre-wrap">
+                        {c.message}
+                      </div>
 
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <div className="space-y-1">
-                          <Label>Ubah Status</Label>
-                          <select
-                            value={form.status}
-                            onChange={(e) => setNoteForm((prev) => ({ ...prev, [c.id]: { ...form, status: e.target.value as ConsultationStatus } }))}
-                            className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm"
-                          >
-                            {STATUS_OPTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-                          </select>
-                        </div>
-                        <div className="space-y-1 sm:col-span-1 sm:row-start-2">
-                          <Label>Catatan Admin <span className="text-xs text-gray-400">— opsional</span></Label>
-                          <Textarea
-                            rows={3}
-                            value={form.note}
-                            onChange={(e) => setNoteForm((prev) => ({ ...prev, [c.id]: { ...form, note: e.target.value } }))}
-                            placeholder="Catatan internal untuk konsultasi ini..."
-                          />
-                        </div>
+                      <div className="max-w-xs space-y-1">
+                        <label className="text-sm font-medium text-gray-700">Ubah Status</label>
+                        <select
+                          value={selectedStatus}
+                          onChange={(e) =>
+                            setStatusForm((prev) => ({
+                              ...prev,
+                              [c.id]: e.target.value as ConsultationStatus,
+                            }))
+                          }
+                          className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm"
+                        >
+                          {STATUS_OPTS.map((s) => (
+                            <option key={s.value} value={s.value}>{s.label}</option>
+                          ))}
+                        </select>
                       </div>
 
                       <div className="flex justify-end">
@@ -203,10 +233,24 @@ export default function AdminConsultationsPage() {
         {/* Pagination */}
         {meta && meta.totalPages > 1 && (
           <div className="flex items-center justify-between text-sm">
-            <p className="text-gray-500">Halaman {meta.currentPage} dari {meta.totalPages}</p>
+            <p className="text-gray-500">
+              Halaman {meta.currentPage} dari {meta.totalPages}
+            </p>
             <div className="flex gap-2">
-              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={meta.currentPage <= 1} className="inline-flex size-8 items-center justify-center rounded-full border disabled:opacity-40"><ChevronLeft className="size-4" /></button>
-              <button onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))} disabled={meta.currentPage >= meta.totalPages} className="inline-flex size-8 items-center justify-center rounded-full border disabled:opacity-40"><ChevronRight className="size-4" /></button>
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={meta.currentPage <= 1}
+                className="inline-flex size-8 items-center justify-center rounded-full border disabled:opacity-40"
+              >
+                <ChevronLeft className="size-4" />
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
+                disabled={meta.currentPage >= meta.totalPages}
+                className="inline-flex size-8 items-center justify-center rounded-full border disabled:opacity-40"
+              >
+                <ChevronRight className="size-4" />
+              </button>
             </div>
           </div>
         )}
