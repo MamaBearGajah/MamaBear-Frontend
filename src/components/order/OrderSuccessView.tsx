@@ -7,10 +7,20 @@ import OrderEmailPreview from "@/components/order/OrderEmailPreview";
 import OrderStatusBadge from "@/components/order/OrderStatusBadge";
 import { useAuth } from "@/context/AuthContext";
 import { useOrderPolling } from "@/hooks/useOrderPolling";
-import { membershipApi } from "@/lib/api/membership";
 import { getDeliveryEstimateLabel } from "@/lib/shop/order-delivery";
 import { formatPrice } from "@/lib/utils";
+import { POINT_RATE } from "@/config/membership-constants";
 import type { Order } from "@/types";
+
+/**
+ * Catatan poin:
+ * Poin TIDAK diberikan dari frontend. Backend otomatis memberikan poin
+ * saat admin mengubah status order → "delivered" melalui:
+ * OrdersService.updateStatus → MembershipService.processPurchase
+ *
+ * Teks "X poin" di sini hanya preview estimasi kepada user,
+ * bukan trigger pemberian poin.
+ */
 
 interface OrderSuccessViewProps {
   orderId?: string;
@@ -48,23 +58,6 @@ export default function OrderSuccessView({
     orderId,
     initialOrder,
   );
-  const [hasRedeemedOrderPoints, setHasRedeemedOrderPoints] = useState(false);
-
-  useEffect(() => {
-    if (!order || hasRedeemedOrderPoints) return;
-    if (order.paymentStatus !== "paid") return;
-    if (!state.user?.id) return;
-
-    const points = Math.floor(order.total / 1000);
-    if (points <= 0) return;
-
-    membershipApi
-      .givePoints(state.user.id, points)
-      .then(() => setHasRedeemedOrderPoints(true))
-      .catch((err) => {
-        console.error("Failed to give order points:", err);
-      });
-  }, [order, hasRedeemedOrderPoints, state.user?.id]);
 
   if (!orderId) {
     return (
@@ -113,7 +106,7 @@ export default function OrderSuccessView({
     );
   }
 
-  // ── Gunakan orderNumber dari BE langsung (format ORB-YYYYMMDD-XXXX) ────
+  // Gunakan orderNumber dari BE langsung (format ORB-YYYYMMDD-XXXX)
   const displayOrderNumber = order.orderNumber ?? order.id;
 
   const { etaText, estimatedDate } = getDeliveryEstimateLabel(
@@ -123,7 +116,9 @@ export default function OrderSuccessView({
   );
 
   const userName = state.user?.name?.split(" ")[0] ?? "Mama";
-  const pointsEarned = Math.max(0, Math.floor(order.total / 1000));
+
+  // Estimasi poin yang akan didapat saat order delivered (Rp 1.000 = 1 poin)
+  const estimatedPoints = Math.max(0, Math.floor(order.total / POINT_RATE));
 
   return (
     <div className="mx-auto max-w-lg space-y-5">
@@ -140,11 +135,13 @@ export default function OrderSuccessView({
         <p className="mt-2 text-sm text-brown/80">
           Terima kasih, {userName}! Pesananmu sudah kami terima.
         </p>
-        <p className="mt-2 text-sm text-dark-pink">
-          Kamu mendapat{" "}
-          <strong>{pointsEarned.toLocaleString()}</strong> poin membership dari
-          pesanan ini.
-        </p>
+        {estimatedPoints > 0 && (
+          <p className="mt-2 text-sm text-dark-pink">
+            Kamu akan mendapat{" "}
+            <strong>{estimatedPoints.toLocaleString("id-ID")} poin</strong>{" "}
+            membership setelah pesanan diterima.
+          </p>
+        )}
         <div className="mt-3 flex justify-center">
           <OrderStatusBadge
             status={order.status}
@@ -155,7 +152,7 @@ export default function OrderSuccessView({
         </div>
       </div>
 
-      {/* ── Nomor order dari BE langsung ────────────────────────────────── */}
+      {/* Nomor order */}
       <div className="rounded-2xl bg-light-pink/50 px-6 py-4 text-center">
         <p className="font-mono text-lg font-bold tracking-wide text-dark-pink">
           {displayOrderNumber}
@@ -192,12 +189,14 @@ export default function OrderSuccessView({
               {formatPrice(order.total)}
             </span>
           </div>
-          <div className="flex items-center justify-between py-3">
-            <span className="text-brown/70">Poin yang diperoleh</span>
-            <span className="font-medium text-dark-pink">
-              {pointsEarned.toLocaleString()} poin
-            </span>
-          </div>
+          {estimatedPoints > 0 && (
+            <div className="flex items-center justify-between py-3">
+              <span className="text-brown/70">Estimasi poin</span>
+              <span className="font-medium text-dark-pink">
+                +{estimatedPoints.toLocaleString("id-ID")} poin
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
