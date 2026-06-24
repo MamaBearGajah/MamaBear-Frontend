@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/carousel";
 
 interface CarouselBannerItem {
-  id: number;
+  id: string; // ← string, bukan number (BE return UUID)
   label: string;
   desc: string;
   extraText: string;
@@ -50,8 +50,8 @@ const HomeBanner = () => {
             ? data.data
             : [];
 
-        const mappedBanners = banners.map((item: any) => ({
-          id: Number(item.id),
+        const mappedBanners = banners.map((item: any, index: number) => ({
+          id: String(item.id ?? index), // ← String(), bukan Number() — hindari NaN
           label: item.label ?? "",
           desc: item.desc ?? "",
           extraText: item.extraText ?? "",

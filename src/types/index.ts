@@ -54,19 +54,19 @@ export interface ProductCategory {
 }
 
 export interface ProductVariant {
-  id: string;
-  productId: string;
-  name: string;
-  value: string;
+  id?: string;
+  productId?: string;
+  name?: string;
+  value?: string;
   basePrice: number;
   discountPrice: number;
   priceAdjustment: number;
-  stock: number;
-  imageUrl: string;
+  stock?: number;
+  imageUrl?: string;
   sku?: string | null;
-  isActive: boolean;
-  createdAt: string | Date;
-  updatedAt: string | Date;
+  isActive?: boolean;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
   product?: ProductVariantOption;
 }
 
@@ -91,14 +91,8 @@ export interface ProductVariantList {
     name: string;
     slug: string;
     stock: number;
-    images: {
-      imageUrl: string;
-    }[];
-    category: {
-      id: string;
-      name: string;
-      slug: string;
-    };
+    images: { imageUrl: string }[];
+    category: { id: string; name: string; slug: string };
   };
 }
 
@@ -147,10 +141,7 @@ export interface Review {
   review: string;
   isVerifiedPurchase: boolean;
   helpfulCount: number;
-  user: {
-    id: string;
-    name: string;
-  };
+  user: { id: string; name: string };
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -261,71 +252,100 @@ export interface CartItemVariantCategory {
   slug: string;
 }
 
+// ─── Order types ─────────────────────────────────────────────────────────────
+
+/** Alamat pengiriman yang diembed di response order */
+export interface OrderAddress {
+  id: string;
+  receiverName: string;
+  phone: string;
+  address: string;
+  cityId: string;
+  provinceId: string;
+  postalCode: string;
+  label?: string;
+  notes?: string;
+}
+
+/** Satu entry di history status order */
+export interface OrderStatusHistoryEntry {
+  id: string;
+  orderId: string;
+  status: OrderStatus;
+  note?: string | null;
+  createdAt: string;
+}
+
 export interface OrderItem {
   id: string;
   productId: string;
   variantId?: string;
+  /** Nama produk saat order dibuat (disimpan di DB, tidak berubah walau produk di-edit) */
+  productName?: string;
+  /** Nama varian saat order dibuat, misal "Ukuran: L" */
+  variantName?: string | null;
   quantity: number;
   price: number;
+  /** @deprecated Gunakan productName. Diisi oleh mapOrderItem sebagai fallback. */
   name: string;
   discountPrice?: number;
+  notes?: string | null;
   variant?: ProductVariant;
 }
 
-export interface ProductVariant {
-  basePrice: number;
-  discountPrice: number;
-  priceAdjustment: number;
+export type OrderStatus =
+  | "pending"
+  | "paid"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
 
-  // weight: number | null;
-
-  // imageUrl: string;
-  // altText: string | null;
-  // sku: string | null;
-
-  // isActive: boolean;
-  // sortOrder: number;
-
-  // createdAt: string;
-  // updatedAt: string;
-
-  // product: Product;
-}
-
+export type PaymentStatus = "pending" | "paid" | "failed" | "expired" | "refunded";
 
 export interface Order {
   id: string;
+  /** Format ORB-YYYYMMDD-XXXX dari backend — gunakan ini sebagai nomor order, bukan id */
+  orderNumber?: string;
   userId: string;
   addressId: string;
-  status:
-    | "pending"
-    | "paid"
-    | "processing"
-    | "shipped"
-    | "delivered"
-    | "cancelled";
-  paymentStatus: "pending" | "paid" | "failed" | "expired" | "refunded";
+  status: OrderStatus;
+  paymentStatus: PaymentStatus;
+  subtotal?: number;
+  discountAmount?: number;
   total: number;
   shippingCost: number;
   courier: string;
   service: string;
   trackingNumber?: string;
+  /** Estimasi tanggal tiba dari RajaOngkir */
+  estimatedDelivery?: string | null;
+  deliveredAt?: string | null;
+  cancelledAt?: string | null;
+  cancelReason?: string | null;
+  notes?: string | null;
+  /** Batas waktu pembayaran (+2 jam dari order dibuat) */
+  paymentDeadline?: string | null;
+  /** Batas waktu cancel user (+30 menit dari order dibuat) */
+  cancelDeadline?: string | null;
   paymentMethod?: string;
   paymentProvider?: "xendit" | "midtrans";
   items: OrderItem[];
+  /** Alamat pengiriman lengkap (diembed saat fetch detail) */
+  address?: OrderAddress | null;
+  /** Riwayat perubahan status */
+  statusHistory?: OrderStatusHistoryEntry[];
   createdAt: string;
-  /** Populated by admin endpoints when the API joins user info */
-  user?: { name: string; email?: string };
+  updatedAt?: string;
+  /** Populated by admin/detail endpoints */
+  user?: { name: string; email?: string; phone?: string };
+  voucher?: { code: string; type: string; value: number } | null;
 }
-
-export type PaymentStatus = Order["paymentStatus"];
-
-export type OrderStatus = Order["status"];
 
 export interface OrderListParams {
   page?: number;
   limit?: number;
-  status?: Order["status"];
+  status?: OrderStatus;
   q?: string;
 }
 
@@ -335,6 +355,7 @@ export interface CreateOrderPayload {
   service: string;
   paymentMethod?: "xendit" | "midtrans";
   notes?: string;
+  voucherId?: string;
 }
 
 export interface CreateOrderResult {
@@ -346,297 +367,38 @@ export interface CreateOrderResult {
 export interface CheckoutPaymentPayload {
   orderId: string;
   provider: "xendit" | "midtrans";
+  amount: number;
 }
 
 export interface CheckoutPaymentResult {
   paymentUrl: string;
   provider: string;
-}
-
-export interface ResFetchReviewsByProductId {
-  success: boolean;
-  data: Review[];
-  pagination: Pagination;
-}
-
-/** Admin + shop category list item */
-export interface Category {
-  id: string;
-  parentId?: string | null;
-  name: string;
-  slug: string;
-  description?: string;
-  imageUrl?: string;
-  sortOrder?: number; // ← tambah ini: dari backend, untuk urutan tampil
-  isActive: boolean;
-  productCount?: number;
-}
-
-export interface PaginationMeta {
-  page: number;
-  limit: number;
-  totalItems: number;
-  totalPages: number;
-}
-
-/** YYYY-MM-DD date filter for admin reports (API Contract §2.17). */
-export interface ReportDateRange {
-  from: string;
-  to: string;
-}
-
-export interface ReportQueryParams extends ReportDateRange {
-  limit?: number;
-}
-
-export interface SalesReportSummary {
-  from: string;
-  to: string;
-  totalSales: number;
-  orderCount: number;
-  avgOrderValue: number;
-}
-
-export interface TopProductReport {
-  productId: string;
-  name: string;
-  qty: number;
-  revenue: number;
-}
-
-export interface TopCategoryReport {
-  categoryId: string;
-  name: string;
-  revenue: number;
+  externalId?: string;
+  snapToken?: string;
+  expiredAt?: string;
 }
 
 export interface ApiResponse<T> {
-  success: boolean;
+  success?: boolean;
   data: T;
-  meta?: PaginationMeta;
   message?: string;
-}
-
-export interface ApiErrorBody {
-  message?: string;
-  errors?: Record<string, unknown> | unknown[];
-  error?: { message?: string; code?: string; details?: { field: string; message: string }[] } | null;
-}
-
-export type ProductSortBy = "createdAt" | "name" | "price" | "basePrice" | "avgRating";
-export type SortOrder = "asc" | "desc";
-
-export interface ProductListParams {
-  page?: number;
-  limit?: number;
-  q?: string;
-  /** @deprecated Prefer categoryIds for multi-select */
-  categoryId?: string;
-  categoryIds?: string[];
-  minPrice?: number;
-  maxPrice?: number;
-  inStock?: boolean;
-  /** Storefront: request only sellable products when API supports it */
-  status?: ProductStatus;
-  sortBy?: ProductSortBy;
-  sortOrder?: SortOrder;
-  variantName?: string;
-  variantValue?: string;
-}
-
-export interface CategoryListParams {
-  isActive?: boolean;
-  page?: number;
-  limit?: number;
-  parentId?: string;
-}
-
-export type BlogStatus = "draft" | "published" | "cancelled";
-
-export interface BlogList {
-  id: string;     
-  authorId: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  coverImage: string;
-  content:string;
-  status: BlogStatus;
-  viewCount: number;
-  publishedAt: Date;
-  createdAt:   Date|string;
-  updatedAt:   Date|string;
-  author: User;
-}
-
-export interface BlogListParams{
-  page?:number;
-  limit?:number;
-}
-
-export interface BlogCreateListParams{
-  // title:string;
-  // authorId: string;
-  // slug:string;
-  // content: string;
-  // excerpt: string;
-  // coverImage: string;
-  // status: BlogStatus;
-
-  title:string;
-  slug:string;
-  excerpt: string;
-  coverImage: string;
-  coverPublicId?: string
-  status: BlogStatus;
-  content: string;
-}
-
-
-
-export interface BlogUpdateListParams{
-  // title?:string;
-  // authorId?: string;
-  // slug?:string;
-  // content?: string;
-  // excerpt?: string;
-  // coverImage?: string;
-  // status?: BlogStatus;
-
-  title?:string;
-  slug?:string;
-  excerpt?: string;
-  coverImage?: string;
-  coverPublicId?: string
-  status?: BlogStatus;
-  content?: string;
-}
-export interface SearchSuggestion {
-  id: string;
-  name: string;
-  slug: string;
-  imageUrl?: string;
-}
-
-export interface ShopFiltersState {
-  page: number;
-  limit: number;
-  q?: string;
-  categoryId?: string;
-  variantName?: string;
-  variantValue?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  inStock?: boolean;
-  sortBy: ProductSortBy;
-  sortOrder: SortOrder;
-}
-
-export interface ShopPriceBounds {
-  min: number;
-  max: number;
+  meta?: {
+    page?: number;
+    limit?: number;
+    total?: number;
+    totalPages?: number;
+  };
 }
 
 export interface LoginPayload {
   email: string;
   password: string;
+  rememberMe?: boolean;
 }
 
 export interface RegisterPayload {
   name: string;
   email: string;
   password: string;
-}
-
-export interface ProductPriceFields {
-  basePrice: number;
-  discountPrice?: number;
-}
-
-// --- TAMBAHAN UNTUK PROFILE & ADDRESS ---
-
-export interface UserPreferences {
-  newsletter: boolean;
-  emailOrderUpdates: boolean;
-  smsNotifications: boolean;
-}
-
-// Extend dari interface User bawaan BE kamu
-export interface UserProfile extends User {
-  dateOfBirth?: string;
-  memberSince: string;
-  preferences: UserPreferences;
-  addresses: Address[];
-}
-
-// export interface Address {
-//   id: string;
-//   label: string; // "Home" | "Office" | "Other"
-//   name: string;
-//   phone: string;
-//   province: string;
-//   city: string;
-//   postalCode: string;
-//   address: string;
-//   isDefault: boolean;
-// }
-
-export interface Address {
-  id: string;
-  label: string; // "Home" | "Office" | "Other"
-  receiverName: string;
-  phone: string;
-  address: string;
-  // province: string;
-  cityId: string;
-  provinceId: string;
-  postalCode: string;
-  isDefault?: boolean;
-}
-
-export interface UpdateProfilePayload {
-  name: string;
-  email: string;
   phone?: string;
-  dateOfBirth?: string;
-  preferences?: UserPreferences;
 }
-
-export interface homeBannerParams {
-  imageUrl: string;
-  altText: string;
-  label: string;
-  title: string;
-  desc: string;
-  path:  string;
-  isActive: boolean;
-  sortOrder: number;
-  startDate: string|Date;
-  endDate: string|Date;
-}
-
-
-export interface bundleHamperParams {
-  name: string;
-  slug: string;
-  description: string;
-  imageUrl: string;
-  publicId: string;
-  bundlePrice: number;
-  discountPrice: number;
-  isActive: boolean;
-  stock: number;
-  sortOrder: number;
-  startDate: string|Date;
-  endDate: string|Date;
-  items: {
-    productId: string;
-    quantity: number;
-  }[];
-}
-
-export interface wishlistItem{
-  productId: string;
-}
-
-export type AddressPayload = Omit<Address, "id">;
