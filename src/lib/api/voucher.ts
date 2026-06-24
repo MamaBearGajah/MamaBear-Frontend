@@ -21,11 +21,52 @@ export interface Voucher {
 }
 
 export interface VoucherValidateResult {
-  valid: boolean;
-  type: DiscountType;
-  value: number;
+  success: boolean;
+  data:{
+    id: string;
+    code: string;
+    type: "percentage" | "fixed";
+    value: number;
+    source: string;
+    minPurchase?: number;
+    maxDiscount?: number;
+    usageLimit?: number;
+    usedCount: number;
+    isActive: boolean;
+    startDate?: string;
+    endDate?: string;
+    createdAt: string;
+    updatedAt: string;
+  }
   discountAmount: number;
-  message?: string;
+  finalShippingCost: number;
+
+    // id: string;
+    // code: string;
+    // type: "percentage" | "fixed";
+    // value: number;
+    // source: string;
+    // minPurchase?: number;
+    // maxDiscount?: number;
+    // usageLimit?: number;
+    // usedCount: number;
+    // isActive: boolean;
+    // startDate?: string;
+    // endDate?: string;
+    // createdAt: string;
+    // updatedAt: string;
+  // valid: boolean;
+  // code: string;
+  // totalAmount: number;
+  // shippingCost: number;
+  // type: DiscountType;
+  // value: number;
+  // discountAmount: number;
+  // message?: string;
+  // type: DiscountType;
+  // value: number;
+  // discountAmount: number;
+  // message?: string;
 }
 
 export interface CreateVoucherPayload {
@@ -55,10 +96,11 @@ export const voucherApi = {
   /** POST /voucher/validate — cek apakah kode valid + hitung diskon */
   validate: async (
     code: string,
-    subtotal: number
+    totalAmount: number,
+    shippingCost: number
   ): Promise<VoucherValidateResult> => {
-    const res = await apiClient.post("/voucher/validate", { code, subtotal });
-    const norm = normalizeApiResponse<VoucherValidateResult>(res.data);
+    const res = await apiClient.post("/vouchers/validate", { code, totalAmount, shippingCost });
+    const norm = normalizeApiResponse<VoucherValidateResult>(res);
     return norm.data;
   },
 
