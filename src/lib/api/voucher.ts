@@ -6,9 +6,10 @@ export type DiscountType = "percentage" | "fixed";
 export interface Voucher {
   id: string;
   code: string;
-  description?: string;
-  discountType: DiscountType;
-  discountValue: number;
+  // description?: string;
+  type: DiscountType;
+  value: number;
+  source: string;
   minPurchase?: number;
   maxDiscount?: number;
   usageLimit?: number;
@@ -21,23 +22,26 @@ export interface Voucher {
 
 export interface VoucherValidateResult {
   valid: boolean;
-  discountType: DiscountType;
-  discountValue: number;
+  type: DiscountType;
+  value: number;
   discountAmount: number;
   message?: string;
 }
 
 export interface CreateVoucherPayload {
   code: string;
-  description?: string;
-  discountType: DiscountType;
-  discountValue: number;
+  // description?: string;
+  source: string;
+  type: DiscountType;
+  value: number;
+  // discountValue: number;
   minPurchase?: number;
   maxDiscount?: number;
   usageLimit?: number;
   isActive?: boolean;
   startDate?: string;
   endDate?: string;
+  ownerId?: string;
 }
 
 export const voucherApi = {
@@ -69,7 +73,7 @@ export const voucherApi = {
 
   /** POST /voucher — buat voucher baru (admin) */
   create: (payload: CreateVoucherPayload) =>
-    apiClient.post("/voucher", payload),
+    apiClient.post("/vouchers", payload),
 
   /** PATCH /voucher/:id — update voucher (admin) */
   update: (id: string, payload: Partial<CreateVoucherPayload>) =>
