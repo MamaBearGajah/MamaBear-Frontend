@@ -14,6 +14,7 @@ import {
   Flower2,
   Tag,
   Users,
+  UserCog,
   type LucideIcon,
 } from "lucide-react";
 
@@ -49,11 +50,15 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { label: "Reports",    href: "/admin/reports", icon: BarChart3, roles: ["admin", "super_admin"] },
   // Dev
   { label: "Widgets",    href: "/admin/widget",   icon: Drill,    roles: ["admin", "super_admin"] },
-  // Super Admin
-  { label: "Settings",   href: "/admin/settings", icon: Settings, roles: ["super_admin"] },
+  // Super Admin only
+  { label: "Admin Users", href: "/admin/users",    icon: UserCog,  roles: ["super_admin"] }, // ← BARU
+  { label: "Settings",    href: "/admin/settings", icon: Settings, roles: ["super_admin"] },
 ];
 
-export const SUPER_ADMIN_ROUTE_PREFIXES = ["/admin/settings"] as const;
+export const SUPER_ADMIN_ROUTE_PREFIXES = [
+  "/admin/settings",
+  "/admin/users",   // ← BARU
+] as const;
 
 export function getAdminNavForRole(role: UserRole): AdminNavItem[] {
   return ADMIN_NAV_ITEMS.filter((item) => item.roles.includes(role));
