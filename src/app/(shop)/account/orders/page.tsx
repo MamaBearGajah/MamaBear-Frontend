@@ -16,23 +16,19 @@ import { ORDER_STATUS_LABELS } from "@/config/order-status";
 import { getOrderList } from "@/lib/api/orders";
 import { getFallbackOrders } from "@/lib/shop/fallback-orders";
 import { formatPrice } from "@/lib/utils";
-import type { Order, OrderItem, OrderStatus } from "@/types";
+import type { Order, OrderStatus } from "@/types";
 
 const STATUS_MAP: Record<
   OrderStatus,
   { icon: React.ElementType; bg: string; text: string }
 > = {
-  pending: { icon: Clock, bg: "#FEF3C7", text: "#92400E" },
-  paid: { icon: CheckCircle, bg: "#E0F2FE", text: "#075985" },
-  processing: { icon: Package, bg: "#DBEAFE", text: "#1E40AF" },
-  shipped: { icon: Truck, bg: "#EDE9FE", text: "#5B21B6" },
-  delivered: { icon: CheckCircle, bg: "#D1FAE5", text: "#065F46" },
-  cancelled: { icon: X, bg: "#FEE2E2", text: "#991B1B" },
+  pending:    { icon: Clock,        bg: "#FEF3C7", text: "#92400E" },
+  paid:       { icon: CheckCircle,  bg: "#E0F2FE", text: "#075985" },
+  processing: { icon: Package,      bg: "#DBEAFE", text: "#1E40AF" },
+  shipped:    { icon: Truck,        bg: "#EDE9FE", text: "#5B21B6" },
+  delivered:  { icon: CheckCircle,  bg: "#D1FAE5", text: "#065F46" },
+  cancelled:  { icon: X,            bg: "#FEE2E2", text: "#991B1B" },
 };
-
-function getItemName(item: OrderItem & { variant?: { product?: { name?: string } } }): string {
-  return item.variant?.product?.name ?? item.name ?? "Product";
-}
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -84,6 +80,9 @@ export default function OrdersPage() {
             const StatusIcon = status.icon;
             const detailHref = `/account/orders/${order.id}`;
 
+            // ── Gunakan orderNumber dari BE, fallback ke id ──────────────
+            const displayNumber = order.orderNumber ?? order.id;
+
             return (
               <article
                 key={order.id}
@@ -94,8 +93,9 @@ export default function OrdersPage() {
                     href={detailHref}
                     className="group min-w-0 flex-1 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[#F05A89]"
                   >
-                    <p className="font-bold text-gray-800 group-hover:text-[#F05A89]">
-                      {order.id}
+                    {/* Nomor order dari BE (ORB-YYYYMMDD-XXXX), bukan raw UUID */}
+                    <p className="font-mono font-bold text-gray-800 group-hover:text-[#F05A89]">
+                      {displayNumber}
                     </p>
                     <p className="mt-1 text-xs text-gray-500">
                       Dipesan{" "}
@@ -124,12 +124,18 @@ export default function OrdersPage() {
                       key={item.id ?? `${order.id}-item-${index}`}
                       className="flex items-center justify-between gap-4"
                     >
-                      <p className="text-sm leading-snug text-gray-600">
-                        {getItemName(item)}{" "}
-                        <span className="ml-1 text-xs font-bold text-gray-400">
-                          ×{item.quantity}
-                        </span>
-                      </p>
+                      <div className="min-w-0">
+                        <p className="text-sm leading-snug text-gray-600">
+                          {/* productName dari BE (disimpan saat order dibuat) > name fallback */}
+                          {item.productName ?? item.name}{" "}
+                          <span className="ml-1 text-xs font-bold text-gray-400">
+                            ×{item.quantity}
+                          </span>
+                        </p>
+                        {item.variantName && (
+                          <p className="text-xs text-gray-400">{item.variantName}</p>
+                        )}
+                      </div>
                       <p className="whitespace-nowrap text-sm font-bold text-gray-700">
                         {formatPrice(item.price * item.quantity)}
                       </p>

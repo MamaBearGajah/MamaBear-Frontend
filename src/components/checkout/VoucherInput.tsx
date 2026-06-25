@@ -3,7 +3,7 @@
 /**
  * src/components/checkout/VoucherInput.tsx
  * Input kode voucher di checkout — validasi ke BE dan hitung diskon
- * BE: POST /voucher/validate
+ * BE: POST /vouchers/validate
  *
  * Cara pakai di checkout page:
  *   <VoucherInput subtotal={subtotal} onApply={(result) => setDiscount(result.discountAmount)} />
@@ -17,31 +17,51 @@ import { formatPrice } from "@/lib/utils";
 
 interface VoucherInputProps {
   subtotal: number;
+  shippingCost?: number;
   onApply: (result: VoucherValidateResult & { code: string }) => void;
   onRemove: () => void;
   appliedCode?: string;
 }
 
-export function VoucherInput({ subtotal, onApply, onRemove, appliedCode }: VoucherInputProps) {
-  const [code, setCode] = useState("");
+export function VoucherInput({
+  subtotal,
+  shippingCost = 0,
+  onApply,
+  onRemove,
+  appliedCode,
+}: VoucherInputProps) {
+  const [code, setCode] = useState(appliedCode ?? "");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<(VoucherValidateResult & { code: string }) | null>(null);
 
   async function handleApply() {
-    if (!code.trim()) { toast.error("Masukkan kode voucher"); return; }
+    if (!code.trim()) {
+      toast.error("Masukkan kode voucher");
+      return;
+    }
     setLoading(true);
     try {
-      const res = await voucherApi.validate(code.trim().toUpperCase(), subtotal);
+      const res = await voucherApi.validate(
+        code.trim().toUpperCase(),
+        subtotal,
+        shippingCost,
+      );
+
       if (!res.valid) {
-        toast.error(res.message ?? "Voucher tidak valid");
+        toast.error("Voucher tidak valid");
         return;
       }
+
       const applied = { ...res, code: code.trim().toUpperCase() };
       setResult(applied);
       onApply(applied);
       toast.success(`Voucher berhasil! Hemat ${formatPrice(res.discountAmount)}`);
     } catch (e: any) {
-      toast.error(e?.response?.data?.error?.message ?? "Voucher tidak valid atau sudah habis");
+      toast.error(
+        e?.response?.data?.error?.message ??
+        e?.response?.data?.message ??
+        "Voucher tidak valid atau sudah habis"
+      );
     } finally {
       setLoading(false);
     }
@@ -53,18 +73,26 @@ export function VoucherInput({ subtotal, onApply, onRemove, appliedCode }: Vouch
     onRemove();
   }
 
-  // Applied state
   if (result) {
     return (
       <div className="flex items-center justify-between rounded-xl border border-green-200 bg-green-50 px-4 py-3">
         <div className="flex items-center gap-2">
-          <CheckCircle className="size-4 text-green-600 shrink-0" />
+          <CheckCircle className="size-4 shrink-0 text-green-600" />
           <div>
-            <p className="text-sm font-semibold text-green-800 font-mono">{result.code}</p>
-            <p className="text-xs text-green-600">Hemat {formatPrice(result.discountAmount)}</p>
+            <p className="font-mono text-sm font-semibold text-green-800">
+              {result.code}
+            </p>
+            <p className="text-xs text-green-600">
+              Hemat {formatPrice(result.discountAmount)}
+            </p>
           </div>
         </div>
-        <button onClick={handleRemove} className="rounded-full p-1 text-green-600 hover:bg-green-100">
+        <button
+          type="button"
+          onClick={handleRemove}
+          className="rounded-full p-1 text-green-600 hover:bg-green-100"
+          aria-label="Hapus voucher"
+        >
           <X className="size-4" />
         </button>
       </div>
@@ -74,7 +102,8 @@ export function VoucherInput({ subtotal, onApply, onRemove, appliedCode }: Vouch
   return (
     <div className="space-y-1">
       <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
-        <Tag className="size-4" /> Kode Voucher
+        <Tag className="size-4" />
+        Kode Voucher
       </label>
       <div className="flex gap-2">
         <input
@@ -85,9 +114,10 @@ export function VoucherInput({ subtotal, onApply, onRemove, appliedCode }: Vouch
           className="h-10 flex-1 rounded-lg border border-input bg-background px-3 font-mono text-sm uppercase outline-none focus:border-[#D95A87]"
         />
         <button
+          type="button"
           onClick={handleApply}
           disabled={loading || !code.trim()}
-          className="flex h-10 items-center gap-1.5 rounded-lg bg-[var(--mamabear-dark-pink)] px-4 text-sm font-medium text-white hover:bg-[var(--mamabear-dark-pink)]/90 disabled:opacity-50 transition-opacity"
+          className="flex h-10 items-center gap-1.5 rounded-lg bg-[var(--mamabear-dark-pink)] px-4 text-sm font-medium text-white transition-opacity hover:bg-[var(--mamabear-dark-pink)]/90 disabled:opacity-50"
         >
           {loading ? <Loader2 className="size-4 animate-spin" /> : "Pakai"}
         </button>

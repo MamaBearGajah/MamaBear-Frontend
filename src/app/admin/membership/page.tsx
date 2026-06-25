@@ -1,335 +1,396 @@
 "use client";
 
-/**
- * src/app/admin/membership/page.tsx
- * Lihat daftar member + poin, kelola reward, manual adjust poin
- * BE: GET /membership (admin view semua user + poin)
- *     GET /membership/rewards → GET /faq (placeholder: reward dari seed)
- */
-
-import { useCallback, useEffect, useState } from "react";
-import {
-  Star, Search, ChevronLeft, ChevronRight,
-  Loader2, Gift, Plus, Trash2, Pencil,
-} from "lucide-react";
-import { format, parseISO } from "date-fns";
-import { id as localeId } from "date-fns/locale";
-import { toast } from "sonner";
+import { useEffect, useState, useCallback } from "react";
+import { Award, Crown, Gem, Shield, Search, RefreshCw, Users, Star, TrendingUp, Plus, Minus } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
-import { normalizeApiResponse } from "@/lib/api/normalize-api-response";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog, DialogContent, DialogHeader,
-  DialogTitle, DialogFooter,
-} from "@/components/ui/dialog";
+import { toast } from "sonner";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-type MemberEntry = {
+type MembershipTier = "bronze" | "silver" | "gold" | "platinum";
+
+interface MemberItem {
   userId: string;
-  userName: string;
-  userEmail: string;
+  tier: MembershipTier;
   points: number;
-  totalEarned: number;
-  totalRedeemed: number;
-  lastDailyLoginAt?: string;
-  memberSince: string;
-};
-
-type Reward = {
-  id: string;
-  name: string;
-  pointCost: number;
-  description?: string;
-};
-
-// PaginationMeta from BE: { page, limit, total, totalPages }
-type Meta = { page: number; limit: number; total: number; totalPages: number };
-
-function fmtDate(s?: string) {
-  if (!s) return "—";
-  try { return format(parseISO(s), "d MMM yyyy", { locale: localeId }); }
-  catch { return "—"; }
+  totalSpent: number | string;
+  lastDailyLoginAt: string | null;
+  lastTierUpAt: string | null;
+  createdAt: string;
+  user: { id: string; name: string; email: string; createdAt: string };
 }
 
-// ─── Page ────────────────────────────────────────────────────────────────────
+interface StatsData {
+  totalMembers: number;
+  totalPointsCirculating: number;
+  totalPointsRedeemed: number;
+  tierStats: Record<MembershipTier, { count: number; totalPoints: number }>;
+}
 
-export default function AdminMembershipPage() {
-  const [members, setMembers] = useState<MemberEntry[]>([]);
-  const [meta, setMeta] = useState<Meta | null>(null);
-  const [rewards, setRewards] = useState<Reward[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [tab, setTab] = useState<"members" | "rewards">("members");
+interface Meta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
 
-  // Reward dialog
-  const [rewardDialog, setRewardDialog] = useState(false);
-  const [editReward, setEditReward] = useState<Reward | null>(null);
-  const [rewardForm, setRewardForm] = useState({ name: "", pointCost: "", description: "" });
-  const [savingReward, setSavingReward] = useState(false);
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-  const fetchMembers = useCallback(async () => {
+const TIER_CONFIG: Record<MembershipTier, { label: string; icon: React.ElementType; color: string; bg: string }> = {
+  bronze:   { label: "Bronze",   icon: Award,  color: "#CD7F32", bg: "#FDF6EE" },
+  silver:   { label: "Silver",   icon: Shield, color: "#9CA3AF", bg: "#F9FAFB" },
+  gold:     { label: "Gold",     icon: Crown,  color: "#F59E0B", bg: "#FFFBEB" },
+  platinum: { label: "Platinum", icon: Gem,    color: "#8B5CF6", bg: "#F5F3FF" },
+};
+
+function TierBadge({ tier }: { tier: MembershipTier }) {
+  const cfg = TIER_CONFIG[tier];
+  const Icon = cfg.icon;
+  return (
+    <span
+      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border"
+      style={{ backgroundColor: cfg.bg, color: cfg.color, borderColor: cfg.color + "40" }}
+    >
+      <Icon size={10} />
+      {cfg.label}
+    </span>
+  );
+}
+
+function formatRp(amount: number | string): string {
+  return "Rp " + Number(amount).toLocaleString("id-ID");
+}
+
+function formatDate(iso: string | null): string {
+  if (!iso) return "-";
+  return new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", year: "numeric" }).format(new Date(iso));
+}
+
+// ─── Adjust Points Modal ──────────────────────────────────────────────────────
+
+interface AdjustModalProps {
+  member: MemberItem;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+function AdjustPointsModal({ member, onClose, onSuccess }: AdjustModalProps) {
+  const [points, setPoints] = useState("");
+  const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    const parsed = parseInt(points, 10);
+    if (!parsed || isNaN(parsed)) {
+      toast.error("Masukkan jumlah poin yang valid");
+      return;
+    }
     setLoading(true);
     try {
-      const params = new URLSearchParams({ page: String(page), limit: "15", ...(search ? { search } : {}) });
-      // Backend endpoint: GET /admin/customers (filter by membership data)
-      // atau bisa jadi GET /membership/admin tergantung implementasi BE
-      const res = await apiClient.get(`/admin/customers?${params}`);
-      const norm = normalizeApiResponse<any[]>(res.data);
-      // Map customer data ke MemberEntry format
-      const mapped: MemberEntry[] = (Array.isArray(norm.data) ? norm.data : []).map((c: any) => ({
-        userId: c.id,
-        userName: c.name,
-        userEmail: c.email,
-        points: c.membership?.points ?? 0,
-        totalEarned: c.membership?.totalEarned ?? 0,
-        totalRedeemed: c.membership?.totalRedeemed ?? 0,
-        lastDailyLoginAt: c.membership?.lastDailyLoginAt,
-        memberSince: c.createdAt,
-      }));
-      setMembers(mapped);
-      setMeta(norm.meta ? (norm.meta as any as Meta) : null);
-    } catch {
-      toast.error("Gagal memuat data member");
+      await apiClient.post("/membership/admin/adjust-points", {
+        userId: member.userId,
+        points: parsed,
+        description: description || undefined,
+      });
+      toast.success(`Point user ${member.user.name} berhasil disesuaikan`);
+      onSuccess();
+      onClose();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? "Gagal menyesuaikan poin");
     } finally {
       setLoading(false);
     }
-  }, [page, search]);
-
-  const fetchRewards = useCallback(async () => {
-    try {
-      const res = await apiClient.get("/membership/rewards");
-      const norm = normalizeApiResponse<Reward[]>(res.data);
-      setRewards(Array.isArray(norm.data) ? norm.data : []);
-    } catch {
-      setRewards([]);
-    }
-  }, []);
-
-  useEffect(() => {
-    const t = setTimeout(() => setPage(1), 400);
-    return () => clearTimeout(t);
-  }, [search]);
-
-  useEffect(() => { fetchMembers(); }, [fetchMembers]);
-  useEffect(() => { fetchRewards(); }, [fetchRewards]);
-
-  function openCreateReward() {
-    setEditReward(null);
-    setRewardForm({ name: "", pointCost: "", description: "" });
-    setRewardDialog(true);
-  }
-
-  function openEditReward(r: Reward) {
-    setEditReward(r);
-    setRewardForm({ name: r.name, pointCost: String(r.pointCost), description: r.description ?? "" });
-    setRewardDialog(true);
-  }
-
-  async function handleSaveReward() {
-    if (!rewardForm.name.trim()) { toast.error("Nama reward wajib diisi"); return; }
-    if (!rewardForm.pointCost) { toast.error("Point cost wajib diisi"); return; }
-    setSavingReward(true);
-    try {
-      const payload = { name: rewardForm.name.trim(), pointCost: Number(rewardForm.pointCost), description: rewardForm.description.trim() || undefined };
-      if (editReward) {
-        await apiClient.patch(`/membership/rewards/${editReward.id}`, payload);
-        toast.success("Reward diperbarui");
-      } else {
-        await apiClient.post("/membership/rewards", payload);
-        toast.success("Reward dibuat");
-      }
-      setRewardDialog(false);
-      fetchRewards();
-    } catch (e: any) {
-      toast.error(e?.response?.data?.error?.message ?? "Gagal menyimpan reward");
-    } finally {
-      setSavingReward(false);
-    }
-  }
-
-  async function handleDeleteReward(r: Reward) {
-    if (!confirm(`Hapus reward "${r.name}"?`)) return;
-    try {
-      await apiClient.delete(`/membership/rewards/${r.id}`);
-      setRewards((prev) => prev.filter((x) => x.id !== r.id));
-      toast.success("Reward dihapus");
-    } catch {
-      toast.error("Gagal menghapus reward");
-    }
-  }
+  };
 
   return (
-    <div className="min-h-full bg-[#FAFAFB] px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl space-y-6">
-        {/* Header */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <h3 className="font-bold text-gray-800 mb-1">Sesuaikan Poin</h3>
+        <p className="text-sm text-gray-500 mb-4">
+          {member.user.name} · Poin saat ini:{" "}
+          <span className="font-bold text-[#F05A89]">{member.points.toLocaleString("id-ID")}</span>
+        </p>
+
+        <div className="space-y-3 mb-5">
           <div>
-            <h1 className="text-2xl font-semibold text-[#4C3437]">Membership & Poin</h1>
-            <p className="mt-1 text-sm text-gray-500">Pantau poin pelanggan dan kelola reward</p>
+            <label className="text-sm font-medium text-gray-700 block mb-1">
+              Poin (+ untuk tambah, - untuk kurangi)
+            </label>
+            <input
+              type="number"
+              value={points}
+              onChange={(e) => setPoints(e.target.value)}
+              placeholder="Contoh: 100 atau -50"
+              className="w-full h-10 rounded-xl border border-gray-200 px-3 text-sm focus:outline-none focus:border-[#F05A89]"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-1">
+              Alasan <span className="text-gray-400 font-normal">— opsional</span>
+            </label>
+            <input
+              type="text"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Kompensasi delay pengiriman..."
+              className="w-full h-10 rounded-xl border border-gray-200 px-3 text-sm focus:outline-none focus:border-[#F05A89]"
+            />
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 rounded-xl bg-white border border-[#F1E9EB] p-1 w-fit">
-          {(["members", "rewards"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`rounded-lg px-5 py-2 text-sm font-medium transition-colors ${tab === t ? "bg-[#D95A87] text-white" : "text-gray-500 hover:text-gray-800"}`}
-            >
-              {t === "members" ? "Member" : "Reward"}
-            </button>
-          ))}
+        <div className="flex gap-2">
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50">
+            Batal
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="flex-1 py-2.5 rounded-xl bg-[#F05A89] text-white text-sm font-semibold hover:bg-[#d94a7a] disabled:opacity-50 transition-colors"
+          >
+            {loading ? "Memproses..." : "Simpan"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Stats Cards ──────────────────────────────────────────────────────────────
+
+function StatsCards({ stats }: { stats: StatsData | null }) {
+  if (!stats) return null;
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="rounded-2xl bg-white border border-gray-100 p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Users size={15} className="text-gray-400" />
+          <span className="text-xs text-gray-400 font-medium">Total Member</span>
+        </div>
+        <p className="text-2xl font-black text-gray-800">{stats.totalMembers.toLocaleString("id-ID")}</p>
+      </div>
+      <div className="rounded-2xl bg-white border border-gray-100 p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Star size={15} className="text-[#F05A89]" />
+          <span className="text-xs text-gray-400 font-medium">Poin Beredar</span>
+        </div>
+        <p className="text-2xl font-black text-gray-800">{stats.totalPointsCirculating.toLocaleString("id-ID")}</p>
+      </div>
+      <div className="rounded-2xl bg-white border border-gray-100 p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <TrendingUp size={15} className="text-emerald-500" />
+          <span className="text-xs text-gray-400 font-medium">Poin Diredeem</span>
+        </div>
+        <p className="text-2xl font-black text-gray-800">{stats.totalPointsRedeemed.toLocaleString("id-ID")}</p>
+      </div>
+      <div className="rounded-2xl bg-white border border-gray-100 p-4">
+        <p className="text-xs text-gray-400 font-medium mb-2">Distribusi Tier</p>
+        <div className="space-y-1">
+          {(["platinum", "gold", "silver", "bronze"] as MembershipTier[]).map((tier) => {
+            const cfg = TIER_CONFIG[tier];
+            const count = stats.tierStats?.[tier]?.count ?? 0;
+            return (
+              <div key={tier} className="flex items-center justify-between text-xs">
+                <span style={{ color: cfg.color }} className="font-semibold">{cfg.label}</span>
+                <span className="text-gray-600 font-bold">{count}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
+export default function AdminMembershipPage() {
+  const [members, setMembers] = useState<MemberItem[]>([]);
+  const [stats, setStats] = useState<StatsData | null>(null);
+  const [meta, setMeta] = useState<Meta>({ total: 0, page: 1, limit: 20, totalPages: 1 });
+  const [isLoading, setIsLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [tierFilter, setTierFilter] = useState<MembershipTier | "">("");
+  const [adjustTarget, setAdjustTarget] = useState<MemberItem | null>(null);
+
+  const fetchData = useCallback(async (page = 1) => {
+    setIsLoading(true);
+    try {
+      const params: Record<string, any> = { page, limit: 20 };
+      if (search) params.search = search;
+      if (tierFilter) params.tier = tierFilter;
+
+      const [membersRes, statsRes] = await Promise.all([
+        apiClient.get("/membership", { params }),
+        apiClient.get("/membership/stats"),
+      ]);
+
+      const mData = membersRes.data?.data ?? membersRes.data;
+      setMembers(mData?.data ?? []);
+      setMeta(mData?.meta ?? { total: 0, page: 1, limit: 20, totalPages: 1 });
+
+      const sData = statsRes.data?.data ?? statsRes.data;
+      setStats(sData);
+    } catch {
+      toast.error("Gagal memuat data membership");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [search, tierFilter]);
+
+  useEffect(() => {
+    const t = setTimeout(() => fetchData(1), 300);
+    return () => clearTimeout(t);
+  }, [fetchData]);
+
+  return (
+    <div className="flex flex-1 flex-col p-6 md:p-8">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-xl font-bold text-gray-800">Membership</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Kelola member, poin, dan tier</p>
+        </div>
+        <button
+          onClick={() => fetchData(meta.page)}
+          className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:border-[#F05A89] hover:text-[#F05A89] transition-colors"
+        >
+          <RefreshCw size={14} />
+          Refresh
+        </button>
+      </div>
+
+      {/* Stats */}
+      <StatsCards stats={stats} />
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <div className="relative flex-1">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Cari nama atau email member..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full h-10 rounded-xl border border-gray-200 pl-9 pr-3 text-sm focus:outline-none focus:border-[#F05A89]"
+          />
+        </div>
+        <select
+          value={tierFilter}
+          onChange={(e) => setTierFilter(e.target.value as MembershipTier | "")}
+          className="h-10 rounded-xl border border-gray-200 px-3 text-sm text-gray-700 focus:outline-none focus:border-[#F05A89]"
+        >
+          <option value="">Semua Tier</option>
+          <option value="bronze">Bronze</option>
+          <option value="silver">Silver</option>
+          <option value="gold">Gold</option>
+          <option value="platinum">Platinum</option>
+        </select>
+      </div>
+
+      {/* Table */}
+      <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-100">
+                <th className="text-left px-5 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Member</th>
+                <th className="text-left px-5 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Tier</th>
+                <th className="text-right px-5 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Poin</th>
+                <th className="text-right px-5 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Total Belanja</th>
+                <th className="text-left px-5 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Bergabung</th>
+                <th className="text-left px-5 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Naik Tier</th>
+                <th className="px-5 py-3" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {isLoading ? (
+                [...Array(5)].map((_, i) => (
+                  <tr key={i}>
+                    {[...Array(7)].map((_, j) => (
+                      <td key={j} className="px-5 py-4">
+                        <div className="h-3.5 bg-gray-100 animate-pulse rounded w-full" />
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : members.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-5 py-12 text-center text-gray-400">
+                    Tidak ada member ditemukan
+                  </td>
+                </tr>
+              ) : (
+                members.map((m) => (
+                  <tr key={m.userId} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-5 py-3.5">
+                      <p className="font-semibold text-gray-800">{m.user.name}</p>
+                      <p className="text-xs text-gray-400">{m.user.email}</p>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <TierBadge tier={m.tier} />
+                    </td>
+                    <td className="px-5 py-3.5 text-right">
+                      <span className="font-bold text-[#F05A89]">{m.points.toLocaleString("id-ID")}</span>
+                    </td>
+                    <td className="px-5 py-3.5 text-right text-gray-700 font-medium">
+                      {formatRp(m.totalSpent)}
+                    </td>
+                    <td className="px-5 py-3.5 text-gray-500 text-xs">
+                      {formatDate(m.user.createdAt)}
+                    </td>
+                    <td className="px-5 py-3.5 text-gray-500 text-xs">
+                      {formatDate(m.lastTierUpAt)}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <button
+                        onClick={() => setAdjustTarget(m)}
+                        className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-[#F05A89] transition-colors"
+                      >
+                        <Star size={12} />
+                        Sesuaikan Poin
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
 
-        {tab === "members" && (
-          <>
-            <div className="relative max-w-sm">
-              <Search className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
-              <input
-                placeholder="Cari nama atau email..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="h-10 w-full rounded-full border border-[#EFE6EA] bg-white pl-10 pr-4 text-sm outline-none focus:border-[#D95A87]"
-              />
+        {/* Pagination */}
+        {meta.totalPages > 1 && (
+          <div className="flex items-center justify-between px-5 py-3 border-t border-gray-100">
+            <p className="text-xs text-gray-400">
+              {meta.total} member · Hal {meta.page} dari {meta.totalPages}
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => fetchData(meta.page - 1)}
+                disabled={meta.page === 1}
+                className="h-8 px-3 rounded-lg border border-gray-200 text-xs text-gray-600 hover:border-[#F05A89] disabled:opacity-40"
+              >
+                Prev
+              </button>
+              <button
+                onClick={() => fetchData(meta.page + 1)}
+                disabled={meta.page === meta.totalPages}
+                className="h-8 px-3 rounded-lg border border-gray-200 text-xs text-gray-600 hover:border-[#F05A89] disabled:opacity-40"
+              >
+                Next
+              </button>
             </div>
-
-            <div className="overflow-hidden rounded-2xl border border-[#F1E9EB] bg-white shadow-sm">
-              {loading ? (
-                <div className="flex items-center justify-center py-20">
-                  <Loader2 className="size-6 animate-spin text-[#D95A87]" />
-                </div>
-              ) : (
-                <table className="w-full text-sm">
-                  <thead className="border-b border-[#F1E9EB] bg-[#FDF8FA]">
-                    <tr>
-                      <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Member</th>
-                      <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">Poin Aktif</th>
-                      <th className="hidden px-5 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 sm:table-cell">Total Earned</th>
-                      <th className="hidden px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 md:table-cell">Login Harian</th>
-                      <th className="hidden px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 lg:table-cell">Bergabung</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#F9F1F4]">
-                    {members.map((m) => (
-                      <tr key={m.userId} className="hover:bg-[#FDF8FA]">
-                        <td className="px-5 py-4">
-                          <p className="font-medium text-[#4C3437]">{m.userName}</p>
-                          <p className="text-xs text-gray-400">{m.userEmail}</p>
-                        </td>
-                        <td className="px-5 py-4 text-center">
-                          <span className="inline-flex items-center gap-1 rounded-full bg-yellow-50 px-2.5 py-0.5 text-xs font-semibold text-yellow-700">
-                            <Star className="size-3" />
-                            {m.points.toLocaleString("id-ID")}
-                          </span>
-                        </td>
-                        <td className="hidden px-5 py-4 text-center text-gray-500 sm:table-cell">
-                          {m.totalEarned.toLocaleString("id-ID")}
-                        </td>
-                        <td className="hidden px-5 py-4 text-gray-500 md:table-cell">
-                          {fmtDate(m.lastDailyLoginAt)}
-                        </td>
-                        <td className="hidden px-5 py-4 text-gray-500 lg:table-cell">
-                          {fmtDate(m.memberSince)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-
-              {meta && meta.totalPages > 1 && (
-                <div className="flex items-center justify-between border-t border-[#F1E9EB] px-5 py-3 text-sm">
-                  <p className="text-gray-500">Halaman {meta.page} dari {meta.totalPages}</p>
-                  <div className="flex gap-2">
-                    <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={meta.page <= 1} className="inline-flex size-8 items-center justify-center rounded-full border disabled:opacity-40">
-                      <ChevronLeft className="size-4" />
-                    </button>
-                    <button onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))} disabled={meta.page >= meta.totalPages} className="inline-flex size-8 items-center justify-center rounded-full border disabled:opacity-40">
-                      <ChevronRight className="size-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </>
-        )}
-
-        {tab === "rewards" && (
-          <div className="space-y-4">
-            <div className="flex justify-end">
-              <Button onClick={openCreateReward} className="w-full gap-2 sm:w-auto bg-[var(--mamabear-dark-pink)] text-white hover:bg-[var(--mamabear-dark-pink)]/90">
-                <Plus className="size-4" /> Tambah Reward
-              </Button>
-            </div>
-
-            {rewards.length === 0 ? (
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#F1E9EB] py-20 text-gray-400">
-                <Gift className="size-10 mb-3 opacity-40" />
-                <p className="text-sm">Belum ada reward</p>
-              </div>
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {rewards.map((r) => (
-                  <div key={r.id} className="rounded-2xl border border-[#F1E9EB] bg-white p-5 shadow-sm">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="font-semibold text-[#4C3437]">{r.name}</p>
-                        {r.description && <p className="mt-0.5 text-xs text-gray-400">{r.description}</p>}
-                      </div>
-                      <div className="flex gap-1 shrink-0">
-                        <button onClick={() => openEditReward(r)} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-[#D95A87]">
-                          <Pencil className="size-4" />
-                        </button>
-                        <button onClick={() => handleDeleteReward(r)} className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500">
-                          <Trash2 className="size-4" />
-                        </button>
-                      </div>
-                    </div>
-                    <div className="mt-3 flex items-center gap-1 rounded-full bg-yellow-50 px-3 py-1 w-fit text-xs font-semibold text-yellow-700">
-                      <Star className="size-3" /> {r.pointCost.toLocaleString("id-ID")} poin
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         )}
       </div>
 
-      {/* Reward Dialog */}
-      <Dialog open={rewardDialog} onOpenChange={setRewardDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{editReward ? "Edit Reward" : "Tambah Reward"}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-1">
-              <Label>Nama Reward *</Label>
-              <Input value={rewardForm.name} onChange={(e) => setRewardForm((f) => ({ ...f, name: e.target.value }))} placeholder="Free Ongkir" />
-            </div>
-            <div className="space-y-1">
-              <Label>Point Cost *</Label>
-              <Input type="number" min={0} value={rewardForm.pointCost} onChange={(e) => setRewardForm((f) => ({ ...f, pointCost: e.target.value }))} placeholder="500" />
-            </div>
-            <div className="space-y-1">
-              <Label>Deskripsi <span className="text-xs text-gray-400">— opsional</span></Label>
-              <Input value={rewardForm.description} onChange={(e) => setRewardForm((f) => ({ ...f, description: e.target.value }))} placeholder="Tukarkan poin untuk voucher gratis ongkir" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRewardDialog(false)}>Batal</Button>
-            <Button onClick={handleSaveReward} disabled={savingReward} className="w-full gap-2 sm:w-auto bg-[var(--mamabear-dark-pink)] text-white hover:bg-[var(--mamabear-dark-pink)]/90">
-              {savingReward && <Loader2 className="size-4 animate-spin" />}
-              {editReward ? "Simpan" : "Buat Reward"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Adjust Points Modal */}
+      {adjustTarget && (
+        <AdjustPointsModal
+          member={adjustTarget}
+          onClose={() => setAdjustTarget(null)}
+          onSuccess={() => fetchData(meta.page)}
+        />
+      )}
     </div>
   );
 }
