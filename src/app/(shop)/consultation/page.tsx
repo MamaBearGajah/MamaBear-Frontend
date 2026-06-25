@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import BackToTop from "@/components/common/BackToTop";
 import ScheduleVideoCallModal from "@/components/consultation/ScheduleVideoCallModal";
+import { ConsultationForm } from "@/app/(shop)/consultation/ConsultationForm";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 import {
@@ -272,204 +273,153 @@ export default function ConsultationPage() {
         </div>
       </section>
 
-      {/* Booking / Pricing Section */}
-      <section
-        id="booking"
-        className="w-full px-6 py-24 text-center sm:px-12 lg:px-24"
+  {/* Consultation Options */}
+<section
+  id="booking"
+  className="w-full px-6 py-24 sm:px-12 lg:px-24"
+  style={{ backgroundColor: "#FFF5F8" }}
+>
+  <div className="mb-16 text-center">
+    <h2
+      className="mb-6 text-3xl font-black md:text-5xl"
+      style={{ color: "#6C4735" }}
+    >
+      Ready to Talk?
+    </h2>
+
+    <p
+      className="mx-auto max-w-2xl text-lg"
+      style={{ color: "#8B6352" }}
+    >
+      Pilih metode konsultasi yang paling nyaman untuk Anda.
+    </p>
+  </div>
+
+  {/* Cards */}
+  <div className="mx-auto mb-20 grid max-w-5xl grid-cols-1 gap-8 md:grid-cols-2">
+    {/* WhatsApp */}
+    <div
+      className="flex flex-col rounded-[2rem] bg-white p-8 shadow-sm"
+      style={{ border: "2px solid #FACBD8" }}
+    >
+      <div
+        className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl"
         style={{ backgroundColor: "#FFF5F8" }}
       >
-        <h2
-          className="mb-6 text-3xl font-black md:text-5xl"
-          style={{ color: "#6C4735" }}
-        >
-          Ready to Talk?
-        </h2>
-        <p
-          className="mx-auto mb-16 max-w-2xl text-lg"
-          style={{ color: "#8B6352" }}
-        >
-          Choose the consultation method that fits your schedule. Remember, as a
-          Mamabear member, you get special access to our experts!
-        </p>
+        <MessageCircle
+          size={30}
+          style={{ color: "#D5557E" }}
+        />
+      </div>
 
-        <div className="mx-auto grid max-w-4xl grid-cols-1 gap-3 md:grid-cols-2 md:gap-8">
-          {/* Option 1: Chat */}
-          <div
-            className="flex h-full flex-col rounded-2xl border-4 bg-white p-4 text-left shadow-sm sm:rounded-[2.5rem] sm:p-10"
-            style={{ borderColor: "#FACBD8" }}
-          >
-            <div
-              className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl sm:mb-6 sm:h-16 sm:w-16"
-              style={{ backgroundColor: "#FFF5F8" }}
-            >
-              <MessageCircle
-                size={24}
-                className="sm:hidden"
-                style={{ color: "#D5557E" }}
-              />
-              <MessageCircle
-                size={32}
-                className="hidden sm:block"
-                style={{ color: "#D5557E" }}
-              />
-            </div>
-            <h3
-              className="mb-2 text-base font-black sm:text-2xl"
-              style={{ color: "#6C4735" }}
-            >
-              Text Consult
-            </h3>
-            <p
-              className="mb-4 text-sm font-bold sm:mb-6 sm:text-xl"
-              style={{ color: "#D5557E" }}
-            >
-              Free ✨
-            </p>
-            <p
-              className="mb-4 text-xs sm:mb-8 sm:h-12 sm:text-base"
-              style={{ color: "#8B6352" }}
-            >
-              Perfect for quick questions, product recommendations, and minor
-              concerns.
-            </p>
-            <ul className="mb-6 space-y-2 sm:mb-10 sm:space-y-3">
-              <li
-                className="flex items-center gap-2 text-[10px] sm:gap-3 sm:text-sm"
-                style={{ color: "#6C4735" }}
-              >
-                <CheckCircle2
-                  size={14}
-                  className="sm:hidden"
-                  style={{ color: "#D5557E" }}
-                />
-                <CheckCircle2
-                  size={18}
-                  className="hidden sm:block"
-                  style={{ color: "#D5557E" }}
-                />
-                Response within 2 hours
-              </li>
-              <li
-                className="flex items-center gap-2 text-[10px] sm:gap-3 sm:text-sm"
-                style={{ color: "#6C4735" }}
-              >
-                <CheckCircle2
-                  size={14}
-                  className="sm:hidden"
-                  style={{ color: "#D5557E" }}
-                />
-                <CheckCircle2
-                  size={18}
-                  className="hidden sm:block"
-                  style={{ color: "#D5557E" }}
-                />
-                Available Mon-Sat
-              </li>
-            </ul>
-            <a
-              href="https://wa.me/628888695757"
-              target="_blank"
-              rel="noreferrer"
-              className="mt-auto block w-full rounded-full py-2.5 text-center text-sm font-bold transition-transform hover:-translate-y-1 sm:py-4 sm:text-base"
-              style={{ backgroundColor: "#FACBD8", color: "#6C4735" }}
-            >
-              Chat on WhatsApp
-            </a>
-          </div>
+      <h3
+        className="mb-2 text-2xl font-black"
+        style={{ color: "#6C4735" }}
+      >
+        WhatsApp Consultation
+      </h3>
 
-          {/* Option 2: Video */}
-          <div
-            className="relative flex h-full flex-col overflow-hidden rounded-2xl border-4 bg-white p-4 text-left shadow-xl sm:rounded-[2.5rem] sm:p-10"
-            style={{ borderColor: "#D5557E" }}
-          >
-            <div
-              className="absolute top-4 right-[-26px] rotate-45 px-8 py-1 text-[9px] font-black text-white sm:top-6 sm:right-[-30px] sm:px-10 sm:text-xs"
-              style={{ backgroundColor: "#D5557E" }}
-            >
-              RECOMMENDED
-            </div>
-            <div
-              className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl sm:mb-6 sm:h-16 sm:w-16"
-              style={{ backgroundColor: "#FFF5F8" }}
-            >
-              <Video
-                size={24}
-                className="sm:hidden"
-                style={{ color: "#D5557E" }}
-              />
-              <Video
-                size={32}
-                className="hidden sm:block"
-                style={{ color: "#D5557E" }}
-              />
-            </div>
-            <h3
-              className="mb-2 text-base font-black sm:text-2xl"
-              style={{ color: "#6C4735" }}
-            >
-              Video Session
-            </h3>
-            <p
-              className="mb-4 text-sm font-bold sm:mb-6 sm:text-xl"
-              style={{ color: "#D5557E" }}
-            >
-              Rp 150.000{" "}
-              <span className="ml-1 text-[10px] font-normal text-gray-400 line-through sm:ml-2 sm:text-sm">
-                Rp 300.000
-              </span>
-            </p>
-            <p
-              className="mb-4 text-xs sm:mb-8 sm:h-12 sm:text-base"
-              style={{ color: "#8B6352" }}
-            >
-              Deep dive into latching issues, supply management, and emotional
-              support.
-            </p>
-            <ul className="mb-6 space-y-2 sm:mb-10 sm:space-y-3">
-              <li
-                className="flex items-center gap-2 text-[10px] sm:gap-3 sm:text-sm"
-                style={{ color: "#6C4735" }}
-              >
-                <Clock
-                  size={14}
-                  className="sm:hidden"
-                  style={{ color: "#D5557E" }}
-                />
-                <Clock
-                  size={18}
-                  className="hidden sm:block"
-                  style={{ color: "#D5557E" }}
-                />
-                45 minutes session
-              </li>
-              <li
-                className="flex items-center gap-2 text-[10px] sm:gap-3 sm:text-sm"
-                style={{ color: "#6C4735" }}
-              >
-                <CheckCircle2
-                  size={14}
-                  className="sm:hidden"
-                  style={{ color: "#D5557E" }}
-                />
-                <CheckCircle2
-                  size={18}
-                  className="hidden sm:block"
-                  style={{ color: "#D5557E" }}
-                />
-                Personalized action plan
-              </li>
-            </ul>
-            <Link
-              onClick={handleScheduleClick}
-              href="#"
-              className="mt-auto block w-full rounded-full py-2.5 text-center text-sm font-bold text-white transition-transform hover:-translate-y-1 sm:py-4 sm:text-base"
-              style={{ backgroundColor: "#D5557E" }}
-            >
-              Schedule Video Call
-            </Link>
-          </div>
-        </div>
-      </section>
+      <p
+        className="mb-6 text-lg font-bold"
+        style={{ color: "#D5557E" }}
+      >
+        Gratis
+      </p>
+
+      <p
+        className="mb-8"
+        style={{ color: "#8B6352" }}
+      >
+        Untuk pertanyaan singkat dan kebutuhan konsultasi cepat.
+      </p>
+
+      <a
+        href="https://wa.me/628888695757"
+        target="_blank"
+        rel="noreferrer"
+        className="mt-auto rounded-full py-4 text-center font-bold"
+        style={{
+          backgroundColor: "#FACBD8",
+          color: "#6C4735",
+        }}
+      >
+        Chat via WhatsApp
+      </a>
+    </div>
+
+    {/* Video Call */}
+    <div
+      className="relative flex flex-col rounded-[2rem] bg-white p-8 shadow-lg"
+      style={{ border: "2px solid #D5557E" }}
+    >
+      <div
+        className="absolute top-4 right-4 rounded-full px-4 py-1 text-xs font-bold text-white"
+        style={{ backgroundColor: "#D5557E" }}
+      >
+        RECOMMENDED
+      </div>
+
+      <div
+        className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl"
+        style={{ backgroundColor: "#FFF5F8" }}
+      >
+        <Video
+          size={30}
+          style={{ color: "#D5557E" }}
+        />
+      </div>
+
+      <h3
+        className="mb-2 text-2xl font-black"
+        style={{ color: "#6C4735" }}
+      >
+        Video Consultation
+      </h3>
+
+      <p
+        className="mb-6 text-lg font-bold"
+        style={{ color: "#D5557E" }}
+      >
+        Rp150.000
+      </p>
+
+      <p
+        className="mb-8"
+        style={{ color: "#8B6352" }}
+      >
+        Konsultasi mendalam dengan konsultan laktasi profesional.
+      </p>
+
+      <button
+        onClick={handleScheduleClick}
+        className="mt-auto rounded-full py-4 font-bold text-white transition hover:opacity-90"
+        style={{ backgroundColor: "#D5557E" }}
+      >
+        Schedule Video Call
+      </button>
+    </div>
+  </div>
+
+  {/* Consultation Form */}
+  <div className="mx-auto max-w-4xl">
+    <div className="mb-8 text-center">
+      <h3
+        className="mb-3 text-3xl font-black"
+        style={{ color: "#6C4735" }}
+      >
+        Kirim Pertanyaan
+      </h3>
+
+      <p
+        style={{ color: "#8B6352" }}
+      >
+        Isi formulir berikut dan tim Mamabear akan menghubungi Anda.
+      </p>
+    </div>
+
+    <ConsultationForm />
+  </div>
+</section>
 
       {/* Final CTA Banner */}
       <section

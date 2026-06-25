@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { X, Loader } from "lucide-react";
 import { consultationApi } from "@/lib/api/consultation";
 
@@ -28,44 +28,44 @@ export default function ScheduleVideoCallModal({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-
-  const FIXED_PRICE = 150000;
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Close only if clicking on the backdrop itself, not the modal content
-    if (e.target === modalRef.current) {
-      onClose();
-    }
+    if (e.target === modalRef.current) onClose();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (!formData.name || !formData.email || !formData.consultationDate) {
+      setError("Mohon lengkapi semua field yang wajib diisi");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Validate required fields
-      if (!formData.name || !formData.email || !formData.consultationDate) {
-        setError("Please fill in all required fields");
-        setIsLoading(false);
-        return;
-      }
+      // Gabungkan subject dan consultationDate ke dalam message
+      // karena CreateConsultationDto BE hanya terima: name, email, phone, message
+      const parts: string[] = [];
+      if (formData.subject) parts.push(`Topik: ${formData.subject}`);
+      parts.push(`Tanggal konsultasi: ${formData.consultationDate}`);
+      if (formData.message) parts.push(`\n${formData.message}`);
 
-      // Submit consultation with fixed price
-      await consultationApi.submit({
-        ...formData,
-        price: FIXED_PRICE,
+      const combinedMessage = parts.join("\n");
+
+      await consultationApi.create({
+        name: formData.name,
+        email: formData.email,
+        ...(formData.phone && { phone: formData.phone }),
+        message: combinedMessage,
       });
 
       setSuccess(true);
@@ -78,7 +78,6 @@ export default function ScheduleVideoCallModal({
         consultationDate: "",
       });
 
-      // Close modal after 2 seconds to show success message
       setTimeout(() => {
         onClose();
         setSuccess(false);
@@ -86,7 +85,7 @@ export default function ScheduleVideoCallModal({
       }, 2000);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to schedule consultation"
+        err instanceof Error ? err.message : "Gagal menjadwalkan konsultasi"
       );
     } finally {
       setIsLoading(false);
@@ -102,7 +101,6 @@ export default function ScheduleVideoCallModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
     >
       <div
-        ref={contentRef}
         className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white shadow-2xl"
         style={{ fontFamily: "'Urbanist', sans-serif" }}
       >
@@ -193,10 +191,7 @@ export default function ScheduleVideoCallModal({
                   onChange={handleInputChange}
                   placeholder="Your full name"
                   className="w-full rounded-xl border-2 px-4 py-3 outline-none transition-colors focus:border-[#D5557E]"
-                  style={{
-                    borderColor: "#FACBD8",
-                    color: "#6C4735",
-                  }}
+                  style={{ borderColor: "#FACBD8", color: "#6C4735" }}
                   required
                 />
               </div>
@@ -218,10 +213,7 @@ export default function ScheduleVideoCallModal({
                   onChange={handleInputChange}
                   placeholder="your@email.com"
                   className="w-full rounded-xl border-2 px-4 py-3 outline-none transition-colors focus:border-[#D5557E]"
-                  style={{
-                    borderColor: "#FACBD8",
-                    color: "#6C4735",
-                  }}
+                  style={{ borderColor: "#FACBD8", color: "#6C4735" }}
                   required
                 />
               </div>
@@ -243,10 +235,7 @@ export default function ScheduleVideoCallModal({
                   onChange={handleInputChange}
                   placeholder="+62 8XX XXX XXXX"
                   className="w-full rounded-xl border-2 px-4 py-3 outline-none transition-colors focus:border-[#D5557E]"
-                  style={{
-                    borderColor: "#FACBD8",
-                    color: "#6C4735",
-                  }}
+                  style={{ borderColor: "#FACBD8", color: "#6C4735" }}
                 />
               </div>
 
@@ -267,10 +256,7 @@ export default function ScheduleVideoCallModal({
                   onChange={handleInputChange}
                   placeholder="e.g., Latching Issues, Low Supply"
                   className="w-full rounded-xl border-2 px-4 py-3 outline-none transition-colors focus:border-[#D5557E]"
-                  style={{
-                    borderColor: "#FACBD8",
-                    color: "#6C4735",
-                  }}
+                  style={{ borderColor: "#FACBD8", color: "#6C4735" }}
                 />
               </div>
 
@@ -291,10 +277,7 @@ export default function ScheduleVideoCallModal({
                   placeholder="Please describe your breastfeeding concerns in detail..."
                   rows={4}
                   className="w-full rounded-xl border-2 px-4 py-3 outline-none transition-colors focus:border-[#D5557E] resize-none"
-                  style={{
-                    borderColor: "#FACBD8",
-                    color: "#6C4735",
-                  }}
+                  style={{ borderColor: "#FACBD8", color: "#6C4735" }}
                 />
               </div>
 
@@ -315,10 +298,7 @@ export default function ScheduleVideoCallModal({
                   value={formData.consultationDate}
                   onChange={handleInputChange}
                   className="w-full rounded-xl border-2 px-4 py-3 outline-none transition-colors focus:border-[#D5557E]"
-                  style={{
-                    borderColor: "#FACBD8",
-                    color: "#6C4735",
-                  }}
+                  style={{ borderColor: "#FACBD8", color: "#6C4735" }}
                   required
                 />
               </div>
