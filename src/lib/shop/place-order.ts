@@ -7,6 +7,7 @@ export type PlaceShopOrderInput = {
   service: string;
   provider?: "xendit" | "midtrans";
   notes?: string;
+  voucherId?: string; // ✅ NEW: passed from CheckoutContext.state.voucherId
 };
 
 export type PlaceShopOrderResult = {
@@ -41,17 +42,14 @@ export async function placeShopOrder(
 
   const provider = input.provider ?? "xendit";
 
-  // 1. Buat order di BE
+  // 1. Buat order di BE — include voucherId so OrdersService calls applyVoucher()
+  //    which increments usedCount inside the DB transaction.
   const orderRes = await createOrder({
     addressId,
     courier: input.courier.toLowerCase(),
-    // FIX: jangan lowercase `service` — kode service dari RajaOngkir (REG/YES/OKE)
-    // case-sensitive secara konvensi. BE sekarang membandingkan secara
-    // case-insensitive juga, jadi ini cuma untuk konsistensi & menghindari
-    // bug serupa kalau matching BE diketatkan lagi nanti.
     service: input.service,
-    // FIX: paymentMethod dihapus — BE tidak terima field ini (VALIDATION_ERROR)
     notes: input.notes,
+    voucherId: input.voucherId ?? undefined, // ✅ NEW: triggers usedCount++ on backend
   });
 
   const orderId = orderRes.data?.orderId;
@@ -59,11 +57,8 @@ export async function placeShopOrder(
     throw new Error("Order berhasil dibuat tapi orderId tidak ditemukan.");
   }
 
-  // FIX: ambil total dari response order untuk dikirim ke payment endpoint
   const total = (orderRes.data as any)?.total ?? (orderRes.data as any)?.amount;
   if (!total) {
-    // Fallback: buat payment tanpa amount — BE akan cari dari order
-    // Ini akan gagal jika BE strict membutuhkan amount
     console.warn("placeShopOrder: total tidak ada di order response, payment mungkin gagal");
   }
 
@@ -72,7 +67,6 @@ export async function placeShopOrder(
     const paymentRes = await checkoutPayment({
       orderId,
       provider,
-      // FIX: kirim amount — BE CreatePaymentDto membutuhkan ini
       amount: Number(total ?? 0),
     });
 
@@ -82,7 +76,6 @@ export async function placeShopOrder(
       snapToken: paymentRes.data?.snapToken || undefined,
     };
   } catch {
-    // Payment gagal tapi order sudah dibuat — kembalikan orderId agar user bisa coba lagi
     return { orderId };
   }
 }
