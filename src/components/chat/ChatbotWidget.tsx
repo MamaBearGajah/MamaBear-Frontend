@@ -1,23 +1,14 @@
 "use client";
 
 /**
- * src/components/chat/ChatbotWidget.tsx — FIX HYDRATION ERROR
+ * src/components/chat/ChatbotWidget.tsx
  *
- * ROOT CAUSE: Widget ini dipasang di RootLayout (layout.tsx) yang server-rendered.
- * <button> tidak boleh jadi child dari <html> langsung.
- *
- * FIX: Gunakan `useEffect` + `document.body` appendChild — widget di-mount ke body
- * setelah hydration selesai, sehingga tidak ada mismatch SSR/CSR.
- * Alternatif lebih simpel: cukup taruh di (shop)/layout.tsx, BUKAN di app/layout.tsx.
- *
- * CARA PAKAI YANG BENAR:
- * Taruh HANYA di src/app/(shop)/layout.tsx:
+ * Dipasang HANYA di src/app/(shop)/layout.tsx — JANGAN di app/layout.tsx (root layout)
+ * agar tidak terjadi hydration mismatch SSR/CSR.
  *
  *   import ChatbotWidget from "@/components/chat/ChatbotWidget";
  *   // dalam JSX setelah <Footer />:
  *   <ChatbotWidget />
- *
- * JANGAN taruh di src/app/layout.tsx (root layout).
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -50,6 +41,13 @@ const WELCOME: Message = {
   ],
   time: nowTime(),
 };
+
+/** Suggestion fallback yang ditampilkan kalau chatbot tidak menemukan FAQ yang cocok */
+const FALLBACK_SUGGESTIONS = [
+  "Cara order produk",
+  "Status pesanan saya",
+  "Hubungi CS",
+];
 
 function Bubble({ msg, onSuggestion }: { msg: Message; onSuggestion: (s: string) => void }) {
   const isBot = msg.role === "bot";
@@ -103,7 +101,7 @@ export default function ChatbotWidget() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // ✅ FIX: mount hanya di client setelah hydration
+  // Mount hanya di client setelah hydration selesai
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -145,14 +143,18 @@ export default function ChatbotWidget() {
 
       try {
         const res = await chatbotApi.query(trimmed);
+
+        // FIX: logika suggestions sebelumnya terbalik.
+        // Sekarang: kalau ada suggestedFaqIds → kosongkan (FAQ sudah ditampilkan di answer),
+        // kalau tidak ada match → tampilkan fallback suggestion untuk mengarahkan user.
+        const suggestions =
+          res.suggestedFaqIds.length === 0 ? FALLBACK_SUGGESTIONS : [];
+
         const botMsg: Message = {
           id: (Date.now() + 1).toString(),
           role: "bot",
           text: res.answer,
-          suggestions:
-            res.suggestedFaqIds.length > 0
-              ? []
-              : ["Cara order produk", "Status pesanan saya", "Hubungi CS"],
+          suggestions,
           time: nowTime(),
         };
         setMessages((prev) => [...prev, botMsg]);
@@ -163,7 +165,7 @@ export default function ChatbotWidget() {
             id: (Date.now() + 1).toString(),
             role: "bot",
             text: "Maaf, saya sedang gangguan. Silakan hubungi CS kami di WhatsApp 😊",
-            suggestions: [],
+            suggestions: FALLBACK_SUGGESTIONS,
             time: nowTime(),
           },
         ]);
@@ -179,7 +181,7 @@ export default function ChatbotWidget() {
     sendMessage(input);
   }
 
-  // ✅ FIX: Jangan render apapun saat SSR / sebelum hydration
+  // Jangan render apapun saat SSR / sebelum hydration
   if (!mounted) return null;
 
   return (

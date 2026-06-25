@@ -1,7 +1,7 @@
 // Single Responsibility: hanya menampilkan tier saat ini + daftar benefit
 
 import { CheckCircle } from "lucide-react";
-import { Tier } from "@/config/Tiers";
+import { Tier, formatSpend } from "@/config/Tiers";
 
 interface Props {
   currentTier: Tier;
@@ -54,13 +54,15 @@ export function TierCard({ currentTier, nextTier }: Props) {
         ))}
       </ul>
 
+      {/* FIX: tampilkan threshold totalSpent, bukan poin */}
       {nextTier && (
         <p className="text-xs text-gray-400 mt-3">
           Raih{" "}
           <span className="font-bold" style={{ color: nextTier.color }}>
             {nextTier.label}
           </span>{" "}
-          di {nextTier.minPoints.toLocaleString()} poin
+          dengan total belanja{" "}
+          <span className="font-semibold">{formatSpend(nextTier.minSpend)}</span>
         </p>
       )}
     </div>

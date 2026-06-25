@@ -3,7 +3,8 @@ import { Award, Shield, Crown, Gem, LucideIcon } from "lucide-react";
 export interface Tier {
   key: string;
   label: string;
-  minPoints: number;
+  /** Minimum totalSpent (Rp) untuk mencapai tier ini — sesuai backend TIER_THRESHOLDS */
+  minSpend: number;
   color: string;
   bgLight: string;
   borderColor: string;
@@ -15,7 +16,7 @@ export const TIERS: Tier[] = [
   {
     key: "bronze",
     label: "Bronze",
-    minPoints: 0,
+    minSpend: 0,
     color: "#CD7F32",
     bgLight: "#FDF6EE",
     borderColor: "#E8C49A",
@@ -29,7 +30,7 @@ export const TIERS: Tier[] = [
   {
     key: "silver",
     label: "Silver",
-    minPoints: 1000,
+    minSpend: 1_000_000,
     color: "#9CA3AF",
     bgLight: "#F9FAFB",
     borderColor: "#D1D5DB",
@@ -44,7 +45,7 @@ export const TIERS: Tier[] = [
   {
     key: "gold",
     label: "Gold",
-    minPoints: 2500,
+    minSpend: 5_000_000,
     color: "#F59E0B",
     bgLight: "#FFFBEB",
     borderColor: "#FCD34D",
@@ -60,7 +61,7 @@ export const TIERS: Tier[] = [
   {
     key: "platinum",
     label: "Platinum",
-    minPoints: 5000,
+    minSpend: 10_000_000,
     color: "#8B5CF6",
     bgLight: "#F5F3FF",
     borderColor: "#C4B5FD",
@@ -77,22 +78,33 @@ export const TIERS: Tier[] = [
 
 export const POINTS_RESET_DATE = "31 Desember 2026";
 
-export function getCurrentTier(points: number): Tier {
-  return [...TIERS].reverse().find((t) => points >= t.minPoints) ?? TIERS[0];
+/** Tentukan tier berdasarkan totalSpent (Rp) — sesuai backend determineTier() */
+export function getCurrentTier(totalSpent: number): Tier {
+  return [...TIERS].reverse().find((t) => totalSpent >= t.minSpend) ?? TIERS[0];
 }
 
-export function getNextTier(points: number): Tier | null {
-  return TIERS.find((t) => t.minPoints > points) ?? null;
+/** Tier berikutnya, null jika sudah platinum */
+export function getNextTier(totalSpent: number): Tier | null {
+  return TIERS.find((t) => t.minSpend > totalSpent) ?? null;
 }
 
-/** Returns 0–100 fill percentage for the tier progress track */
-export function getTierProgress(points: number): number {
-  const current = getCurrentTier(points);
-  const next = getNextTier(points);
+/** Progress 0–100 untuk progress track, berbasis totalSpent */
+export function getTierProgress(totalSpent: number): number {
+  const current = getCurrentTier(totalSpent);
+  const next = getNextTier(totalSpent);
   const segmentPct = 100 / (TIERS.length - 1);
   const currentIdx = TIERS.findIndex((t) => t.key === current.key);
   if (!next) return 100;
   const progressInSeg =
-    (points - current.minPoints) / (next.minPoints - current.minPoints);
+    (totalSpent - current.minSpend) / (next.minSpend - current.minSpend);
   return currentIdx * segmentPct + progressInSeg * segmentPct;
+}
+
+/** Format Rp singkat: 1.500.000 → "Rp 1,5 jt" */
+export function formatSpend(amount: number): string {
+  if (amount >= 1_000_000) {
+    const juta = amount / 1_000_000;
+    return `Rp ${juta % 1 === 0 ? juta.toFixed(0) : juta.toFixed(1)} jt`;
+  }
+  return `Rp ${amount.toLocaleString("id-ID")}`;
 }

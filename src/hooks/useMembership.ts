@@ -45,13 +45,13 @@ export interface UseMembershipReturn {
   currentTier: Tier;
   nextTier: Tier | null;
   progressPct: number;
+  remainingSpend: number;
   hasClaimed: boolean;
   isLoading: boolean;
   isClaiming: boolean;
   isRedeeming: boolean;
   recentTransactions: PointTransaction[];
   activeVouchers: ActiveVoucher[];
-  remainingSpend: number;
   claim: () => Promise<void>;
   redeem: (points: number) => Promise<{ voucherCode: string; discountValue: number }>;
   refresh: () => Promise<void>;
@@ -121,6 +121,7 @@ export function useMembership(
   }, [load]);
 
   const points = data?.points ?? 0;
+  const totalSpent = data?.totalSpent ?? 0;
 
   const claim = async () => {
     if (!data) return;
@@ -170,7 +171,6 @@ export function useMembership(
       const voucherCode: string = raw?.voucher?.code ?? raw?.voucherCode ?? "";
       const discountValue: number = raw?.discountValue ?? 0;
 
-      // Refresh full data setelah redeem
       await load();
 
       onSuccess?.(`Berhasil redeem ${redeemPoints} poin! Voucher: ${voucherCode}`);
@@ -184,25 +184,29 @@ export function useMembership(
     }
   };
 
-  const currentTierObj = getCurrentTier(points);
-  const nextTierObj = getNextTier(points);
+  // FIX: gunakan totalSpent untuk menentukan tier & progress, bukan points
+  const currentTierObj = getCurrentTier(totalSpent);
+  const nextTierObj = getNextTier(totalSpent);
+  const progressPct = getTierProgress(totalSpent);
 
-  // Remaining spend ke tier berikutnya (dalam rupiah, dari backend)
-  const remainingSpend = data?.nextTierInfo?.remainingSpend ?? 0;
+  // Remaining spend ke tier berikutnya — prioritaskan dari backend, fallback hitung sendiri
+  const remainingSpend =
+    data?.nextTierInfo?.remainingSpend ??
+    (nextTierObj ? Math.max(0, nextTierObj.minSpend - totalSpent) : 0);
 
   return {
     points,
-    totalSpent: data?.totalSpent ?? 0,
+    totalSpent,
     currentTier: currentTierObj,
     nextTier: nextTierObj,
-    progressPct: getTierProgress(points),
+    progressPct,
+    remainingSpend,
     hasClaimed: hasClaimedToday(data?.lastDailyLoginAt),
     isLoading,
     isClaiming,
     isRedeeming,
     recentTransactions: data?.recentTransactions ?? [],
     activeVouchers: data?.activeVouchers ?? [],
-    remainingSpend,
     claim,
     redeem,
     refresh: load,

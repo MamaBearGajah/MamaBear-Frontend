@@ -1,15 +1,23 @@
 // Single Responsibility: hanya menampilkan progress track antar tier
 
-import { TIERS, Tier } from "@/config/Tiers";
+import { TIERS, Tier, formatSpend } from "@/config/Tiers";
+import { formatPrice } from "@/lib/utils";
 
 interface Props {
-  points: number;
+  totalSpent: number;
   currentTier: Tier;
   nextTier: Tier | null;
   progressPct: number;
+  remainingSpend: number;
 }
 
-export function TierProgressTrack({ points, currentTier, nextTier, progressPct }: Props) {
+export function TierProgressTrack({
+  totalSpent,
+  currentTier,
+  nextTier,
+  progressPct,
+  remainingSpend,
+}: Props) {
   return (
     <div className="rounded-2xl border border-[#F8D7E3] bg-white p-5 sm:p-6">
       <p className="text-sm font-bold text-gray-700 mb-5">Tier Progress</p>
@@ -28,7 +36,7 @@ export function TierProgressTrack({ points, currentTier, nextTier, progressPct }
         {/* Checkpoints */}
         <div className="relative flex justify-between w-full">
           {TIERS.map((tier) => {
-            const reached = points >= tier.minPoints;
+            const reached = totalSpent >= tier.minSpend;
             const isCurrent = tier.key === currentTier.key;
             const Icon = tier.icon;
             return (
@@ -56,22 +64,28 @@ export function TierProgressTrack({ points, currentTier, nextTier, progressPct }
         </div>
       </div>
 
-      {/* Min points labels */}
+      {/* Spend threshold labels */}
       <div className="flex justify-between mt-1">
         {TIERS.map((tier) => (
           <span key={tier.key} className="text-[10px] text-gray-400 font-medium">
-            {tier.minPoints === 0 ? "0" : tier.minPoints.toLocaleString()}
+            {tier.minSpend === 0 ? "0" : formatSpend(tier.minSpend)}
           </span>
         ))}
       </div>
 
+      {/* Total spent info */}
+      <p className="text-xs text-gray-400 mt-3">
+        Total belanja kamu:{" "}
+        <span className="font-semibold text-gray-600">{formatPrice(totalSpent)}</span>
+      </p>
+
       {/* Next tier info */}
-      <div className="mt-4 pt-4 border-t border-pink-50">
+      <div className="mt-3 pt-3 border-t border-pink-50">
         {nextTier ? (
           <p className="text-sm text-gray-600">
-            Butuh{" "}
+            Belanja{" "}
             <span className="font-bold text-[#F05A89]">
-              {(nextTier.minPoints - points).toLocaleString()} poin
+              {formatPrice(remainingSpend)}
             </span>{" "}
             lagi untuk mencapai tier{" "}
             <span className="font-bold" style={{ color: nextTier.color }}>

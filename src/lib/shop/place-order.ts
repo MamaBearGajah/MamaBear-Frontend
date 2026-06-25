@@ -7,6 +7,7 @@ export type PlaceShopOrderInput = {
   service: string;
   provider?: "xendit" | "midtrans";
   notes?: string;
+  voucherId?: string; // FIX: tambah untuk kirim voucher ke BE
 };
 
 export type PlaceShopOrderResult = {
@@ -46,12 +47,11 @@ export async function placeShopOrder(
     addressId,
     courier: input.courier.toLowerCase(),
     // FIX: jangan lowercase `service` — kode service dari RajaOngkir (REG/YES/OKE)
-    // case-sensitive secara konvensi. BE sekarang membandingkan secara
-    // case-insensitive juga, jadi ini cuma untuk konsistensi & menghindari
-    // bug serupa kalau matching BE diketatkan lagi nanti.
+    // case-sensitive secara konvensi.
     service: input.service,
-    // FIX: paymentMethod dihapus — BE tidak terima field ini (VALIDATION_ERROR)
     notes: input.notes,
+    // FIX: kirim voucherId ke BE supaya diskon diterapkan
+    voucherId: input.voucherId || undefined,
   });
 
   const orderId = orderRes.data?.orderId;
@@ -59,11 +59,9 @@ export async function placeShopOrder(
     throw new Error("Order berhasil dibuat tapi orderId tidak ditemukan.");
   }
 
-  // FIX: ambil total dari response order untuk dikirim ke payment endpoint
+  // Ambil total dari response order untuk dikirim ke payment endpoint
   const total = (orderRes.data as any)?.total ?? (orderRes.data as any)?.amount;
   if (!total) {
-    // Fallback: buat payment tanpa amount — BE akan cari dari order
-    // Ini akan gagal jika BE strict membutuhkan amount
     console.warn("placeShopOrder: total tidak ada di order response, payment mungkin gagal");
   }
 
@@ -72,7 +70,6 @@ export async function placeShopOrder(
     const paymentRes = await checkoutPayment({
       orderId,
       provider,
-      // FIX: kirim amount — BE CreatePaymentDto membutuhkan ini
       amount: Number(total ?? 0),
     });
 
