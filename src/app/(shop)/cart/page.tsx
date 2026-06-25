@@ -14,7 +14,7 @@ import { ArrowLeft, ChevronRight, Trash2, Truck, Shield, RotateCcw } from "lucid
 const CartPage = () => {
   const { state, itemCount, removeItem, updateQuantity, clearCart } = useCart();
   const { state: authState } = useAuth();
-  const { setDiscount } = useCheckout();
+  const { setVoucher } = useCheckout();
 
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [promoCode, setPromoCode] = useState("");
@@ -39,9 +39,10 @@ const CartPage = () => {
   const discount = promoApplied ? appliedDiscount : 0;
   const finalTotal = selectedSubtotal > 0 ? selectedSubtotal - discount : 0;
 
+  // Sync discount to context whenever it changes (e.g. item deselected)
   useEffect(() => {
-    setDiscount(discount);
-  }, [discount]);
+    if (!promoApplied) setVoucher(0, null);
+  }, [promoApplied]);
 
   useEffect(() => {
     setSelectedItemIds((current) =>
@@ -69,7 +70,7 @@ const CartPage = () => {
     setPromoError("");
     setPromoApplied(false);
     setAppliedDiscount(0);
-    setDiscount(0);
+    setVoucher(0, null);
 
     if (!promoCode.trim()) {
       setPromoError("Masukkan kode voucher");
@@ -95,11 +96,12 @@ const CartPage = () => {
       setPromoApplied(true);
       setPromoError("");
       setAppliedDiscount(res.discountAmount);
-      setDiscount(res.discountAmount);
+      // Simpan discount + voucherId ke context agar ikut ke createOrder
+      setVoucher(res.discountAmount, res.voucher.id);
     } catch (err: any) {
       setPromoApplied(false);
       setAppliedDiscount(0);
-      setDiscount(0);
+      setVoucher(0, null);
       setPromoError(
         err?.response?.data?.error?.message ??
         err?.response?.data?.message ??
