@@ -20,6 +20,11 @@ export interface Voucher {
   createdAt: string;
 }
 
+export interface applyVoucherPayload {
+  code: string;
+  totalAmount: number;
+}
+
 export interface VoucherValidateResult {
   success: boolean;
   data:{
@@ -117,11 +122,18 @@ export const voucherApi = {
   create: (payload: CreateVoucherPayload) =>
     apiClient.post("/vouchers", payload),
 
+  /** Apply  */
+  apply: (payload: applyVoucherPayload) =>
+    apiClient.post("/vouchers/apply", payload),
+
   /** PATCH /voucher/:id — update voucher (admin) */
-  update: (id: string, payload: Partial<CreateVoucherPayload>) =>
-    apiClient.patch(`/voucher/${id}`, payload),
+  update: (
+    id: string,
+    payload: Partial<CreateVoucherPayload & { usedCount?: number; usageCount?: number }>
+  ) =>
+    apiClient.patch(`/vouchers/${id}`, payload),
 
   /** DELETE /voucher/:id — hapus voucher (admin) */
   remove: (id: string) =>
-    apiClient.delete(`/voucher/${id}`),
+    apiClient.delete(`/vouchers/${id}`),
 };
