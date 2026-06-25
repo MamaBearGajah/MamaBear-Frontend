@@ -125,19 +125,20 @@ export default async function ProductsPage({
 
   // Backend category endpoint pakai key 'total', products endpoint pakai 'totalItems'
 
-  const meta: PaginationMeta = productsRes.meta ?? {
-    page: filters.page,
-    limit: filters.limit,
-    totalItems: sortedProducts.length,
-    totalPages: 1,
-  };
+  const meta: PaginationMeta = {
+  page: productsRes.meta?.page ?? filters.page,
+  limit: productsRes.meta?.limit ?? filters.limit,
+  totalItems: productsRes.meta?.totalItems ?? productsRes.meta?.total ?? sortedProducts.length,
+  totalPages: productsRes.meta?.totalPages ?? 1,
+};
+
 
   return (
     <main className="bg-light-pink/25 min-h-[60vh] py-6 md:py-10">
       <div className="container-main space-y-4">
         <Suspense fallback={null}>
           <ProductsPageHeader
-            totalItems={meta.totalItems}
+            totalItems={meta.totalItems ?? 0}
             categories={categoriesRes.data}
           />
         </Suspense>

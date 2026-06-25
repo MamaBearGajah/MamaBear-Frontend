@@ -27,7 +27,7 @@ function toApiProductParams(params: ProductListParams): ProductListParams {
   return apiParams;
 }
 
-const BASE_URL = "http://localhost:3000/api"; //Change to deployed BASE_URL later
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // export const fetchProducts = async (): Promise<Product> => {
 //   try {

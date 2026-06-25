@@ -7,39 +7,48 @@ import {
 } from "@/config/order-status";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import type { OrderStatusHistoryEntry } from "@/types";
 
 interface OrderTimelineProps {
   currentStatus: OrderStatus;
   orderDate: string;
+  statusHistory?: OrderStatusHistoryEntry[];
   className?: string;
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export default function OrderTimeline({
   currentStatus,
   orderDate,
+  statusHistory,
   className,
 }: OrderTimelineProps) {
   if (currentStatus === "cancelled") {
+    // Cari history cancelled kalau ada
+    const cancelEntry = statusHistory?.find((h) => h.status === "cancelled");
     return (
-      <Card
-        className={cn(
-          "border border-[#F8D7E3] bg-white shadow-sm",
-          className,
-        )}
-      >
+      <Card className={cn("border border-[#F8D7E3] bg-white shadow-sm", className)}>
         <CardHeader className="border-b border-[#F8D7E3] px-5 py-4">
-          <CardTitle className="text-base font-bold text-gray-800">
-            Order Status
-          </CardTitle>
+          <CardTitle className="text-base font-bold text-gray-800">Status Pesanan</CardTitle>
         </CardHeader>
         <CardContent className="px-5 py-4">
-          <div className="rounded-2xl bg-rose-50 px-4 py-4 text-center">
-            <p className="text-sm font-semibold text-rose-700">
-              Order Cancelled
-            </p>
-            <p className="mt-1 text-xs text-rose-600">
-              This order has been cancelled.
-            </p>
+          <div className="rounded-2xl bg-rose-50 px-4 py-4">
+            <p className="text-sm font-semibold text-rose-700">Pesanan Dibatalkan</p>
+            {cancelEntry?.note && (
+              <p className="mt-1 text-xs text-rose-600">{cancelEntry.note}</p>
+            )}
+            {cancelEntry?.createdAt && (
+              <p className="mt-1 text-xs text-rose-500">{formatDate(cancelEntry.createdAt)}</p>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -48,23 +57,32 @@ export default function OrderTimeline({
 
   const currentIndex = ORDER_STATUS_FLOW.indexOf(currentStatus);
 
+  // Buat map status → timestamp dari statusHistory BE
+  const historyMap = new Map<OrderStatus, OrderStatusHistoryEntry>();
+  if (statusHistory && statusHistory.length > 0) {
+    for (const entry of statusHistory) {
+      // Simpan entry terbaru untuk tiap status
+      if (!historyMap.has(entry.status) || entry.createdAt > (historyMap.get(entry.status)?.createdAt ?? "")) {
+        historyMap.set(entry.status, entry);
+      }
+    }
+  }
+
   return (
-    <Card
-      className={cn(
-        "border border-[#F8D7E3] bg-white shadow-sm",
-        className,
-      )}
-    >
+    <Card className={cn("border border-[#F8D7E3] bg-white shadow-sm", className)}>
       <CardHeader className="border-b border-[#F8D7E3] px-5 py-4">
-        <CardTitle className="text-base font-bold text-gray-800">
-          Order Status
-        </CardTitle>
+        <CardTitle className="text-base font-bold text-gray-800">Status Pesanan</CardTitle>
       </CardHeader>
       <CardContent className="px-5 py-4">
         <div className="space-y-4">
           {ORDER_STATUS_FLOW.map((status, index) => {
             const completed = currentIndex >= 0 && index <= currentIndex;
             const isActive = status === currentStatus;
+            const historyEntry = historyMap.get(status);
+
+            // Timestamp: dari history BE kalau ada, fallback ke orderDate untuk step pertama
+            const timestamp =
+              historyEntry?.createdAt ?? (index === 0 ? orderDate : null);
 
             return (
               <div key={status} className="flex gap-4">
@@ -110,22 +128,29 @@ export default function OrderTimeline({
                     />
                   )}
                 </div>
+
                 <div className="flex-1 pt-1">
-                  <p className="text-sm font-semibold text-slate-900">
+                  <p
+                    className={cn(
+                      "text-sm font-semibold",
+                      completed ? "text-slate-900" : "text-slate-400",
+                    )}
+                  >
                     {ORDER_STATUS_LABELS[status]}
                   </p>
-                  {index === 0 && (
-                    <p className="text-xs text-slate-500">
-                      {new Date(orderDate).toLocaleDateString("id-ID", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
+                  {timestamp && completed && (
+                    <p className="mt-0.5 text-xs text-slate-500">
+                      {formatDate(timestamp)}
                     </p>
                   )}
-                  {isActive && (
+                  {historyEntry?.note && completed && (
+                    <p className="mt-0.5 text-xs text-slate-500 italic">
+                      {historyEntry.note}
+                    </p>
+                  )}
+                  {isActive && !completed && (
                     <p className="mt-1 text-xs font-medium text-dark-pink">
-                      {completed ? "Completed" : "In progress"}
+                      Sedang diproses
                     </p>
                   )}
                 </div>

@@ -7,13 +7,20 @@ import OrderEmailPreview from "@/components/order/OrderEmailPreview";
 import OrderStatusBadge from "@/components/order/OrderStatusBadge";
 import { useAuth } from "@/context/AuthContext";
 import { useOrderPolling } from "@/hooks/useOrderPolling";
-import { membershipApi } from "@/lib/api/membership";
-import {
-  formatDisplayOrderId,
-  getDeliveryEstimateLabel,
-} from "@/lib/shop/order-delivery";
+import { getDeliveryEstimateLabel } from "@/lib/shop/order-delivery";
 import { formatPrice } from "@/lib/utils";
+import { POINT_RATE } from "@/config/membership-constants";
 import type { Order } from "@/types";
+
+/**
+ * Catatan poin:
+ * Poin TIDAK diberikan dari frontend. Backend otomatis memberikan poin
+ * saat admin mengubah status order → "delivered" melalui:
+ * OrdersService.updateStatus → MembershipService.processPurchase
+ *
+ * Teks "X poin" di sini hanya preview estimasi kepada user,
+ * bukan trigger pemberian poin.
+ */
 
 interface OrderSuccessViewProps {
   orderId?: string;
@@ -28,7 +35,10 @@ function formatPaymentLabel(order: Order): string {
     return method;
   }
   if (order.paymentProvider) {
-    return order.paymentProvider.charAt(0).toUpperCase() + order.paymentProvider.slice(1);
+    return (
+      order.paymentProvider.charAt(0).toUpperCase() +
+      order.paymentProvider.slice(1)
+    );
   }
   return "Online Payment";
 }
@@ -48,23 +58,6 @@ export default function OrderSuccessView({
     orderId,
     initialOrder,
   );
-  const [hasRedeemedOrderPoints, setHasRedeemedOrderPoints] = useState(false);
-  console.log("order",order);
-  useEffect(() => {
-    if (!order || hasRedeemedOrderPoints) return;
-    if (order.paymentStatus !== "paid") return;
-    if (!state.user?.id) return;
-
-    const points = Math.floor(order.total / 1000);
-    if (points <= 0) return;
-
-    membershipApi
-      .givePoints(state.user.id, points)
-      .then(() => setHasRedeemedOrderPoints(true))
-      .catch((err) => {
-        console.error("Failed to give order points:", err);
-      });
-  }, [order, hasRedeemedOrderPoints, state.user?.id]);
 
   if (!orderId) {
     return (
@@ -113,35 +106,42 @@ export default function OrderSuccessView({
     );
   }
 
-  const displayId = formatDisplayOrderId(order.id);
+  // Gunakan orderNumber dari BE langsung (format ORB-YYYYMMDD-XXXX)
+  const displayOrderNumber = order.orderNumber ?? order.id;
+
   const { etaText, estimatedDate } = getDeliveryEstimateLabel(
     order.createdAt,
     order.courier,
+    order.estimatedDelivery ?? undefined,
   );
+
   const userName = state.user?.name?.split(" ")[0] ?? "Mama";
-  const pointsEarned = Math.max(0, Math.floor(order.total / 1000));
+
+  // Estimasi poin yang akan didapat saat order delivered (Rp 1.000 = 1 poin)
+  const estimatedPoints = Math.max(0, Math.floor(order.total / POINT_RATE));
 
   return (
     <div className="mx-auto max-w-lg space-y-5">
       <div className="text-center">
         <div className="mb-4 flex items-center justify-center gap-2">
-          <PartyPopper
-            className="size-8 text-dark-pink"
-            aria-hidden
-          />
+          <PartyPopper className="size-8 text-dark-pink" aria-hidden />
           <span className="flex size-10 items-center justify-center rounded-full bg-dark-pink text-white">
             <Check className="size-5" strokeWidth={3} aria-hidden />
           </span>
         </div>
         <h1 className="font-heading text-2xl font-bold text-brown">
-          Order Placed! 🐻
+          Pesanan Berhasil! 🐻
         </h1>
         <p className="mt-2 text-sm text-brown/80">
-          Thank you, {userName}! Your order has been received.
+          Terima kasih, {userName}! Pesananmu sudah kami terima.
         </p>
-        <p className="mt-2 text-sm text-dark-pink">
-          You earned <strong>{pointsEarned.toLocaleString()}</strong> membership point{pointsEarned === 1 ? "" : "s"} from this order.
-        </p>
+        {estimatedPoints > 0 && (
+          <p className="mt-2 text-sm text-dark-pink">
+            Kamu akan mendapat{" "}
+            <strong>{estimatedPoints.toLocaleString("id-ID")} poin</strong>{" "}
+            membership setelah pesanan diterima.
+          </p>
+        )}
         <div className="mt-3 flex justify-center">
           <OrderStatusBadge
             status={order.status}
@@ -152,47 +152,61 @@ export default function OrderSuccessView({
         </div>
       </div>
 
+      {/* Nomor order */}
       <div className="rounded-2xl bg-light-pink/50 px-6 py-4 text-center">
         <p className="font-mono text-lg font-bold tracking-wide text-dark-pink">
-          {displayId}
+          {displayOrderNumber}
         </p>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-sm">
         <div className="divide-y divide-pink-50 px-5 py-1 text-sm">
           <div className="flex items-center justify-between py-3">
-            <span className="text-brown/70">Payment Method</span>
+            <span className="text-brown/70">Metode Pembayaran</span>
             <span className="font-medium text-brown">
               {formatPaymentLabel(order)}
             </span>
           </div>
           <div className="flex items-center justify-between py-3">
-            <span className="text-brown/70">Shipping</span>
+            <span className="text-brown/70">Pengiriman</span>
             <span className="font-medium text-brown">
               {formatShippingLabel(order)}
             </span>
           </div>
+          {order.discountAmount != null && order.discountAmount > 0 && (
+            <div className="flex items-center justify-between py-3">
+              <span className="text-brown/70">
+                Diskon{order.voucher ? ` (${order.voucher.code})` : ""}
+              </span>
+              <span className="font-medium text-emerald-700">
+                −{formatPrice(order.discountAmount)}
+              </span>
+            </div>
+          )}
           <div className="flex items-center justify-between py-3">
             <span className="text-brown/70">Total</span>
             <span className="font-bold text-dark-pink">
               {formatPrice(order.total)}
             </span>
           </div>
-          <div className="flex items-center justify-between py-3">
-            <span className="text-brown/70">Membership points earned</span>
-            <span className="font-medium text-dark-pink">
-              {pointsEarned.toLocaleString()} point{pointsEarned === 1 ? "" : "s"}
-            </span>
-          </div>
+          {estimatedPoints > 0 && (
+            <div className="flex items-center justify-between py-3">
+              <span className="text-brown/70">Estimasi poin</span>
+              <span className="font-medium text-dark-pink">
+                +{estimatedPoints.toLocaleString("id-ID")} poin
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
       {order.items.length > 0 && (
         <div className="rounded-2xl border border-pink-100 bg-white p-5 shadow-sm">
-          <h2 className="mb-3 text-sm font-semibold text-brown">Items</h2>
+          <h2 className="mb-3 text-sm font-semibold text-brown">Item</h2>
           <ul className="space-y-3">
             {order.items.map((item) => {
-              const unitPrice = item.variant?.discountPrice ?? item.discountPrice ?? item.price;
+              const unitPrice =
+                item.variant?.discountPrice ?? item.discountPrice ?? item.price;
               return (
                 <li
                   key={item.id}
@@ -200,8 +214,11 @@ export default function OrderSuccessView({
                 >
                   <div className="min-w-0">
                     <p className="line-clamp-2 font-medium text-brown">
-                      {item.name}
+                      {item.productName ?? item.name}
                     </p>
+                    {item.variantName && (
+                      <p className="text-xs text-brown/60">{item.variantName}</p>
+                    )}
                     <p className="text-xs text-brown/60">Qty {item.quantity}</p>
                   </div>
                   <p className="shrink-0 font-semibold text-brown">
@@ -215,7 +232,7 @@ export default function OrderSuccessView({
       )}
 
       <div className="rounded-2xl border border-pink-100 bg-white px-5 py-4 shadow-sm">
-        <p className="text-sm font-semibold text-brown">Estimated delivery</p>
+        <p className="text-sm font-semibold text-brown">Estimasi tiba</p>
         <p className="mt-1 text-sm text-brown">
           {estimatedDate.toLocaleDateString("id-ID", {
             weekday: "long",
@@ -231,11 +248,11 @@ export default function OrderSuccessView({
         <Mail className="mt-0.5 size-5 shrink-0 text-dark-pink" aria-hidden />
         <div>
           <p className="text-sm font-semibold text-brown">
-            Confirmation email sent!
+            Email konfirmasi terkirim!
           </p>
           <p className="mt-1 text-xs leading-relaxed text-brown/70">
-            Check your inbox for payment instructions and order details.
-            Payment expires in <strong>24 hours</strong>.
+            Cek inbox kamu untuk instruksi pembayaran dan detail pesanan.
+            Pembayaran kedaluwarsa dalam <strong>2 jam</strong>.
           </p>
         </div>
       </div>
@@ -248,8 +265,8 @@ export default function OrderSuccessView({
 
       {pollTimedOut && order.paymentStatus === "pending" && (
         <p className="text-center text-xs text-amber-800">
-          Payment confirmation is taking longer than usual. Refresh this page or
-          check My Orders in a few minutes.
+          Konfirmasi pembayaran membutuhkan waktu lebih lama dari biasanya.
+          Refresh halaman ini atau cek Pesanan Saya beberapa menit lagi.
         </p>
       )}
 
@@ -258,13 +275,13 @@ export default function OrderSuccessView({
           href={`/account/orders/${order.id}`}
           className="flex-1 rounded-full border-2 border-dark-pink bg-white py-3 text-center text-sm font-semibold text-dark-pink transition hover:bg-light-pink/30"
         >
-          Track Order
+          Lacak Pesanan
         </Link>
         <Link
           href="/products"
           className="flex-1 rounded-full bg-dark-pink py-3 text-center text-sm font-semibold text-white transition hover:bg-dark-pink/90"
         >
-          Continue Shopping
+          Lanjut Belanja
         </Link>
       </div>
     </div>
