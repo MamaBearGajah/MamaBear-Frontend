@@ -6,7 +6,6 @@ import CartItem from "../../../components/cart/CartItem";
 import CartSummary from "../../../components/cart/CartSummary";
 import EmptyCart from "../../../components/cart/EmptyCart";
 import { useCheckout } from "@/context/CheckoutContext";
-import { apiClient } from "@/lib/api/client";
 import {voucherApi} from "@/lib/api/voucher";
 // import { useCheckout } from "@/context/CheckoutContext";
 import { useAuth } from "@/context/AuthContext";
@@ -30,9 +29,10 @@ const CartPage = () => {
   // const { state: checkoutState, setShipping, nextStep } = useCheckout();
   const [promoApplied, setPromoApplied] = useState(false);
   const [promoError, setPromoError] = useState("");
-  const { state: checkoutState, setDiscount } = useCheckout();
+  const [appliedDiscount, setAppliedDiscount] = useState(0);
+  const { setDiscount } = useCheckout();
 
-  const { items, subtotal, loading } = state;
+  const { items, loading } = state;
   const checkoutHref = authState.user
     ? "/checkout/info"
     : "/auth/login?redirect=/checkout/info";
@@ -51,8 +51,7 @@ const CartPage = () => {
   }, 0);
 
   const selectedCount = selectedItems.length;
-  const discount = promoApplied ? selectedSubtotal * 0.15 : 0;
-  console.log("discount", discount);
+  const discount = promoApplied ? appliedDiscount : 0;
   useEffect(() => {
     setDiscount(discount);
   }, [discount]);
@@ -128,18 +127,30 @@ const CartPage = () => {
   const handleApplyPromo = async () => {
     setPromoError("");
     setPromoApplied(false);
+    setAppliedDiscount(0);
     setDiscount(0);
     if (!promoCode.trim()) {
       setPromoError("Masukkan kode voucher");
       return;
     }
 
+    if (selectedSubtotal <= 0) {
+      setPromoError("Pilih produk terlebih dahulu");
+      return;
+    }
+
     try {
-      const res = await voucherApi.validate(promoCode.trim(), selectedSubtotal, 0);
+      const res = await voucherApi.apply({
+        code: promoCode.trim().toUpperCase(),
+        totalAmount: selectedSubtotal,
+      });
+
+      console.log("voucher apply response", res);
 
       // API may return { success, data: { valid, voucher, discountAmount, ... } }
-      const success = (res as any)?.success ?? true;
-      const payload = (res as any)?.data ?? res;
+      const responseData = (res as any)?.data ?? res;
+      const success = responseData?.success ?? true;
+      const payload = responseData?.data ?? responseData;
 
       if (!success || !payload) {
         setPromoError("Voucher tidak valid");
@@ -154,7 +165,7 @@ const CartPage = () => {
       const rawValue = Number(voucher?.value ?? voucher?.discountValue ?? 0) || 0;
       const maxDiscount = Number(voucher?.maxDiscount ?? 0) || 0;
 
-      if (!valid || !voucher || !voucher.isActive) {
+      if (!valid || !voucher || (typeof voucher.isActive === "boolean" && !voucher.isActive)) {
         setPromoError("Voucher tidak valid atau sudah tidak aktif");
         return;
       }
@@ -177,13 +188,40 @@ const CartPage = () => {
       const apiDiscount = Number(payload.discountAmount ?? 0) || 0;
       if (apiDiscount > 0) computedDiscount = apiDiscount;
 
+      // If API returned final total, align discount to it.
+      const apiFinalPrice = Number(
+        payload.finalPrice ?? payload.finalTotal ?? payload.totalAfterDiscount ?? 0
+      ) || 0;
+      if (apiFinalPrice > 0) {
+        computedDiscount = Math.max(0, selectedSubtotal - apiFinalPrice);
+      }
+
+      // If apply response does not include usage count, try incrementing usage as best effort.
+      const payloadUsedCount = Number(payload.usedCount);
+      if (!Number.isFinite(payloadUsedCount) && voucher?.id) {
+        const currentUsedCount = Number(voucher.usedCount ?? voucher.usageCount ?? 0) || 0;
+        try {
+          await voucherApi.update(String(voucher.id), {
+            usedCount: currentUsedCount + 1,
+            usageCount: currentUsedCount + 1,
+          });
+        } catch (updateErr: any) {
+          const status = updateErr?.response?.status;
+          if (status !== 403) {
+            console.warn("Failed to update voucher usage count", updateErr);
+          }
+        }
+      }
+
       setPromoApplied(true);
       setPromoError("");
+      setAppliedDiscount(computedDiscount);
       setDiscount(computedDiscount);
     } catch (err) {
       console.error(err);
       setPromoApplied(false);
       setPromoError("Gagal memvalidasi voucher");
+      setAppliedDiscount(0);
       setDiscount(0);
     }
   };
