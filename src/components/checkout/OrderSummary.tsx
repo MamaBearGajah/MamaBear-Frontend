@@ -42,6 +42,7 @@ function OrderSummary() {
                       {item.quantity}
                     </div>
                   </div>
+
                   <div className="flex flex-col min-w-0">
                     <span className="line-clamp-1 font-medium text-gray-800">
                       {item.name}
@@ -49,6 +50,12 @@ function OrderSummary() {
                     {(item.variantLabel || item.variantName) && (
                       <span className="line-clamp-1 text-xs text-gray-500">
                         {item.variantLabel || item.variantName}
+                      </span>
+                    )}
+                    {/* Notes per item — dari CartItem.notes */}
+                    {item.notes && (
+                      <span className="mt-0.5 line-clamp-2 text-xs text-amber-600 italic">
+                        📝 {item.notes}
                       </span>
                     )}
                   </div>
@@ -93,7 +100,7 @@ function OrderSummary() {
         </div>
       </div>
 
-      {/* NOTES — dari shipping.deliveryNotes */}
+      {/* Catatan pengiriman */}
       {shipping?.deliveryNotes && (
         <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50 p-3 text-xs text-gray-600">
           <p className="font-semibold text-gray-700 mb-1">Catatan Pengiriman</p>
