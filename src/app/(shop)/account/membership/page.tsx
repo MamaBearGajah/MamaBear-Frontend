@@ -8,6 +8,8 @@ import { PointsCard } from "@/components/membership/PointsCard";
 import { TierCard } from "@/components/membership/TierCard";
 import { TierProgressTrack } from "@/components/membership/TierProgressTrack";
 import { PointsResetBanner } from "@/components/membership/PointResetBanner";
+import { ActiveVouchersCard } from "@/components/membership/ActiveVouchersCard";
+import { PointHistoryCard } from "@/components/membership/PointHistoryCard";
 
 type ToastState = { type: "success" | "error"; text: string } | null;
 
@@ -53,7 +55,9 @@ export default function MembershipPage() {
             points={membership.points}
             hasClaimed={membership.hasClaimed}
             isClaiming={membership.isClaiming}
+            isRedeeming={membership.isRedeeming}
             onClaim={membership.claim}
+            onRedeem={membership.redeem}
           />
           <TierCard
             currentTier={membership.currentTier}
@@ -70,6 +74,18 @@ export default function MembershipPage() {
           nextTier={membership.nextTier}
           progressPct={membership.progressPct}
         />
+      </div>
+
+      {/* Voucher aktif */}
+      {membership.activeVouchers.length > 0 && (
+        <div className="mb-4">
+          <ActiveVouchersCard vouchers={membership.activeVouchers} />
+        </div>
+      )}
+
+      {/* Riwayat poin */}
+      <div className="mb-4">
+        <PointHistoryCard transactions={membership.recentTransactions} />
       </div>
 
       {/* Reset banner */}

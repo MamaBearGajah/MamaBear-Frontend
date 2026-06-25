@@ -204,6 +204,7 @@ export interface CartItem {
   basePrice: number;
   discountPrice?: number;
   image: string;
+  notes?: string;
 }
 
 export interface CheckoutItem {
@@ -219,6 +220,7 @@ export interface CheckoutItem {
   basePrice: number;
   discountPrice?: number;
   image: string;
+  notes?: string;
 }
 
 export interface CartItemVariant {

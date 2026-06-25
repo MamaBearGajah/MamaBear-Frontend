@@ -23,6 +23,7 @@ export interface CheckoutItem {
   discountPrice?: number;
   discount?:number;
   image: string;
+  notes?: string;
 }
 
 export interface ShippingInfo {
