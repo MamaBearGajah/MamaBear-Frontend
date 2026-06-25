@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import { useCart } from "@/hooks/useCart";
 import { useCheckout } from "@/context/CheckoutContext";
-import { adminBundleHamperApi } from "@/lib/api/bundleHamper";
+import { bundleApi } from "@/lib/api/bundleHamper";
 import { normalizeApiResponse } from "@/lib/api/normalize-api-response";
 import { formatPrice } from "@/lib/utils";
 import type { CartItem } from "@/types";
@@ -53,16 +53,22 @@ function mapBundle(raw: unknown): BundleItem {
   };
 }
 
-function buildCheckoutItem(bundle: BundleItem) {
+/**
+ * Bangun satu CartItem yang mewakili bundle secara keseluruhan.
+ * Harga yang digunakan adalah bundlePrice / discountPrice dari bundle,
+ * bukan harga satuan per produk — ini memastikan diskon bundle terefleksi di cart.
+ */
+function buildBundleCartItem(bundle: BundleItem): CartItem {
   return {
     id: `bundle-${bundle.id}`,
     productId: bundle.id,
     quantity: 1,
     name: bundle.name,
     basePrice: bundle.bundlePrice,
-    discountPrice: bundle.discountPrice,
+    discountPrice: bundle.discountPrice || bundle.bundlePrice,
     image: bundle.imageUrl,
     variantLabel: "Bundle Hamper",
+    categoryName: "Bundle",
   };
 }
 
@@ -94,7 +100,8 @@ export default function PromotionLandingPage() {
   const fetchBundles = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data } = await adminBundleHamperApi.getAll();
+      // FIX: gunakan bundleApi (nama baru) dan getAll() yang memanggil public endpoint
+      const { data } = await bundleApi.getAll();
       const normalized = normalizeApiResponse<unknown>(data);
       const rows = Array.isArray(normalized.data) ? normalized.data : [];
       setBundles(rows.map(mapBundle).filter((bundle) => bundle.id));
@@ -111,35 +118,25 @@ export default function PromotionLandingPage() {
     void fetchBundles();
   }, [fetchBundles]);
 
+  /**
+   * FIX: sebelumnya menambahkan tiap produk bundle ke cart secara terpisah
+   * dengan harga 0, sehingga diskon bundle tidak terefleksi.
+   *
+   * Sekarang bundle diperlakukan sebagai satu item cart dengan bundlePrice/discountPrice,
+   * konsisten dengan handlePurchaseNow yang sudah benar dari awal.
+   */
   const handleAddBundleToCart = (bundle: BundleItem) => {
-    if (bundle.items.length === 0) {
-      toast.error("This bundle has no linked items yet");
+    if (bundle.stock <= 0) {
+      toast.error("Stok bundle habis");
       return;
     }
 
-    for (const item of bundle.items) {
-      if (!item.productId) continue;
-
-      const cartItem: CartItem = {
-        id: `bundle-${bundle.id}-${item.productId}`,
-        productId: item.productId,
-        quantity: item.quantity,
-        name: `${bundle.name} Item`,
-        basePrice: 0,
-        discountPrice: 0,
-        image: bundle.imageUrl,
-        categoryName: "Bundle",
-        variantLabel: "Bundle Item",
-      };
-
-      addItem(cartItem);
-    }
-
-    toast.success(`${bundle.name} added to cart`);
+    addItem(buildBundleCartItem(bundle));
+    toast.success(`${bundle.name} ditambahkan ke keranjang`);
   };
 
   const handlePurchaseNow = (bundle: BundleItem) => {
-    postItems([buildCheckoutItem(bundle)]);
+    postItems([buildBundleCartItem(bundle)]);
     router.push("/checkout/info");
   };
 
@@ -149,7 +146,7 @@ export default function PromotionLandingPage() {
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-20 lg:grid-cols-2">
           <div>
             <span className="mb-5 inline-block rounded-full bg-rose-500 px-4 py-2 text-sm font-semibold text-white shadow-md">
-              Mother’s Day Special • 1 - 31 May
+              Mother's Day Special • 1 - 31 May
             </span>
 
             <h1 className="mb-6 text-5xl leading-tight font-extrabold md:text-6xl">
@@ -168,7 +165,7 @@ export default function PromotionLandingPage() {
             <p className="mb-8 max-w-xl text-lg text-gray-600 md:text-xl">
               {heroBundle
                 ? `${heroBundle.description} Enjoy premium goodies and heartfelt gifting for only ${formatPrice(heroBundle.discountPrice || heroBundle.bundlePrice)}.`
-                : "Surprise your loved ones with our beautifully curated Mother’s Day hamper bundle. Enjoy premium goodies and elegant packaging."}
+                : "Surprise your loved ones with our beautifully curated Mother's Day hamper bundle. Enjoy premium goodies and elegant packaging."}
             </p>
 
             <div className="mb-8 flex flex-wrap gap-4">
@@ -238,7 +235,7 @@ export default function PromotionLandingPage() {
           {[
             {
               title: "Premium Quality",
-              desc: "High-quality curated items specially prepared for Mother’s Day.",
+              desc: "High-quality curated items specially prepared for Mother's Day.",
             },
             {
               title: "Elegant Packaging",
@@ -375,7 +372,7 @@ export default function PromotionLandingPage() {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 md:flex-row">
           <div>
             <h3 className="text-2xl font-extrabold text-rose-500">MamaBear</h3>
-            <p className="mt-1 text-gray-500">Mother’s Day Promotion</p>
+            <p className="mt-1 text-gray-500">Mother's Day Promotion</p>
           </div>
 
           <div className="flex gap-4 text-sm text-gray-500">

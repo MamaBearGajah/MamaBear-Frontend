@@ -7,6 +7,7 @@ import OrderSummary from "@/components/checkout/OrderSummary";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { shippingApi } from "@/lib/api/shipping";
+import { VoucherInput } from "@/components/checkout/VoucherInput";
 
 // Berat minimum per item jika tidak ada data berat (gram)
 const DEFAULT_ITEM_WEIGHT_GRAM = 500;
@@ -16,9 +17,6 @@ const CARGO_THRESHOLD_GRAM = 3000;
 
 // Kurir yang tersedia
 const COURIERS = ["jne", "jnt", "pos"] as const;
-
-// Services yang termasuk cargo (untuk filter jika > 3kg)
-const NON_CARGO_SERVICES = ["REG", "YES", "OKE", "REGULER", "EXPRESS"];
 
 interface Shipping {
   courier: string;
@@ -38,22 +36,22 @@ export default function CheckoutPageMethod() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  // FIX: hitung berat total dari items di checkout context
   const totalWeightGram = useMemo(() => {
     const items = checkoutState.items ?? [];
     if (items.length === 0) return DEFAULT_ITEM_WEIGHT_GRAM;
-
     const calculated = items.reduce((sum, item) => {
-      // Pakai weight dari item kalau ada, fallback ke DEFAULT
       const itemWeight = (item as any).weight ?? DEFAULT_ITEM_WEIGHT_GRAM;
       return sum + itemWeight * item.quantity;
     }, 0);
-
-    // Minimum 1 gram agar API tidak reject
     return Math.max(calculated, 1);
   }, [checkoutState.items]);
 
   const isCargo = totalWeightGram >= CARGO_THRESHOLD_GRAM;
+
+  const subtotal = checkoutState.items.reduce((sum, item) => {
+    const price = item.discountPrice ?? item.basePrice;
+    return sum + price * item.quantity;
+  }, 0);
 
   useEffect(() => {
     if (!checkoutState.shipping?.cityId) {
@@ -66,13 +64,11 @@ export default function CheckoutPageMethod() {
     async function fetchShippingCost() {
       setLoading(true);
       try {
-        // FIX: fetch semua kurir secara paralel
         const results = await Promise.allSettled(
           COURIERS.map((courier) =>
             shippingApi.calculateShipping({
               originCityId: ORIGIN_CITY_ID,
               destinationCityId: checkoutState.shipping!.cityId,
-              // FIX: pakai berat real, bukan hardcode 100
               weight: totalWeightGram,
               courier,
             })
@@ -89,7 +85,6 @@ export default function CheckoutPageMethod() {
           const data = result.value.data?.data ?? [];
           data.forEach((item: any) => {
             const costArr = item.cost;
-            // cost bisa array [{value, etd, note}] atau number
             const cost = Array.isArray(costArr)
               ? costArr[0]?.value ?? costArr[0] ?? 0
               : Number(costArr ?? 0);
@@ -106,16 +101,14 @@ export default function CheckoutPageMethod() {
           });
         });
 
-        // FIX: filter cargo vs non-cargo berdasarkan berat
         const filtered = isCargo
-          ? options // cargo: tampilkan semua (user harus tahu)
-          : options.filter((o) =>
-              // non-cargo: hilangkan layanan yang khusus cargo/freight
-              !o.service.toLowerCase().includes("cargo") &&
-              !o.service.toLowerCase().includes("freight")
+          ? options
+          : options.filter(
+              (o) =>
+                !o.service.toLowerCase().includes("cargo") &&
+                !o.service.toLowerCase().includes("freight")
             );
 
-        // Sort: harga termurah dulu
         filtered.sort((a, b) => a.cost - b.cost);
         setShippingOptions(filtered);
       } catch (err) {
@@ -166,7 +159,6 @@ export default function CheckoutPageMethod() {
               Pengiriman ke: {checkoutState.shipping?.address}
             </p>
 
-            {/* FIX: tampilkan berat total + info cargo */}
             <div className="mb-4 flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-500">
               <Package size={14} />
               <span>
@@ -258,6 +250,17 @@ export default function CheckoutPageMethod() {
                   </label>
                 ))
               )}
+
+              {/* FIX: VoucherInput ditambahkan di sini — setelah pilih kurir,
+                  sebelum lanjut ke review. ShippingCost dari selectedShipping
+                  dipass supaya voucher free_shipping bisa dihitung dengan benar. */}
+              <div className="mt-4 rounded-xl border border-pink-100 bg-pink-50/30 p-4">
+                <VoucherInput
+                  subtotal={subtotal}
+                  shippingCost={selectedShipping?.cost ?? 0}
+                />
+              </div>
+
               <div className="mt-5 flex w-full flex-col gap-3 sm:flex-row">
                 <button
                   type="button"

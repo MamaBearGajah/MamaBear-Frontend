@@ -5,34 +5,32 @@
  * Input kode voucher di checkout — validasi ke BE dan hitung diskon
  * BE: POST /vouchers/validate
  *
- * Cara pakai di checkout page:
- *   <VoucherInput subtotal={subtotal} onApply={(result) => setDiscount(result.discountAmount)} />
+ * FIX: sekarang pakai setVoucher() dari CheckoutContext supaya
+ * voucherCode & voucherId tersimpan di state dan terkirim ke BE saat place order.
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Tag, X, CheckCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { voucherApi, type VoucherValidateResult } from "@/lib/api/voucher";
+import { voucherApi } from "@/lib/api/voucher";
 import { formatPrice } from "@/lib/utils";
+import { useCheckout } from "@/context/CheckoutContext";
 
 interface VoucherInputProps {
   subtotal: number;
   shippingCost?: number;
-  onApply: (result: VoucherValidateResult & { code: string }) => void;
-  onRemove: () => void;
-  appliedCode?: string;
 }
 
-export function VoucherInput({
-  subtotal,
-  shippingCost = 0,
-  onApply,
-  onRemove,
-  appliedCode,
-}: VoucherInputProps) {
-  const [code, setCode] = useState(appliedCode ?? "");
+export function VoucherInput({ subtotal, shippingCost = 0 }: VoucherInputProps) {
+  const { state, setVoucher, clearVoucher } = useCheckout();
+
+  const [code, setCode] = useState(state.voucherCode ?? "");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<(VoucherValidateResult & { code: string }) | null>(null);
+
+  // Sync input jika context berubah dari luar (misal clearCheckout)
+  useEffect(() => {
+    setCode(state.voucherCode ?? "");
+  }, [state.voucherCode]);
 
   async function handleApply() {
     if (!code.trim()) {
@@ -52,9 +50,13 @@ export function VoucherInput({
         return;
       }
 
-      const applied = { ...res, code: code.trim().toUpperCase() };
-      setResult(applied);
-      onApply(applied);
+      // FIX: simpan ke context — code (display), id (kirim ke BE), discount
+      setVoucher(
+        code.trim().toUpperCase(),
+        res.voucher.id,
+        res.discountAmount,
+      );
+
       toast.success(`Voucher berhasil! Hemat ${formatPrice(res.discountAmount)}`);
     } catch (e: any) {
       toast.error(
@@ -68,22 +70,22 @@ export function VoucherInput({
   }
 
   function handleRemove() {
-    setResult(null);
     setCode("");
-    onRemove();
+    clearVoucher();
   }
 
-  if (result) {
+  // Sudah ada voucher di context → tampilkan state applied
+  if (state.voucherCode) {
     return (
       <div className="flex items-center justify-between rounded-xl border border-green-200 bg-green-50 px-4 py-3">
         <div className="flex items-center gap-2">
           <CheckCircle className="size-4 shrink-0 text-green-600" />
           <div>
             <p className="font-mono text-sm font-semibold text-green-800">
-              {result.code}
+              {state.voucherCode}
             </p>
             <p className="text-xs text-green-600">
-              Hemat {formatPrice(result.discountAmount)}
+              Hemat {formatPrice(state.discount)}
             </p>
           </div>
         </div>

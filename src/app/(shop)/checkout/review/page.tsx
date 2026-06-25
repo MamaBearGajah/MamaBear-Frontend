@@ -15,7 +15,7 @@ const DEV_FALLBACK_ORDER_ID = "ORD-2026-8921";
 
 const CheckoutPageReview = () => {
   const { state: checkoutState, prevStep, clearCheckout } = useCheckout();
-  const { method, shipping } = checkoutState;
+  const { method, shipping, discount, voucherId } = checkoutState;
   const { state: cartState, clearCart } = useCart();
   const { items } = cartState;
   const router = useRouter();
@@ -42,6 +42,8 @@ const CheckoutPageReview = () => {
         courier: method.courier,
         service: method.service,
         provider: "xendit",
+        // FIX: kirim voucherId dari context ke BE
+        voucherId: voucherId || undefined,
       });
 
       clearCart();
@@ -79,7 +81,9 @@ const CheckoutPageReview = () => {
         sum + (item.discountPrice ?? item.basePrice) * item.quantity,
       0
     );
-  const total = calculateSubtotal() + (method?.cost ?? 9000);
+
+  // FIX: kurangi discount dari total
+  const total = calculateSubtotal() + (method?.cost ?? 9000) - (discount ?? 0);
 
   return (
     <div className="min-h-screen bg-[#fff0f3] px-4 py-10 text-gray-800">
@@ -94,20 +98,20 @@ const CheckoutPageReview = () => {
 
             {/* SHIPPING ADDRESS */}
             <div className="flex flex-col gap-2 rounded-xl border border-pink-100 bg-[#fff5f7] p-5">
-            <div className="mb-1 flex items-center justify-between">
-              <span className="font-medium text-gray-800">
-                Shipping Address
-              </span>
+              <div className="mb-1 flex items-center justify-between">
+                <span className="font-medium text-gray-800">
+                  Shipping Address
+                </span>
+              </div>
+              <div className="flex flex-col text-sm text-gray-600">
+                <span className="font-medium">
+                  {shipping?.receiverName || "No Full Name"}
+                </span>
+                <span>{shipping?.phone || "No Phone Number"}</span>
+                <span>{shipping?.address || "No Street Address"}</span>
+                <span>{shipping?.deliveryNotes || "No Delivery notes"}</span>
+              </div>
             </div>
-            <div className="flex flex-col text-sm text-gray-600">
-              <span className="font-medium">
-                {shipping?.receiverName || "No Full Name"}  {/* fullName → receiverName */}
-              </span>
-              <span>{shipping?.phone || "No Phone Number"}</span>
-              <span>{shipping?.address || "No Street Address"}</span>  {/* streetAddress → address */}
-              <span>{shipping?.deliveryNotes || "No Delivery notes"}</span>
-            </div>
-          </div>
 
             {/* SHIPPING */}
             <div className="flex flex-col gap-2 rounded-xl border border-pink-100 bg-[#fff5f7] p-5">

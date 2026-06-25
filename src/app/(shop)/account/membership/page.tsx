@@ -66,13 +66,14 @@ export default function MembershipPage() {
         </div>
       </div>
 
-      {/* Progress checkpoint */}
+      {/* FIX: kirim totalSpent & remainingSpend ke TierProgressTrack, bukan points */}
       <div className="mb-4">
         <TierProgressTrack
-          points={membership.points}
+          totalSpent={membership.totalSpent}
           currentTier={membership.currentTier}
           nextTier={membership.nextTier}
           progressPct={membership.progressPct}
+          remainingSpend={membership.remainingSpend}
         />
       </div>
 
