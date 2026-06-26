@@ -18,7 +18,7 @@ const PaymentPage = () => {
   const { clearCart } = useCart();
   const router = useRouter();
   const { state: checkoutState, clearCheckout, subtotal, hydrated } = useCheckout();
-  const { items, method: shippingMethod, discount } = checkoutState;
+  const { items, method: shippingMethod, discount, voucherId } = checkoutState;
 
   const [method, setMethod] = useState<PaymentMethod>("va");
   const [loading, setLoading] = useState(false);
@@ -102,6 +102,7 @@ const PaymentPage = () => {
         courier,
         service,
         provider: "xendit",
+        voucherId: voucherId ?? undefined, // diteruskan ke createOrder → usedCount++
       });
 
       clearCart();
@@ -142,7 +143,6 @@ const PaymentPage = () => {
             )}
           </div>
 
-          {/* Iframe Xendit */}
           <div className="w-full rounded-2xl overflow-hidden shadow-lg bg-white border border-pink-100">
             <iframe
               src={paymentUrl}
@@ -153,7 +153,6 @@ const PaymentPage = () => {
             />
           </div>
 
-          {/* Fallback: buka di tab baru kalau iframe tidak load */}
           <p className="text-xs text-slate-400 mt-3 text-center">
             Halaman tidak tampil?{" "}
             <a
@@ -202,7 +201,6 @@ const PaymentPage = () => {
 
           <PaymentSelector selected={method} onSelect={setMethod} />
 
-          {/* Info Xendit */}
           <div className="mt-6 rounded-2xl border border-pink-200 bg-pink-50 p-4 text-sm text-slate-700">
             <strong>Xendit:</strong> Pembayaran diproses secara aman melalui Xendit.
             Form pembayaran akan muncul langsung di halaman ini via{" "}
@@ -211,7 +209,6 @@ const PaymentPage = () => {
               : method.toUpperCase()}.
           </div>
 
-          {/* Info pengiriman */}
           {shippingMethod && (
             <div className="mt-4 rounded-2xl border border-gray-100 bg-gray-50 p-4 text-sm text-slate-600">
               <p className="font-medium text-slate-800 mb-1">Pengiriman</p>

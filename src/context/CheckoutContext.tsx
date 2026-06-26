@@ -48,8 +48,8 @@ export interface CheckoutState {
   shipping: ShippingInfo | null;
   method: ShippingMethod | null;
   discount: number;
-  voucherCode: string;   // FIX: tambah untuk simpan kode voucher yang diapply
-  voucherId: string;     // FIX: tambah untuk dikirim ke BE saat place order
+  voucherCode: string;  // untuk display kode voucher
+  voucherId: string;    // untuk dikirim ke BE saat place order
   step: number;
 }
 
@@ -65,11 +65,13 @@ interface CheckoutContextType {
 
   setShipping: (data: ShippingInfo) => void;
   setMethod: (data: ShippingMethod) => void;
-  setDiscount: (discount: number) => void;
 
-  // FIX: setter voucher — simpan code (untuk display) dan id (untuk dikirim ke BE)
+  // simpan code (untuk display), id (untuk BE), dan discountAmount sekaligus
   setVoucher: (code: string, id: string, discountAmount: number) => void;
   clearVoucher: () => void;
+
+  // backward-compat: hanya update nominal discount tanpa sentuh voucher
+  setDiscount: (discount: number) => void;
 
   nextStep: () => void;
   prevStep: () => void;
@@ -142,10 +144,6 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   const setMethod = (data: ShippingMethod) =>
     setState((prev) => ({ ...prev, method: data }));
 
-  const setDiscount = (discount: number) =>
-    setState((prev) => ({ ...prev, discount }));
-
-  // FIX: set voucher — simpan code, id, dan discount sekaligus
   const setVoucher = (code: string, id: string, discountAmount: number) =>
     setState((prev) => ({
       ...prev,
@@ -154,7 +152,6 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
       discount: discountAmount,
     }));
 
-  // FIX: clear voucher — reset semua field voucher + discount
   const clearVoucher = () =>
     setState((prev) => ({
       ...prev,
@@ -162,6 +159,10 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
       voucherId: "",
       discount: 0,
     }));
+
+  // backward-compat: hanya update nominal, tidak reset voucher
+  const setDiscount = (discount: number) =>
+    setState((prev) => ({ ...prev, discount }));
 
   const nextStep = () =>
     setState((prev) => ({ ...prev, step: Math.min(prev.step + 1, 3) }));
@@ -186,9 +187,9 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
         clearItems,
         setShipping,
         setMethod,
-        setDiscount,
         setVoucher,
         clearVoucher,
+        setDiscount,
         nextStep,
         prevStep,
         clearCheckout,
