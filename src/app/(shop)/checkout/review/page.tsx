@@ -15,7 +15,7 @@ const DEV_FALLBACK_ORDER_ID = "ORD-2026-8921";
 
 const CheckoutPageReview = () => {
   const { state: checkoutState, prevStep, clearCheckout } = useCheckout();
-  const { method, shipping, discount, voucherId } = checkoutState;
+  const { method, shipping, voucherId, discount } = checkoutState; // FIX: tambah discount
   const { state: cartState, clearCart } = useCart();
   const { items } = cartState;
   const router = useRouter();
@@ -42,8 +42,7 @@ const CheckoutPageReview = () => {
         courier: method.courier,
         service: method.service,
         provider: "xendit",
-        // FIX: kirim voucherId dari context ke BE
-        voucherId: voucherId || undefined,
+        voucherId: voucherId ?? undefined,
       });
 
       clearCart();
@@ -54,17 +53,13 @@ const CheckoutPageReview = () => {
         return;
       }
 
-      router.push(
-        `/order-success?orderId=${encodeURIComponent(result.orderId)}`
-      );
+      router.push(`/order-success?orderId=${encodeURIComponent(result.orderId)}`);
     } catch (error) {
       console.error(error);
       toast.info("Backend belum siap — menampilkan pesanan demo.");
       clearCart();
       clearCheckout();
-      router.push(
-        `/order-success?orderId=${encodeURIComponent(DEV_FALLBACK_ORDER_ID)}`
-      );
+      router.push(`/order-success?orderId=${encodeURIComponent(DEV_FALLBACK_ORDER_ID)}`);
     } finally {
       setLoading(false);
     }
@@ -77,12 +72,10 @@ const CheckoutPageReview = () => {
 
   const calculateSubtotal = () =>
     items.reduce(
-      (sum, item) =>
-        sum + (item.discountPrice ?? item.basePrice) * item.quantity,
+      (sum, item) => sum + (item.discountPrice ?? item.basePrice) * item.quantity,
       0
     );
 
-  // FIX: kurangi discount dari total
   const total = calculateSubtotal() + (method?.cost ?? 9000) - (discount ?? 0);
 
   return (
@@ -99,9 +92,7 @@ const CheckoutPageReview = () => {
             {/* SHIPPING ADDRESS */}
             <div className="flex flex-col gap-2 rounded-xl border border-pink-100 bg-[#fff5f7] p-5">
               <div className="mb-1 flex items-center justify-between">
-                <span className="font-medium text-gray-800">
-                  Shipping Address
-                </span>
+                <span className="font-medium text-gray-800">Shipping Address</span>
               </div>
               <div className="flex flex-col text-sm text-gray-600">
                 <span className="font-medium">
@@ -113,7 +104,7 @@ const CheckoutPageReview = () => {
               </div>
             </div>
 
-            {/* SHIPPING */}
+            {/* SHIPPING METHOD */}
             <div className="flex flex-col gap-2 rounded-xl border border-pink-100 bg-[#fff5f7] p-5">
               <div className="mb-1 flex items-center justify-between">
                 <span className="font-medium text-gray-800">Shipping</span>
@@ -140,15 +131,12 @@ const CheckoutPageReview = () => {
                   className="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 text-gray-700 accent-[#555]"
                 />
                 <span className="leading-snug">
-                  I agree to Mamabear's{" "}
+                  I agree to Mamabear&apos;s{" "}
                   <Link href="/terms" className="text-pink-600 hover:underline">
                     Terms of Service
                   </Link>{" "}
                   and{" "}
-                  <Link
-                    href="/privacy"
-                    className="text-pink-600 hover:underline"
-                  >
+                  <Link href="/privacy" className="text-pink-600 hover:underline">
                     Privacy Policy
                   </Link>
                   . I confirm my order details are correct.
@@ -185,9 +173,7 @@ const CheckoutPageReview = () => {
                 }`}
               >
                 <Lock size={14} />
-                {loading
-                  ? "Processing..."
-                  : `Place Order — ${safeFormatPrice(total)}`}
+                {loading ? "Processing..." : `Place Order — ${safeFormatPrice(total)}`}
               </button>
             </div>
           </div>

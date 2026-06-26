@@ -7,7 +7,7 @@ export type PlaceShopOrderInput = {
   service: string;
   provider?: "xendit" | "midtrans";
   notes?: string;
-  voucherId?: string; // FIX: tambah untuk kirim voucher ke BE
+  voucherId?: string; // dikirim ke BE supaya diskon diterapkan dan usedCount++
 };
 
 export type PlaceShopOrderResult = {
@@ -43,14 +43,14 @@ export async function placeShopOrder(
   const provider = input.provider ?? "xendit";
 
   // 1. Buat order di BE
+  //    - courier di-lowercase (konvensi BE)
+  //    - service JANGAN di-lowercase — kode RajaOngkir (REG/YES/OKE) case-sensitive
+  //    - voucherId dikirim supaya BE menerapkan diskon dan increment usedCount
   const orderRes = await createOrder({
     addressId,
     courier: input.courier.toLowerCase(),
-    // FIX: jangan lowercase `service` — kode service dari RajaOngkir (REG/YES/OKE)
-    // case-sensitive secara konvensi.
     service: input.service,
     notes: input.notes,
-    // FIX: kirim voucherId ke BE supaya diskon diterapkan
     voucherId: input.voucherId || undefined,
   });
 
@@ -79,7 +79,6 @@ export async function placeShopOrder(
       snapToken: paymentRes.data?.snapToken || undefined,
     };
   } catch {
-    // Payment gagal tapi order sudah dibuat — kembalikan orderId agar user bisa coba lagi
     return { orderId };
   }
 }
