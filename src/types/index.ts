@@ -254,9 +254,8 @@ export interface CartItemVariantCategory {
   slug: string;
 }
 
-// ─── Order types ─────────────────────────────────────────────────────────────
+// ─── Order types ──────────────────────────────────────────────────────────────
 
-/** Alamat pengiriman yang diembed di response order */
 export interface OrderAddress {
   id: string;
   receiverName: string;
@@ -269,7 +268,6 @@ export interface OrderAddress {
   notes?: string;
 }
 
-/** Satu entry di history status order */
 export interface OrderStatusHistoryEntry {
   id: string;
   orderId: string;
@@ -282,13 +280,10 @@ export interface OrderItem {
   id: string;
   productId: string;
   variantId?: string;
-  /** Nama produk saat order dibuat (disimpan di DB, tidak berubah walau produk di-edit) */
   productName?: string;
-  /** Nama varian saat order dibuat, misal "Ukuran: L" */
   variantName?: string | null;
   quantity: number;
   price: number;
-  /** @deprecated Gunakan productName. Diisi oleh mapOrderItem sebagai fallback. */
   name: string;
   discountPrice?: number;
   notes?: string | null;
@@ -307,7 +302,6 @@ export type PaymentStatus = "pending" | "paid" | "failed" | "expired" | "refunde
 
 export interface Order {
   id: string;
-  /** Format ORB-YYYYMMDD-XXXX dari backend — gunakan ini sebagai nomor order, bukan id */
   orderNumber?: string;
   userId: string;
   addressId: string;
@@ -315,33 +309,29 @@ export interface Order {
   paymentStatus: PaymentStatus;
   subtotal?: number;
   discountAmount?: number;
+  discountShipping?: number; // NEW
   total: number;
   shippingCost: number;
   courier: string;
   service: string;
   trackingNumber?: string;
-  /** Estimasi tanggal tiba dari RajaOngkir */
   estimatedDelivery?: string | null;
   deliveredAt?: string | null;
   cancelledAt?: string | null;
   cancelReason?: string | null;
   notes?: string | null;
-  /** Batas waktu pembayaran (+2 jam dari order dibuat) */
   paymentDeadline?: string | null;
-  /** Batas waktu cancel user (+30 menit dari order dibuat) */
   cancelDeadline?: string | null;
   paymentMethod?: string;
   paymentProvider?: "xendit" | "midtrans";
   items: OrderItem[];
-  /** Alamat pengiriman lengkap (diembed saat fetch detail) */
   address?: OrderAddress | null;
-  /** Riwayat perubahan status */
   statusHistory?: OrderStatusHistoryEntry[];
   createdAt: string;
   updatedAt?: string;
-  /** Populated by admin/detail endpoints */
   user?: { name: string; email?: string; phone?: string };
   voucher?: { code: string; type: string; value: number } | null;
+  voucherShipping?: { code: string; type: string; value: number } | null; // NEW
 }
 
 export interface OrderListParams {
@@ -358,6 +348,7 @@ export interface CreateOrderPayload {
   paymentMethod?: "xendit" | "midtrans";
   notes?: string;
   voucherId?: string;
+  voucherShippingId?: string; // NEW
 }
 
 export interface CreateOrderResult {
@@ -416,7 +407,7 @@ export interface UserPreferences {
 
 export interface Address {
   id: string;
-  label: string; // "Home" | "Office" | "Other"
+  label: string;
   receiverName: string;
   phone: string;
   address: string;
@@ -471,7 +462,6 @@ export interface ProductListParams {
   page?: number;
   limit?: number;
   q?: string;
-  /** @deprecated Prefer categoryIds for multi-select */
   categoryId?: string;
   categoryIds?: string[];
   minPrice?: number;
@@ -596,7 +586,6 @@ export interface wishlistItem {
   productId: string;
 }
 
-/** Admin + shop category list item */
 export interface Category {
   id: string;
   parentId?: string | null;
@@ -615,7 +604,6 @@ export interface ResFetchReviewsByProductId {
   pagination: Pagination;
 }
 
-/** YYYY-MM-DD date filter for admin reports */
 export interface ReportDateRange {
   from: string;
   to: string;

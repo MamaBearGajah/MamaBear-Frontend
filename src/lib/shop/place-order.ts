@@ -7,7 +7,8 @@ export type PlaceShopOrderInput = {
   service: string;
   provider?: "xendit" | "midtrans";
   notes?: string;
-  voucherId?: string; // dikirim ke BE supaya diskon diterapkan dan usedCount++
+  voucherId?: string;          // voucher potongan harga produk
+  voucherShippingId?: string;  // voucher gratis ongkir
 };
 
 export type PlaceShopOrderResult = {
@@ -42,16 +43,13 @@ export async function placeShopOrder(
 
   const provider = input.provider ?? "xendit";
 
-  // 1. Buat order di BE
-  //    - courier di-lowercase (konvensi BE)
-  //    - service JANGAN di-lowercase — kode RajaOngkir (REG/YES/OKE) case-sensitive
-  //    - voucherId dikirim supaya BE menerapkan diskon dan increment usedCount
   const orderRes = await createOrder({
     addressId,
     courier: input.courier.toLowerCase(),
     service: input.service,
     notes: input.notes,
     voucherId: input.voucherId || undefined,
+    voucherShippingId: input.voucherShippingId || undefined,
   });
 
   const orderId = orderRes.data?.orderId;
@@ -59,13 +57,11 @@ export async function placeShopOrder(
     throw new Error("Order berhasil dibuat tapi orderId tidak ditemukan.");
   }
 
-  // Ambil total dari response order untuk dikirim ke payment endpoint
   const total = (orderRes.data as any)?.total ?? (orderRes.data as any)?.amount;
   if (!total) {
-    console.warn("placeShopOrder: total tidak ada di order response, payment mungkin gagal");
+    console.warn("placeShopOrder: total tidak ada di order response");
   }
 
-  // 2. Buat payment
   try {
     const paymentRes = await checkoutPayment({
       orderId,
