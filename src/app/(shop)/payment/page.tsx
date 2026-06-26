@@ -4,9 +4,8 @@ import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/hooks/useCart";
-import { ArrowLeft, CreditCard, Loader2, ExternalLink } from "lucide-react";
+import { ArrowLeft, ShoppingBag, Loader2, ExternalLink, Shield, Truck } from "lucide-react";
 import { toast } from "sonner";
-import PaymentSelector, { PaymentMethod } from "@/components/checkout/PaymentSelector";
 import { useCheckout } from "@/context/CheckoutContext";
 import { safeFormatPrice } from "@/lib/utils";
 import { placeShopOrder } from "@/lib/shop/place-order";
@@ -18,27 +17,29 @@ const PaymentPage = () => {
   const { clearCart } = useCart();
   const router = useRouter();
   const { state: checkoutState, clearCheckout, subtotal, hydrated } = useCheckout();
-  const { items, method: shippingMethod, discount, voucherId } = checkoutState;
+  const {
+    items,
+    method: shippingMethod,
+    discount,
+    discountShipping,
+    voucherId,
+    voucherShippingId,
+  } = checkoutState;
 
-  const [method, setMethod] = useState<PaymentMethod>("va");
   const [loading, setLoading] = useState(false);
-
-  // State setelah order dibuat — tampilkan iframe
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [polling, setPolling] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const shipping = shippingMethod?.cost ?? 0;
-  const total = subtotal - (discount ?? 0) + shipping;
+  const total = subtotal - (discount ?? 0) - (discountShipping ?? 0) + shipping;
 
-  // ─── Guard: redirect jika cart kosong ────────────────────────────────────
   useEffect(() => {
     if (!hydrated) return;
     if (items.length === 0 && !paymentUrl) router.replace("/cart");
   }, [hydrated, items.length, paymentUrl, router]);
 
-  // ─── Polling status pembayaran ────────────────────────────────────────────
   useEffect(() => {
     if (!orderId || !paymentUrl) return;
 
@@ -69,7 +70,6 @@ const PaymentPage = () => {
     };
   }, [orderId, paymentUrl, router]);
 
-  // ─── Hydration guard ──────────────────────────────────────────────────────
   if (!hydrated) return null;
 
   if (items.length === 0 && !paymentUrl) {
@@ -77,15 +77,12 @@ const PaymentPage = () => {
       <div className="min-h-screen flex items-center justify-center bg-pink-50">
         <div className="text-center">
           <h1 className="text-xl font-bold mb-3">Keranjang kosong</h1>
-          <Link href="/products" className="text-pink-600 underline">
-            Belanja dulu
-          </Link>
+          <Link href="/products" className="text-pink-600 underline">Belanja dulu</Link>
         </div>
       </div>
     );
   }
 
-  // ─── Handler: buat order & tampilkan iframe ───────────────────────────────
   const handlePayment = async () => {
     const courier = shippingMethod?.courier;
     const service = shippingMethod?.service;
@@ -102,14 +99,14 @@ const PaymentPage = () => {
         courier,
         service,
         provider: "xendit",
-        voucherId: voucherId ?? undefined, // diteruskan ke createOrder → usedCount++
+        voucherId: voucherId || undefined,
+        voucherShippingId: voucherShippingId || undefined,
       });
 
       clearCart();
       clearCheckout();
 
       if (result.paymentUrl) {
-        // Simpan ke state — tampilkan iframe, jangan redirect
         setPaymentUrl(result.paymentUrl);
         setOrderId(result.orderId);
         return;
@@ -128,7 +125,7 @@ const PaymentPage = () => {
     }
   };
 
-  // ─── View: iframe Xendit ──────────────────────────────────────────────────
+  // ─── View: Xendit iframe ──────────────────────────────────────────────────
   if (paymentUrl) {
     return (
       <div className="min-h-screen bg-pink-50 flex flex-col items-center py-8 px-4">
@@ -169,11 +166,9 @@ const PaymentPage = () => {
     );
   }
 
-  // ─── View: halaman pilih metode pembayaran ────────────────────────────────
+  // ─── View: Ringkasan + tombol bayar ──────────────────────────────────────
   return (
     <div className="min-h-screen bg-pink-50 py-10 px-4">
-
-      {/* Loading overlay */}
       {loading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
           <div className="flex flex-col items-center gap-3 rounded-2xl bg-white/95 px-8 py-8 shadow-lg">
@@ -186,103 +181,119 @@ const PaymentPage = () => {
         </div>
       )}
 
-      <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-8">
-
-        {/* LEFT — PAYMENT METHOD */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm">
-          <div className="flex items-center gap-2 mb-6">
-            <button onClick={() => router.back()} className="text-pink-600 hover:text-pink-700">
-              <ArrowLeft size={18} />
-            </button>
-            <h1 className="text-2xl font-bold">Pembayaran</h1>
-          </div>
-
-          <h2 className="font-semibold mb-4">Pilih Metode Pembayaran</h2>
-
-          <PaymentSelector selected={method} onSelect={setMethod} />
-
-          <div className="mt-6 rounded-2xl border border-pink-200 bg-pink-50 p-4 text-sm text-slate-700">
-            <strong>Xendit:</strong> Pembayaran diproses secara aman melalui Xendit.
-            Form pembayaran akan muncul langsung di halaman ini via{" "}
-            {method === "va" ? "Virtual Account"
-              : method === "card" ? "Kartu Kredit/Debit"
-              : method.toUpperCase()}.
-          </div>
-
-          {shippingMethod && (
-            <div className="mt-4 rounded-2xl border border-gray-100 bg-gray-50 p-4 text-sm text-slate-600">
-              <p className="font-medium text-slate-800 mb-1">Pengiriman</p>
-              <p>
-                {shippingMethod.courier?.toUpperCase()} {shippingMethod.service}{" "}
-                — {safeFormatPrice(shippingMethod.cost ?? 0)}
-              </p>
-              {shippingMethod.etd && (
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Estimasi {shippingMethod.etd} hari kerja
-                </p>
-              )}
-            </div>
-          )}
+      <div className="max-w-lg mx-auto">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <button
+            onClick={() => router.back()}
+            className="rounded-full p-2 text-pink-600 hover:bg-pink-100 transition-colors"
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <h1 className="text-2xl font-bold text-slate-800">Ringkasan Pembayaran</h1>
         </div>
 
-        {/* RIGHT — ORDER SUMMARY */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm h-fit">
-          <h2 className="text-xl font-bold mb-4">Ringkasan Pesanan</h2>
-
-          <div className="space-y-2 text-sm mb-6 max-h-52 overflow-y-auto">
-            {items.map((item, idx) => {
-              const price = item.discountPrice ?? item.basePrice;
-              return (
-                <div key={item.productId + (item.variantId ?? "") + idx} className="flex justify-between">
-                  <span className="text-slate-600 truncate flex-1 mr-2">
-                    {item.name}{item.variantLabel ? ` (${item.variantLabel})` : ""} × {item.quantity}
-                  </span>
-                  <span className="font-medium shrink-0">
-                    {safeFormatPrice(price * item.quantity)}
-                  </span>
-                </div>
-              );
-            })}
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          {/* Items */}
+          <div className="p-6 border-b border-gray-100">
+            <div className="flex items-center gap-2 mb-4">
+              <ShoppingBag size={18} className="text-pink-500" />
+              <h2 className="font-semibold text-slate-800">Produk</h2>
+            </div>
+            <div className="space-y-3">
+              {items.map((item, idx) => {
+                const price = item.discountPrice ?? item.basePrice;
+                return (
+                  <div key={item.productId + (item.variantId ?? "") + idx} className="flex justify-between text-sm">
+                    <span className="text-slate-600 flex-1 mr-3 line-clamp-1">
+                      {item.name}
+                      {item.variantLabel ? ` (${item.variantLabel})` : ""}
+                      <span className="text-slate-400"> ×{item.quantity}</span>
+                    </span>
+                    <span className="font-medium text-slate-800 shrink-0">
+                      {safeFormatPrice(price * item.quantity)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="border-t pt-4 space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-slate-600">Subtotal</span>
+          {/* Pengiriman */}
+          {shippingMethod && (
+            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50">
+              <div className="flex items-center gap-2 mb-2">
+                <Truck size={16} className="text-slate-500" />
+                <span className="text-sm font-medium text-slate-700">Pengiriman</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-600">
+                  {shippingMethod.courier?.toUpperCase()} {shippingMethod.service}
+                  {shippingMethod.etd && (
+                    <span className="text-slate-400"> · {shippingMethod.etd} hari kerja</span>
+                  )}
+                </span>
+                <span className="font-medium text-slate-800">
+                  {safeFormatPrice(shippingMethod.cost ?? 0)}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Kalkulasi */}
+          <div className="px-6 py-4 space-y-2.5 text-sm border-b border-gray-100">
+            <div className="flex justify-between text-slate-600">
+              <span>Subtotal</span>
               <span>{safeFormatPrice(subtotal)}</span>
             </div>
             {(discount ?? 0) > 0 && (
               <div className="flex justify-between text-green-600">
-                <span>Diskon</span>
+                <span>Diskon produk</span>
                 <span>- {safeFormatPrice(discount ?? 0)}</span>
               </div>
             )}
-            <div className="flex justify-between">
-              <span className="text-slate-600">Ongkos kirim</span>
+            <div className="flex justify-between text-slate-600">
+              <span>Ongkos kirim</span>
               <span>{shipping === 0 ? "GRATIS" : safeFormatPrice(shipping)}</span>
             </div>
-            <div className="flex justify-between font-bold text-lg border-t pt-3">
-              <span>Total</span>
-              <span className="text-pink-600">{safeFormatPrice(total)}</span>
-            </div>
+            {(discountShipping ?? 0) > 0 && (
+              <div className="flex justify-between text-green-600">
+                <span>Diskon ongkir</span>
+                <span>- {safeFormatPrice(discountShipping ?? 0)}</span>
+              </div>
+            )}
           </div>
 
-          <button
-            onClick={handlePayment}
-            disabled={loading}
-            className="w-full mt-6 inline-flex items-center justify-center gap-2 bg-pink-600 text-white py-3 rounded-xl font-bold hover:bg-pink-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {loading ? (
-              <><Loader2 className="h-5 w-5 animate-spin" /> Memproses...</>
-            ) : (
-              <><CreditCard className="h-5 w-5" /> Bayar via Xendit</>
-            )}
-          </button>
+          {/* Total + tombol */}
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-6">
+              <span className="text-lg font-bold text-slate-800">Total</span>
+              <span className="text-2xl font-bold text-pink-600">{safeFormatPrice(total)}</span>
+            </div>
 
-          <p className="text-xs text-gray-400 mt-3 text-center">
-            Pembayaran aman diproses oleh Xendit
-          </p>
+            <button
+              onClick={handlePayment}
+              disabled={loading}
+              className="w-full py-4 rounded-2xl bg-pink-600 text-white font-bold text-base hover:bg-pink-700 active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <><Loader2 className="h-5 w-5 animate-spin" /> Memproses...</>
+              ) : (
+                <>Bayar Sekarang · {safeFormatPrice(total)}</>
+              )}
+            </button>
+
+            <div className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-400">
+              <Shield size={14} />
+              <span>Pembayaran aman diproses oleh Xendit</span>
+            </div>
+
+            <p className="mt-3 text-xs text-center text-slate-400">
+              Setelah klik "Bayar Sekarang", pilih metode pembayaran di halaman Xendit
+              (Transfer Bank, GoPay, OVO, DANA, Kartu Kredit, dll)
+            </p>
+          </div>
         </div>
-
       </div>
     </div>
   );

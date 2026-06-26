@@ -47,9 +47,17 @@ export interface CheckoutState {
   items: CheckoutItem[];
   shipping: ShippingInfo | null;
   method: ShippingMethod | null;
+
+  // Voucher produk (potongan harga)
   discount: number;
-  voucherCode: string;  // untuk display kode voucher
-  voucherId: string;    // untuk dikirim ke BE saat place order
+  voucherCode: string;
+  voucherId: string;
+
+  // Voucher ongkir (free_shipping)
+  discountShipping: number;
+  voucherShippingCode: string;
+  voucherShippingId: string;
+
   step: number;
 }
 
@@ -66,16 +74,16 @@ interface CheckoutContextType {
   setShipping: (data: ShippingInfo) => void;
   setMethod: (data: ShippingMethod) => void;
 
-  // simpan code (untuk display), id (untuk BE), dan discountAmount sekaligus
   setVoucher: (code: string, id: string, discountAmount: number) => void;
   clearVoucher: () => void;
 
-  // backward-compat: hanya update nominal discount tanpa sentuh voucher
+  setVoucherShipping: (code: string, id: string, discountAmount: number) => void;
+  clearVoucherShipping: () => void;
+
   setDiscount: (discount: number) => void;
 
   nextStep: () => void;
   prevStep: () => void;
-
   clearCheckout: () => void;
 }
 
@@ -88,6 +96,9 @@ const initialState: CheckoutState = {
   discount: 0,
   voucherCode: "",
   voucherId: "",
+  discountShipping: 0,
+  voucherShippingCode: "",
+  voucherShippingId: "",
   step: 1,
 };
 
@@ -114,26 +125,24 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!hydrated) return;
+    if (typeof window === "undefined" || !hydrated) return;
     localStorage.setItem(LS_KEY, JSON.stringify(state));
   }, [state, hydrated]);
 
   const subtotal = state.items.reduce((sum, item) => {
-    const price = item.discountPrice ?? item.basePrice;
-    return sum + price * item.quantity;
+    return sum + (item.discountPrice ?? item.basePrice) * item.quantity;
   }, 0);
 
   const postItems = (selected: CheckoutItem[]) =>
     setState((prev) => ({ ...prev, items: selected }));
 
   const deleteItem = (id: string) =>
-    setState((prev) => ({ ...prev, items: prev.items.filter((item) => item.id !== id) }));
+    setState((prev) => ({ ...prev, items: prev.items.filter((i) => i.id !== id) }));
 
   const updateItem = (id: string, patch: Partial<Omit<CheckoutItem, "id">>) =>
     setState((prev) => ({
       ...prev,
-      items: prev.items.map((item) => (item.id === id ? { ...item, ...patch } : item)),
+      items: prev.items.map((i) => (i.id === id ? { ...i, ...patch } : i)),
     }));
 
   const clearItems = () => setState((prev) => ({ ...prev, items: [] }));
@@ -145,22 +154,27 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, method: data }));
 
   const setVoucher = (code: string, id: string, discountAmount: number) =>
-    setState((prev) => ({
-      ...prev,
-      voucherCode: code,
-      voucherId: id,
-      discount: discountAmount,
-    }));
+    setState((prev) => ({ ...prev, voucherCode: code, voucherId: id, discount: discountAmount }));
 
   const clearVoucher = () =>
+    setState((prev) => ({ ...prev, voucherCode: "", voucherId: "", discount: 0 }));
+
+  const setVoucherShipping = (code: string, id: string, discountAmount: number) =>
     setState((prev) => ({
       ...prev,
-      voucherCode: "",
-      voucherId: "",
-      discount: 0,
+      voucherShippingCode: code,
+      voucherShippingId: id,
+      discountShipping: discountAmount,
     }));
 
-  // backward-compat: hanya update nominal, tidak reset voucher
+  const clearVoucherShipping = () =>
+    setState((prev) => ({
+      ...prev,
+      voucherShippingCode: "",
+      voucherShippingId: "",
+      discountShipping: 0,
+    }));
+
   const setDiscount = (discount: number) =>
     setState((prev) => ({ ...prev, discount }));
 
@@ -189,6 +203,8 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
         setMethod,
         setVoucher,
         clearVoucher,
+        setVoucherShipping,
+        clearVoucherShipping,
         setDiscount,
         nextStep,
         prevStep,

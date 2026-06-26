@@ -14,7 +14,7 @@ import { ArrowLeft, ChevronRight, Trash2, Truck, Shield, RotateCcw } from "lucid
 const CartPage = () => {
   const { state, itemCount, removeItem, updateQuantity, clearCart } = useCart();
   const { state: authState } = useAuth();
-  const { setVoucher } = useCheckout();
+  const { setVoucher, clearVoucher } = useCheckout(); // FIX: setVoucher bukan setDiscount
 
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [promoCode, setPromoCode] = useState("");
@@ -38,11 +38,6 @@ const CartPage = () => {
   const selectedCount = selectedItems.length;
   const discount = promoApplied ? appliedDiscount : 0;
   const finalTotal = selectedSubtotal > 0 ? selectedSubtotal - discount : 0;
-
-  // Sync discount to context whenever it changes (e.g. item deselected)
-  useEffect(() => {
-    if (!promoApplied) setVoucher(0, null);
-  }, [promoApplied]);
 
   useEffect(() => {
     setSelectedItemIds((current) =>
@@ -70,7 +65,7 @@ const CartPage = () => {
     setPromoError("");
     setPromoApplied(false);
     setAppliedDiscount(0);
-    setVoucher(0, null);
+    clearVoucher(); // FIX: reset context
 
     if (!promoCode.trim()) {
       setPromoError("Masukkan kode voucher");
@@ -83,25 +78,34 @@ const CartPage = () => {
     }
 
     try {
-      const res = await voucherApi.apply({
-        code: promoCode.trim().toUpperCase(),
-        totalAmount: selectedSubtotal,
-      });
+      // FIX: pakai validate bukan apply, supaya dapat voucherId
+      const res = await voucherApi.validate(
+        promoCode.trim().toUpperCase(),
+        selectedSubtotal,
+        0, // shippingCost belum diketahui di cart
+      );
 
       if (!res.valid) {
         setPromoError("Voucher tidak valid atau sudah tidak aktif");
         return;
       }
 
+      // FIX: voucher ongkir tidak bisa dipakai di cart
+      if (res.voucher.type === "free_shipping") {
+        setPromoError("Voucher ongkir hanya bisa dipakai di halaman pilih pengiriman");
+        return;
+      }
+
       setPromoApplied(true);
       setPromoError("");
       setAppliedDiscount(res.discountAmount);
-      // Simpan discount + voucherId ke context agar ikut ke createOrder
-      setVoucher(res.discountAmount, res.voucher.id);
+
+      // FIX: simpan code + id + amount ke context supaya terbawa ke checkout
+      setVoucher(promoCode.trim().toUpperCase(), res.voucher.id, res.discountAmount);
     } catch (err: any) {
       setPromoApplied(false);
       setAppliedDiscount(0);
-      setVoucher(0, null);
+      clearVoucher();
       setPromoError(
         err?.response?.data?.error?.message ??
         err?.response?.data?.message ??

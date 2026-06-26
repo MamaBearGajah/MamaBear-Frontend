@@ -6,10 +6,10 @@ import { useCheckout } from "../../context/CheckoutContext";
 
 function OrderSummary() {
   const { state: checkoutState, subtotal } = useCheckout();
-  const { items, method, discount, shipping } = checkoutState;
+  const { items, method, discount, discountShipping, shipping } = checkoutState;
 
   const shippingCost = method ? method.cost : 0;
-  const total = subtotal - (discount ?? 0) + shippingCost;
+  const total = subtotal - (discount ?? 0) - (discountShipping ?? 0) + shippingCost;
 
   return (
     <div className="h-fit rounded-2xl border border-pink-200 bg-white p-6 shadow-sm">
@@ -42,17 +42,13 @@ function OrderSummary() {
                       {item.quantity}
                     </div>
                   </div>
-
                   <div className="flex flex-col min-w-0">
-                    <span className="line-clamp-1 font-medium text-gray-800">
-                      {item.name}
-                    </span>
+                    <span className="line-clamp-1 font-medium text-gray-800">{item.name}</span>
                     {(item.variantLabel || item.variantName) && (
                       <span className="line-clamp-1 text-xs text-gray-500">
                         {item.variantLabel || item.variantName}
                       </span>
                     )}
-                    {/* Notes per item — dari CartItem.notes */}
                     {item.notes && (
                       <span className="mt-0.5 line-clamp-2 text-xs text-amber-600 italic">
                         📝 {item.notes}
@@ -67,9 +63,7 @@ function OrderSummary() {
             );
           })
         ) : (
-          <p className="text-sm text-gray-400 text-center py-4">
-            Tidak ada item
-          </p>
+          <p className="text-sm text-gray-400 text-center py-4">Tidak ada item</p>
         )}
       </div>
 
@@ -82,7 +76,7 @@ function OrderSummary() {
 
         {(discount ?? 0) > 0 && (
           <div className="flex justify-between text-green-600">
-            <span>Diskon</span>
+            <span>Diskon produk</span>
             <span className="font-medium">- {safeFormatPrice(discount ?? 0)}</span>
           </div>
         )}
@@ -94,13 +88,19 @@ function OrderSummary() {
           </span>
         </div>
 
+        {(discountShipping ?? 0) > 0 && (
+          <div className="flex justify-between text-green-600">
+            <span>Diskon ongkir</span>
+            <span className="font-medium">- {safeFormatPrice(discountShipping ?? 0)}</span>
+          </div>
+        )}
+
         <div className="flex justify-between border-t border-gray-100 pt-3 text-base font-bold text-gray-800">
           <span>Total</span>
           <span className="text-pink-600">{safeFormatPrice(total)}</span>
         </div>
       </div>
 
-      {/* Catatan pengiriman */}
       {shipping?.deliveryNotes && (
         <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50 p-3 text-xs text-gray-600">
           <p className="font-semibold text-gray-700 mb-1">Catatan Pengiriman</p>
@@ -108,7 +108,6 @@ function OrderSummary() {
         </div>
       )}
 
-      {/* Keamanan */}
       <div className="mt-4 flex items-center gap-2 text-xs text-gray-400">
         <Lock className="size-3.5 shrink-0" />
         Pembayaran aman & terenkripsi
