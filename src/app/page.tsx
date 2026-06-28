@@ -27,12 +27,12 @@ export default async function Home() {
         <BackToTop />
         <HomeBanner />
         {/* MOBILE-ONLY: page gutters live here; desktop keeps 3cm gutters */}
-        <section className="px-4 sm:px-[3cm]">
+        <section className="px-4 sm:px-6 lg:px-8">
           <div className="mx-auto w-full max-w-[1320px]">
             <CategorySection />
           </div>
         </section>
-        <section className="px-4 sm:px-[3cm]">
+        <section className="px-4 sm:px-6 lg:px-8">
           <div className="mx-auto w-full max-w-[1320px]">
             <FeaturedCardsSection />
           </div>
@@ -42,27 +42,27 @@ export default async function Home() {
           const products = await fetchProducts();
           <TopProducts products={products} />
         */}
-        <section className="px-4 sm:px-[3cm]">
+        <section className="px-4 sm:px-6 lg:px-8">
           <div className="mx-auto w-full max-w-[1320px]">
             <TopProducts />
           </div>
         </section>
-        <section className="px-4 sm:px-[3cm]">
+        <section className="px-4 sm:px-6 lg:px-8">
           <div className="mx-auto w-full max-w-[1320px]">
             <PromoSection />
           </div>
         </section>
-        <section className="px-4 sm:px-[3cm]">
+        <section className="px-4 sm:px-6 lg:px-8">
           <div className="mx-auto w-full max-w-[1320px]">
             <Testimonial />
           </div>
         </section>
-        <section className="px-4 sm:px-[3cm]">
+        <section className="px-4 sm:px-6 lg:px-8">
           <div className="mx-auto w-full max-w-[1320px]">
             <FAQSection />
           </div>
         </section>
-        <section className="px-4 sm:px-[3cm]">
+        <section className="px-4 sm:px-6 lg:px-8">
           <div className="mx-auto w-full max-w-[1320px]">
             <SubscribeSection />
           </div>

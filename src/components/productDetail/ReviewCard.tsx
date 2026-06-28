@@ -151,13 +151,6 @@ export default function ReviewCard({
         <div className="mt-2 flex flex-col items-start justify-start md:h-[60%] md:w-[60%]">
           <p className="text-left font-bold">{product.name}</p>
           <br />
-          {/*
-            FIX: ganti <p> menjadi <span className="text-gray-400">
-            ProductDescription me-render <div><p>...</p></div>, sehingga
-            membungkusnya dengan <p> menyebabkan dua hydration error:
-              1. <p> tidak boleh punya descendant <p>
-              2. <p> tidak boleh punya descendant <div>
-          */}
           <span className="text-gray-400">
             <ProductDescription productDescription={product.description} />
           </span>
@@ -334,12 +327,13 @@ export default function ReviewCard({
                     <div key={review.id} className="w-full border-b py-4">
                       <Card className="flex flex-col items-start justify-start rounded-lg border p-5">
                         <div className="flex w-full items-center justify-start gap-3">
+                          {/* FIX: hapus className="w-10" yang override width tanpa height auto */}
                           <Image
                             src="/Logo Mamabear.png"
                             alt="Mamabear logo"
                             width={40}
                             height={40}
-                            className="w-10"
+                            className="h-10 w-10 object-contain"
                           />
                           <div className="w-[90%]">
                             <div className="flex flex-col items-start gap-1">
@@ -348,12 +342,13 @@ export default function ReviewCard({
                               </CardTitle>
                               {review.isVerifiedPurchase ? (
                                 <div className="inline-flex items-center rounded-full bg-light-pink px-2.5 py-1 text-xs font-medium text-dark-pink">
+                                  {/* FIX: hapus className="mr-1 w-4.5" yang override width tanpa height auto */}
                                   <Image
                                     src="/check.svg"
                                     alt=""
                                     width={18}
                                     height={18}
-                                    className="mr-1 w-4.5"
+                                    className="mr-1 h-[18px] w-[18px]"
                                   />
                                   Verified Purchase
                                 </div>

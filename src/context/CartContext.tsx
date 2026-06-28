@@ -487,6 +487,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
           const status = error.response?.status;
+          // 401 = session expired, interceptor sudah handle refresh/logout — jangan toast
+          if (status === 401) return;
           const message =
             error.response?.data?.error?.message ??
             error.response?.data?.message ??
@@ -526,6 +528,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
           await guestCartApi.removeItem(state.guestCartId, item.id);
         }
       } catch (error: unknown) {
+        // 401 = session expired — jangan tampilkan toast, interceptor sudah handle
+        if (axios.isAxiosError(error) && error.response?.status === 401) return;
         dispatch({ type: "ADD_ITEM", payload: item });
         const message = axios.isAxiosError(error)
           ? (error.response?.data?.error?.message ??

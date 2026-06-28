@@ -137,8 +137,8 @@ export default function PromoSection() {
     <section className="w-full bg-[#FEF2F5] pt-8 pb-6 md:pt-5 md:pb-0">
       {/* Desktop layout: keep original grid */}
       <div className="hidden w-full px-0 md:block">
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[18.5cm_minmax(0,1fr)]">
-          <article className="relative overflow-hidden rounded-[24px] bg-[linear-gradient(135deg,#D5557E_0%,#FACBD8_100%)] p-6 text-white lg:h-[7cm] lg:w-full lg:pl-[40px]">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_minmax(0,380px)]">
+          <article className="relative overflow-hidden rounded-[24px] bg-[linear-gradient(135deg,#D5557E_0%,#FACBD8_100%)] p-6 text-white lg:h-[280px] lg:w-full lg:pl-[40px]">
             <div className="flex h-full">
               <div className="flex flex-1 flex-col justify-center gap-3 lg:pr-[260px]">
                 <p className="text-[12px] font-medium text-white/90">
@@ -192,7 +192,7 @@ export default function PromoSection() {
             </div>
           </article>
 
-          <article className="relative overflow-hidden rounded-[26px] bg-[#6C4735] lg:h-[7cm]">
+          <article className="relative overflow-hidden rounded-[26px] bg-[#6C4735] lg:h-[280px]">
             <div
               className="absolute inset-0 bg-cover bg-center"
               style={{ backgroundImage: "url('/Image%20HomePage/promo2.png')" }}

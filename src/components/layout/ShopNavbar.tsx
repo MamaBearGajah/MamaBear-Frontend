@@ -205,15 +205,16 @@ function MobileHeaderInline() {
     <div className="relative w-full md:hidden">
       <div className="w-full border-b bg-white px-3 py-2 sm:px-4">
         <div className="flex items-center gap-1.5">
-          <Link href="/" className="flex-shrink-0">
+          <Link href="/" className="flex shrink-0 items-center gap-1.5">
             <Image
               src="/Logo Mamabear.png"
               alt="MamaBear"
-              width={32}
-              height={32}
-              className="h-8 w-8 object-contain"
+              width={36}
+              height={36}
+              className="h-9 w-9 object-contain"
               priority
             />
+            <span className="text-sm font-black text-[#6C4735]">mamabear</span>
           </Link>
 
           <div className="min-w-0 flex-1">

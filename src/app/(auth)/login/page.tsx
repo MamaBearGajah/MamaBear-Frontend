@@ -37,6 +37,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
   const loginSchema = z.object({
     email: z
       .string()
@@ -49,36 +50,23 @@ export default function Login() {
 
   const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
-    // FIX: hapus hardcoded admin credentials
-    defaultValues: {
-      email: "",
-      password: "",
-      rememberMe: false,
-    },
+    defaultValues: { email: "", password: "", rememberMe: false },
   });
 
   const errorMessage = (statusCode: number) => {
     switch (statusCode) {
-      case 401:
-        return "Email atau password salah";
-      case 403:
-        return "Email belum diverifikasi";
-      case 500:
-        return "Internal server error";
-      default:
-        return "Unknown error";
+      case 401: return "Email atau password salah";
+      case 403: return "Email belum diverifikasi";
+      case 500: return "Internal server error";
+      default: return "Unknown error";
     }
   };
 
   const handleSubmit = async (data: LoginSchema) => {
-    const loginData = {
-      email: data.email,
-      password: data.password,
-    };
     try {
       setIsLoading(true);
       setError(null);
-      await login(loginData);
+      await login({ email: data.email, password: data.password });
       toast.success("Login berhasil");
       router.push(redirectTo && redirectTo.startsWith("/") ? redirectTo : "/");
     } catch (e: unknown) {
@@ -87,7 +75,6 @@ export default function Login() {
         toast.error(errorMessage(e.response?.status ?? 500));
       } else {
         const message = e instanceof Error ? e.message : String(e);
-        console.error("Login non-axios error:", e);
         setError(message || "An unexpected error occurred");
         toast.error(message || "An unexpected error occurred");
       }
@@ -108,7 +95,6 @@ export default function Login() {
         toast.error(errorMessage(e.response?.status ?? 500));
       } else {
         const message = e instanceof Error ? e.message : String(e);
-        console.error("Login non-axios error:", e);
         setError(message || "An unexpected error occurred");
         toast.error(message || "An unexpected error occurred");
       }
@@ -118,28 +104,28 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen flex-col lg:flex-row">
       <AuthBanner />
-      <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
+
+      {/* Form side */}
+      <div className="flex flex-1 flex-col items-center justify-center bg-[#FFF5F8] px-6 py-12">
         <div className="w-full max-w-sm">
-          <h1 className="mb-2 text-2xl font-bold text-gray-900">Sign in</h1>
-          <p className="mb-8 text-sm text-gray-500">
-            Welcome back to MamaBear
-          </p>
+          <h1 className="mb-1 text-2xl font-black text-[#6C4735]">Sign in</h1>
+          <p className="mb-6 text-sm text-[#6C4735]/70">Welcome back to MamaBear</p>
 
           {error && <AuthErrorMessage error={error} />}
           {error === "Email belum diverifikasi" && (
             <span
               onClick={handleResendVerificationEmail}
-              className="mb-4 block cursor-pointer text-sm text-[#6C4735] hover:underline"
+              className="mb-4 block cursor-pointer text-sm text-[#D5557E] hover:underline"
             >
               Kirim ulang email verifikasi
             </span>
           )}
 
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <Field>
-              <FieldLabel htmlFor="email">Email</FieldLabel>
+              <FieldLabel htmlFor="email" className="text-[#6C4735]">Email</FieldLabel>
               <FieldGroup>
                 <InputGroup>
                   <InputGroupAddon>
@@ -160,7 +146,7 @@ export default function Login() {
             </Field>
 
             <Field>
-              <FieldLabel htmlFor="password">Password</FieldLabel>
+              <FieldLabel htmlFor="password" className="text-[#6C4735]">Password</FieldLabel>
               <FieldGroup>
                 <InputGroup>
                   <InputGroupAddon>
@@ -196,19 +182,13 @@ export default function Login() {
                 name="rememberMe"
                 control={form.control}
                 render={({ field }) => (
-                  <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-600">
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-[#6C4735]/80">
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                     Remember me
                   </label>
                 )}
               />
-              <Link
-                href="/forgot-password"
-                className="text-sm text-pink-600 hover:underline"
-              >
+              <Link href="/forgot-password" className="text-sm text-[#D5557E] hover:underline">
                 Forgot password?
               </Link>
             </div>
@@ -216,15 +196,15 @@ export default function Login() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full rounded-full bg-[var(--mamabear-dark-pink)] py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-60"
+              className="w-full rounded-full bg-[#D5557E] py-2.5 text-sm font-semibold text-white hover:bg-[#D5557E]/90 disabled:opacity-60"
             >
               {isLoading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-gray-500">
+          <p className="mt-6 text-center text-sm text-[#6C4735]/70">
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-pink-600 hover:underline">
+            <Link href="/register" className="font-bold text-[#D5557E] hover:underline">
               Sign up
             </Link>
           </p>
