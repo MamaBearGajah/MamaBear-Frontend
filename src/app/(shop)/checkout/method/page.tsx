@@ -9,13 +9,8 @@ import { toast } from "sonner";
 import { shippingApi } from "@/lib/api/shipping";
 import { VoucherInput } from "@/components/checkout/VoucherInput";
 
-// Berat minimum per item jika tidak ada data berat (gram)
 const DEFAULT_ITEM_WEIGHT_GRAM = 500;
-
-// Threshold cargo (gram) — 3kg
 const CARGO_THRESHOLD_GRAM = 3000;
-
-// Kurir yang tersedia
 const COURIERS = ["jne", "jnt", "pos"] as const;
 
 interface Shipping {
@@ -25,7 +20,7 @@ interface Shipping {
   etd: string;
 }
 
-const ORIGIN_CITY_ID = "577"; // Kota asal MamaBear
+const ORIGIN_CITY_ID = "577";
 
 export default function CheckoutPageMethod() {
   const router = useRouter();
@@ -186,10 +181,7 @@ export default function CheckoutPageMethod() {
               {loading ? (
                 <>
                   {[1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className="flex items-center gap-2 border-2 border-gray-200 rounded-xl p-4"
-                    >
+                    <div key={i} className="flex items-center gap-2 border-2 border-gray-200 rounded-xl p-4">
                       <div className="h-4 w-4 shrink-0 animate-pulse rounded-full bg-gray-200" />
                       <div className="flex-1 space-y-3">
                         <div className="flex justify-between">
@@ -251,14 +243,21 @@ export default function CheckoutPageMethod() {
                 ))
               )}
 
-              {/* FIX: VoucherInput ditambahkan di sini — setelah pilih kurir,
-                  sebelum lanjut ke review. ShippingCost dari selectedShipping
-                  dipass supaya voucher free_shipping bisa dihitung dengan benar. */}
-              <div className="mt-4 rounded-xl border border-pink-100 bg-pink-50/30 p-4">
+              {/* 2 slot voucher: produk + ongkir */}
+              <div className="mt-4 space-y-3 rounded-xl border border-pink-100 bg-pink-50/30 p-4">
                 <VoucherInput
                   subtotal={subtotal}
-                  shippingCost={selectedShipping?.cost ?? 0}
+                  shippingCost={0}
+                  mode="product"
                 />
+                <div className="border-t border-pink-100 pt-3">
+                  <VoucherInput
+                    subtotal={subtotal}
+                    shippingCost={selectedShipping?.cost ?? 0}
+                    mode="shipping"
+                    requireShipping={true}
+                  />
+                </div>
               </div>
 
               <div className="mt-5 flex w-full flex-col gap-3 sm:flex-row">

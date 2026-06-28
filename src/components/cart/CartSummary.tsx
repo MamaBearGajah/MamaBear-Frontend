@@ -13,7 +13,6 @@ interface CartSummaryProps {
   subtotal: number;
   itemCount: number;
   discount: number;
-  // shipping: number;
   finalTotal: number;
   promoCode: string;
   promoApplied: boolean;
@@ -29,7 +28,6 @@ export default function CartSummary({
   subtotal,
   itemCount,
   discount,
-  // shipping,
   finalTotal,
   promoCode,
   promoApplied,
@@ -48,6 +46,7 @@ export default function CartSummary({
     nextStep,
   } = useCheckout();
   const router = useRouter();
+
   return (
     <div className="sticky top-5 w-full rounded-[22px] border border-[#F6B8CB] bg-white p-3 shadow-sm sm:p-6 lg:max-w-[340px]">
       <h2
@@ -81,12 +80,13 @@ export default function CartSummary({
             Apply
           </Button>
         </div>
+        {/* FIX: ganti MAMABEAR15 → MAMABEAR10 (yang ada di seed) */}
         <p className="mt-3 flex items-start gap-2 text-sm text-[#8D6B5B]">
           <Ticket className="size-4 text-[#D5557E]" />
           <span>
             Try:{" "}
-            <strong className="text-[#6C4735] underline">MAMABEAR15</strong> for
-            15% off
+            <strong className="text-[#6C4735] underline">MAMABEAR10</strong> for
+            10% off
           </span>
         </p>
         {promoApplied && (
@@ -109,11 +109,6 @@ export default function CartSummary({
           </strong>
         </div>
         <div className="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between sm:gap-3">
-          {/* <span className="text-[#6C4735]">Shipping</span>
-          <strong className="text-[#00A651]">
-            {shipping === 0 ? "FREE" : `Rp ${shipping.toLocaleString()}`}
-          </strong> */}
-
           <span className="text-[#6C4735]">Discount</span>
           <strong className="min-w-0 text-left break-words text-[#00A651] sm:text-right">
             {discount === 0 ? "Rp 0" : `Rp ${discount.toLocaleString()}`}
@@ -135,7 +130,6 @@ export default function CartSummary({
           disabled={!hasSelection}
           onClick={() => {
             postItems(selectedItems);
-            // removeSelectedItems();
             selectedItems = [];
             router.push(checkoutHref ?? "/checkout/info");
           }}
@@ -145,20 +139,9 @@ export default function CartSummary({
         </Button>
 
         <p className="mt-3 flex items-center justify-center gap-2 text-xs text-[#8D6B5B]">
-          <Lock className="size-3 text-[#E3A63D]" />
+          <Lock size={12} />
           Secured by SSL encryption
         </p>
-
-        {/* <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-6">
-          {PAYMENT_METHODS.map((method) => (
-            <span
-              key={method}
-              className="flex h-6 items-center justify-center rounded-lg border border-[#E6C1CD] px-2 text-[12px] font-bold text-[#6C4735]"
-            >
-              {method}
-            </span>
-          ))}
-        </div> */}
       </div>
     </div>
   );

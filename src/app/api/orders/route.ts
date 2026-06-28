@@ -20,6 +20,9 @@ export async function POST(request: Request) {
       service: body.service,
       paymentMethod: body.paymentMethod,
       notes: body.notes,
+      // FIX: teruskan voucherId dan voucherShippingId agar diskon diterapkan
+      voucherId: body.voucherId || undefined,
+      voucherShippingId: body.voucherShippingId || undefined,
     };
 
     const created = await createOrder(orderPayload);
