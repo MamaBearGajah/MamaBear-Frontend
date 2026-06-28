@@ -147,7 +147,6 @@ export interface Review {
   review: string;
   isVerifiedPurchase: boolean;
   helpfulCount: number;
-  // reviewerName: string;
   user: {
     id: string;
     name: string;
@@ -158,9 +157,6 @@ export interface Review {
 
 export type ProductBadgeType = "best-seller" | "fan-favorite" | "new";
 
-// export interface ReviewParams {
-
-// }
 export interface ProductListItem {
   id: string;
   name: string;
@@ -201,6 +197,22 @@ export interface CartItem {
   id: string;
   productId: string;
   variantId?: string;
+  categoryName?: string;
+  variantName?: string;
+  variantValue?: string;
+  variantLabel?: string;
+  quantity: number;
+  name: string;
+  basePrice: number;
+  discountPrice?: number;
+  image: string;
+}
+
+export interface CheckoutItem {
+  id: string;
+  productId: string;
+  variantId?: string;
+  categoryName?: string;
   variantName?: string;
   variantValue?: string;
   variantLabel?: string;
@@ -241,6 +253,7 @@ export interface CartItemVariantCategory {
   name: string;
   slug: string;
 }
+
 export interface OrderItem {
   id: string;
   productId: string;
@@ -267,8 +280,43 @@ export interface Order {
   courier: string;
   service: string;
   trackingNumber?: string;
+  paymentMethod?: string;
+  paymentProvider?: "xendit" | "midtrans";
   items: OrderItem[];
   createdAt: string;
+  /** Populated by admin endpoints when the API joins user info */
+  user?: { name: string; email?: string };
+}
+
+export interface OrderListParams {
+  page?: number;
+  limit?: number;
+  status?: Order["status"];
+  q?: string;
+}
+
+export interface CreateOrderPayload {
+  addressId: string;
+  courier: string;
+  service: string;
+  paymentMethod: "xendit" | "midtrans";
+  notes?: string;
+}
+
+export interface CreateOrderResult {
+  orderId: string;
+  status: string;
+  total: number;
+}
+
+export interface CheckoutPaymentPayload {
+  orderId: string;
+  provider: "xendit" | "midtrans";
+}
+
+export interface CheckoutPaymentResult {
+  paymentUrl: string;
+  provider: string;
 }
 
 export interface ResFetchReviewsByProductId {
@@ -285,14 +333,47 @@ export interface Category {
   slug: string;
   description?: string;
   imageUrl?: string;
+  sortOrder?: number; // ← tambah ini: dari backend, untuk urutan tampil
   isActive: boolean;
+  productCount?: number;
 }
 
 export interface PaginationMeta {
   page: number;
   limit: number;
-  totalItems: number;
+  total: number;
   totalPages: number;
+}
+
+/** YYYY-MM-DD date filter for admin reports (API Contract §2.17). */
+export interface ReportDateRange {
+  from: string;
+  to: string;
+}
+
+export interface ReportQueryParams extends ReportDateRange {
+  limit?: number;
+}
+
+export interface SalesReportSummary {
+  from: string;
+  to: string;
+  totalSales: number;
+  orderCount: number;
+  avgOrderValue: number;
+}
+
+export interface TopProductReport {
+  productId: string;
+  name: string;
+  qty: number;
+  revenue: number;
+}
+
+export interface TopCategoryReport {
+  categoryId: string;
+  name: string;
+  revenue: number;
 }
 
 export interface ApiResponse<T> {
@@ -328,6 +409,48 @@ export interface CategoryListParams {
   parentId?: string;
 }
 
+export type BlogStatus = "draft" | "published" | "cancelled";
+
+export interface BlogList {
+  id: string;     
+  authorId: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  coverImage: string;
+  content:string;
+  status: BlogStatus;
+  viewCount: number;
+  publishedAt: Date;
+  createdAt:   Date|string;
+  updatedAt:   Date|string;
+  author: User;
+}
+
+export interface BlogListParams{
+  page?:number;
+  limit?:number;
+}
+
+export interface BlogCreateListParams{
+  title:string;
+  authorId: string;
+  slug:string;
+  content: string;
+  excerpt: string;
+  coverImage: string;
+  status: BlogStatus;
+}
+
+export interface BlogUpdateListParams{
+  title?:string;
+  authorId?: string;
+  slug?:string;
+  content?: string;
+  excerpt?: string;
+  coverImage?: string;
+  status?: BlogStatus;
+}
 export interface SearchSuggestion {
   id: string;
   name: string;
@@ -367,3 +490,54 @@ export interface ProductPriceFields {
   basePrice: number;
   discountPrice?: number;
 }
+
+// --- TAMBAHAN UNTUK PROFILE & ADDRESS ---
+
+export interface UserPreferences {
+  newsletter: boolean;
+  emailOrderUpdates: boolean;
+  smsNotifications: boolean;
+}
+
+// Extend dari interface User bawaan BE kamu
+export interface UserProfile extends User {
+  dateOfBirth?: string;
+  memberSince: string;
+  preferences: UserPreferences;
+  addresses: Address[];
+}
+
+// export interface Address {
+//   id: string;
+//   label: string; // "Home" | "Office" | "Other"
+//   name: string;
+//   phone: string;
+//   province: string;
+//   city: string;
+//   postalCode: string;
+//   address: string;
+//   isDefault: boolean;
+// }
+
+export interface Address {
+  id: string;
+  label: string; // "Home" | "Office" | "Other"
+  receiverName: string;
+  phone: string;
+  address: string;
+  // province: string;
+  cityId: string;
+  provinceId: string;
+  postalCode: string;
+  isDefault?: boolean;
+}
+
+export interface UpdateProfilePayload {
+  name: string;
+  email: string;
+  phone?: string;
+  dateOfBirth?: string;
+  preferences?: UserPreferences;
+}
+
+export type AddressPayload = Omit<Address, "id">;

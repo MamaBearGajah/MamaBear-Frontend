@@ -1,8 +1,23 @@
-﻿export default function Page() {
+﻿import { cookies } from "next/headers";
+
+import AdminReportsClient from "@/components/admin/AdminReportsClient";
+import { getInitialReportsPageData } from "@/lib/admin/reports-server";
+
+export default async function AdminReportsPage() {
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore
+    .getAll()
+    .map((cookie) => `${cookie.name}=${cookie.value}`)
+    .join("; ");
+
+  const { initialRange, initialData, initialUsingDemoData } =
+    await getInitialReportsPageData({ cookieHeader });
+
   return (
-    <main className=\"mx-auto w-full max-w-5xl px-4 py-8\">
-      <h1 className=\"text-2xl font-semibold\">reports</h1>
-      <p className=\"mt-2 text-sm text-zinc-600\">This page is under construction.</p>
-    </main>
+    <AdminReportsClient
+      initialRange={initialRange}
+      initialData={initialData}
+      initialUsingDemoData={initialUsingDemoData}
+    />
   );
 }

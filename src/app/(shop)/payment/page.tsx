@@ -1,23 +1,34 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/hooks/useCart";
-import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 import PaymentSelector, { PaymentMethod } from "@/components/checkout/PaymentSelector";
+import { useCheckout } from "@/context/CheckoutContext";
 import { safeFormatPrice } from "@/lib/utils";
+import { placeShopOrder } from "@/lib/shop/place-order";
+
+const DEV_FALLBACK_ORDER_ID = "ORD-2026-8921";
 
 const PaymentPage = () => {
   const { state, clearCart } = useCart();
+  // const router = useRouter();
   const router = useRouter();
-  const { items, subtotal } = state;
+  const { state: checkoutState, setShipping, clearCheckout, subtotal } = useCheckout();
+  const { items} = checkoutState;
 
+
+  // const [method, setMethod] = useState<PaymentMethod>("gopay");
+  // const [gateway, setGateway] = useState<"xendit" | "midtrans">("xendit");
   const [method, setMethod] = useState<PaymentMethod>("gopay");
   const [gateway, setGateway] = useState<"xendit" | "midtrans">("xendit");
   const [loading, setLoading] = useState(false);
 
-  const discount = subtotal * 0.15;
+  // const discount = subtotal * 0.15;
+  const discount = 0
   const shipping = subtotal >= 200000 ? 0 : 15000;
   const total = subtotal - discount + shipping;
 
@@ -25,44 +36,30 @@ const PaymentPage = () => {
     setLoading(true);
 
     try {
-      // In a real integration, this is where you would call
-      // your backend endpoint to create a payment session with
-      // Xendit or Midtrans.
-      // Example backend payload:
-      // {
-      //   gateway: gateway,
-      //   paymentMethod: method,
-      //   amount: total,
-      //   items: items,
-      // }
-      
-      await new Promise((res) => setTimeout(res, 2000));
-
-      // Create order on server
-      const payload = {
-        date: new Date().toISOString().slice(0, 10),
-        items: items.map((it) => ({ id: it.id, name: it.name, quantity: it.quantity, price: (it.discountPrice ?? it.basePrice) })),
-        total: total,
-        status: "Processing",
-      };
-
-      const res = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+      const result = await placeShopOrder({
+        courier: "jne",
+        service: "reg",
+        provider: gateway,
       });
-
-      if (!res.ok) throw new Error("Failed to create order");
-
-      const created = await res.json();
 
       clearCart();
 
-      // Redirect to order confirmation page
-      router.push(`/order?id=${created.id}`);
+      if (result.paymentUrl) {
+        window.location.href = result.paymentUrl;
+        return;
+      }
+
+      router.push(
+        // `/order-success?orderId=${encodeURIComponent(result.orderId)}`,
+        `/checkout/review`,
+      );
     } catch (err) {
       console.error(err);
-      alert("Payment failed");
+      toast.info("Backend belum siap — menampilkan pesanan demo.");
+      clearCart();
+      router.push(
+        `/order-success?orderId=${encodeURIComponent(DEV_FALLBACK_ORDER_ID)}`,
+      );
     } finally {
       setLoading(false);
     }

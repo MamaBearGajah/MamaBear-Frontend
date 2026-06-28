@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react";
+import {Heart} from "lucide-react";
 import { Dispatch, SetStateAction } from 'react';
 
 const image = [
@@ -14,12 +15,13 @@ const image = [
 interface ProductCarouselProps {
   images: string[];
   variantselectedimage?: string | null;
-  // Add the setter function prop here
+  discountPercent:number;
   setvariantselectedimage: (value: string | null) => void;
   NotVariantPrice: () => void;
+
 }
 
-export default function ProductCarousel({images, variantselectedimage, setvariantselectedimage, NotVariantPrice}:ProductCarouselProps) {
+export default function ProductCarousel({images, variantselectedimage, setvariantselectedimage, NotVariantPrice, discountPercent}:ProductCarouselProps) {
   const [selectedImage, setSelectedImage] = useState(images[0])
   useEffect(() =>{
       setSelectedImage(variantselectedimage ?? images[0])
@@ -35,28 +37,23 @@ export default function ProductCarousel({images, variantselectedimage, setvarian
 
   return (
     <div className="w-full max-w-md">
-      
-      {/* Big Image */}
-      <div className=" rounded-xl overflow-hidden mb-4 ">
 
-        {/* <div className="relative w-full h-64"> 
-          <Image
-            src={image}
-            alt="product"
-            fill
-            className="object-cover"
+      {/* Big Image */}
+      <div className=" rounded-xl overflow-hidden mb-4 relative flex items-center justify-center">
+          <div className='text-xs bg-dark-pink text-white px-3 py-1 rounded-lg absolute top-4 left-4 z-10'>{discountPercent}% OFF</div>
+          <img
+            src={selectedImage}
+            alt="Selected"
+            onError={(e) => {
+                // Cast target to HTMLImageElement to access the src property
+                const target = e.target as HTMLImageElement;
+                target.src = "/Logo Mamabear.png"; // Your fallback path
+              }}
+            className="h-[60vh] md:h-[50vh] object-cover"
           />
-        </div> */}
-        <img
-          src={selectedImage}
-          alt="Selected"
-          onError={(e) => {
-              // Cast target to HTMLImageElement to access the src property
-              const target = e.target as HTMLImageElement;
-              target.src = "/Logo Mamabear.png"; // Your fallback path
-            }}
-          className="w-full md:h-[50vh] object-cover"
-        />
+          <button type="button" aria-label="Add to wishlist" className="absolute top-3 right-3 z-10 flex size-9 items-center justify-center rounded-full bg-white/95 text-brown shadow-sm transition-colors hover:bg-light-pink hover:text-dark-pink">
+            <Heart className="size-4" strokeWidth={1.75} />
+          </button>
       </div>
 
       {/* Small Images */}

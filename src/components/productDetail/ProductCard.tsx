@@ -8,6 +8,7 @@ import { Product } from "@/types";
 import Stars from "./Stars";
 import StructuredSnippet from "./StructuredSnippet";
 import { ProductVariant } from "@/types";
+import ProductDescription from "./ProductDescription";
 import ShareThisProduct from "./ShareThisProduct";
 import KeyBenefit from "./KeyBenefit";
 import {
@@ -72,6 +73,7 @@ export default function ProductCard({
 
     if (initialVariant) {
       setSelectedVariant(initialVariant);
+      console.log("selected variant", selectedVariant);
       setThePrice(Number(initialVariant.discountPrice ?? initialVariant.basePrice));
       setvariantSelectedImage(initialVariant.imageUrl ?? "/Logo Mamabear.png");
       saveVariant(initialVariant);
@@ -98,6 +100,7 @@ export default function ProductCard({
   const productWeight = product.weight;
   const productBasePrice = product.basePrice;
   const productDiscountPrice = product.discountPrice;
+  const discountPercent = (((productBasePrice - productDiscountPrice) / productBasePrice) * 100).toFixed(0);
   // console.log("ProductVariant", productVariant)
   function NotVariantPrice(){
     setThePrice(Number(product.discountPrice));
@@ -127,10 +130,10 @@ export default function ProductCard({
           <hr></hr>
           <br></br>
 
-    <div className="bg-light-pink/25 md:flex md:items-start rounded transition-transform duration-200">
+    <div className=" md:flex md:items-start rounded transition-transform duration-200">
 
         <div className='md:w-[35%]'>
-            <ProductCarousel images={imageArray} variantselectedimage={variantSelectedImage} setvariantselectedimage={setvariantSelectedImage} NotVariantPrice={NotVariantPrice}/>
+            <ProductCarousel images={imageArray} variantselectedimage={variantSelectedImage} setvariantselectedimage={setvariantSelectedImage} NotVariantPrice={NotVariantPrice} discountPercent={discountPercent}/>
         </div>
         <div className='p-2 md:pl-10 rounded-md w-[90%] md:w-[60%] flex flex-col gap-2'>
             <h4 className='text-xs text-dark-pink'>{productCategory}</h4>
@@ -165,7 +168,7 @@ export default function ProductCard({
                 )
               }
             </p>
-            <p className='mt-2 mb-2 text-sm text-gray-500'>{productDescription}</p>
+            <p className='mt-2 mb-2 text-sm text-gray-500'><ProductDescription productDescription={productDescription}></ProductDescription></p>
             <p><span className='text-[var(--mamabear-dark-pink)] font-bold'>{productVariantData[0].name}</span></p>
             <div className='mt-3 mb-2'>
           {
@@ -241,7 +244,7 @@ export default function ProductCard({
               );
             })}
               <br></br><br></br>
-              <KeyBenefit weight={productWeight}/>
+              <KeyBenefit productWeight={productWeight}/>
             </div>
 
             {/* <AddToCartQuantity price={Number(productDiscountPrice)} product={fetchedProduct}/> */}

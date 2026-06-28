@@ -4,6 +4,8 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
+import { CheckoutProvider } from "@/context/CheckoutContext";
+import Script from "next/script";
 
 const quicksand = localFont({
   src: [
@@ -38,6 +40,20 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+
+    // const settings = await getSettings();
+
+    
+    const settings = {
+      googleTagManagerId: "GTM-XXXXXXX",
+    };
+
+    const gtmId = settings.googleTagManagerId;
+
+    const gaId =
+    typeof window !== "undefined"
+      ? localStorage.getItem("ga_id")
+      : null;
   return (
     <html
       lang="en"
@@ -46,7 +62,53 @@ export default function RootLayout({
     >
       <AuthProvider>
         <CartProvider>
-          <body className="min-h-screen">{children}</body>
+          <CheckoutProvider>
+          <body className="min-h-screen">
+            {children}
+            {gaId && (
+              <Script
+                src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+                strategy="afterInteractive"
+              />
+            )}
+
+          {gtmId && (
+          <>
+            <Script
+              id="gtm-script"
+              strategy="afterInteractive"
+            >
+              {`
+                (function(w,d,s,l,i){
+                  w[l]=w[l]||[];
+                  w[l].push({'gtm.start':
+                  new Date().getTime(),event:'gtm.js'});
+                  var f=d.getElementsByTagName(s)[0],
+                  j=d.createElement(s),
+                  dl=l!='dataLayer'?'&l='+l:'';
+                  j.async=true;
+                  j.src=
+                  'https://www.googletagmanager.com/gtm.js?id='+i+dl;
+                  f.parentNode.insertBefore(j,f);
+                })(window,document,'script','dataLayer','${gtmId}');
+              `}
+            </Script>
+
+            <noscript>
+              <iframe
+                src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}
+                height="0"
+                width="0"
+                style={{
+                  display: "none",
+                  visibility: "hidden",
+                }}
+              />
+            </noscript>
+          </>
+        )}
+          </body>
+          </CheckoutProvider>
         </CartProvider>
       </AuthProvider>
     </html>

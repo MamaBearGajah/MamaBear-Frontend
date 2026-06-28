@@ -1,35 +1,30 @@
-import { NextResponse } from "next/server";
-import { Xendit } from "xendit-node";
+import type {
+  ApiResponse,
+  CheckoutPaymentPayload,
+  CheckoutPaymentResult,
+} from "@/types";
+import { apiClient } from "./client";
+import { normalizeApiResponse } from "./normalize-api-response";
 
-const xenditClient = new Xendit({
-  secretKey: process.env.XENDIT_SECRET_KEY!,
-});
-
-const { Invoice } = xenditClient;
-const invoiceApi = new Invoice({});
-
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-
-    const invoice = await invoiceApi.createInvoice({
-      externalId: `ORDER-${Date.now()}`,
-      amount: body.amount,
-      payerEmail: body.email,
-      description: "Order Payment",
-      successRedirectUrl:
-        `${process.env.NEXT_PUBLIC_APP_URL}/payment/success`,
-      failureRedirectUrl:
-        `${process.env.NEXT_PUBLIC_APP_URL}/payment/failed`,
-    });
-
-    return NextResponse.json(invoice);
-  } catch (error) {
-    console.error(error);
-
-    return NextResponse.json(
-      { message: "Failed to create invoice" },
-      { status: 500 }
-    );
-  }
+export async function checkoutPayment(
+  payload: CheckoutPaymentPayload,
+): Promise<ApiResponse<CheckoutPaymentResult>> {
+  const { data } = await apiClient.post<ApiResponse<CheckoutPaymentResult>>(
+    "/payments/checkout",
+    payload,
+  );
+  const normalized = normalizeApiResponse<CheckoutPaymentResult>(data);
+  return {
+    ...normalized,
+    data: {
+      paymentUrl: String(
+        (normalized.data as CheckoutPaymentResult)?.paymentUrl ??
+          (normalized.data as Record<string, unknown>)?.payment_url ??
+          "",
+      ),
+      provider: String(
+        (normalized.data as CheckoutPaymentResult)?.provider ?? payload.provider,
+      ),
+    },
+  };
 }
