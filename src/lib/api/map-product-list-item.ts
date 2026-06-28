@@ -1,0 +1,75 @@
+import { resolveProductImageUrl } from "@/lib/images/resolve-product-image";
+import type { ProductImage, ProductListItem, ProductStatus } from "@/types";
+
+function toNumber(value: unknown): number | undefined {
+  if (value == null || value === "") return undefined;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+/** Map BE product row (prices often string) → shop ProductListItem. */
+export function mapProductListItem(row: Record<string, unknown>): ProductListItem {
+  const images = Array.isArray(row.images)
+    ? (row.images as Record<string, unknown>[]).map(
+        (img): ProductImage => ({
+          id: String(img.id ?? ""),
+          productId: String(img.productId ?? row.id ?? ""),
+          publicId: String(img.publicId ?? ""),
+          imageUrl: resolveProductImageUrl(String(img.imageUrl ?? "")),
+          altText: String(img.altText ?? ""),
+          sortOrder: Number(img.sortOrder ?? 0),
+          isFeatured: Boolean(img.isFeatured),
+          createdAt: String(img.createdAt ?? ""),
+          updatedAt: String(img.updatedAt ?? ""),
+        }),
+      )
+    : undefined;
+
+  const featured = images?.find((i) => i.isFeatured) ?? images?.[0];
+
+  const variantOptions = Array.isArray(row.variants)
+    ? (row.variants as Record<string, unknown>[])
+        .filter((v) => v.isActive !== false)
+        .map((v) => ({
+          name: String(v.name ?? ""),
+          value: String(v.value ?? ""),
+          stock: Number(v.stock ?? 0),
+        }))
+    : undefined;
+
+  const normalizedId = (() => {
+    const rawId = row.id;
+    if (typeof rawId === "number") {
+      return Number.isFinite(rawId) ? String(rawId) : undefined;
+    }
+    if (typeof rawId === "string") {
+      const trimmed = rawId.trim();
+      if (trimmed && trimmed.toLowerCase() !== "nan") {
+        return trimmed;
+      }
+    }
+    return undefined;
+  })();
+
+  const fallbackId = String(row.slug ?? row.name ?? row.categoryId ?? "");
+
+  return {
+    id: normalizedId ?? (fallbackId || `product-${Math.random().toString(36).slice(2, 10)}`),
+    name: String(row.name),
+    slug: String(row.slug),
+    basePrice: toNumber(row.basePrice) ?? 0,
+    discountPrice: toNumber(row.discountPrice),
+    stock: toNumber(row.stock) ?? 0,
+    categoryId: row.categoryId ? String(row.categoryId) : undefined,
+    weight: toNumber(row.weight),
+    status: row.status as ProductStatus | undefined,
+    images: featured ? [{ ...featured, isFeatured: true }] : images,
+    variantOptions,
+  };
+}
+
+export function mapProductListItems(rows: unknown[]): ProductListItem[] {
+  return rows.map((row) =>
+    mapProductListItem(row as Record<string, unknown>),
+  );
+}
