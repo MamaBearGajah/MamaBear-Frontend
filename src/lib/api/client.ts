@@ -11,6 +11,15 @@ export const apiClient = axios.create({
   withCredentials: true,
 });
 
+// Axios instance khusus untuk auth proxy routes (Next.js API routes)
+// Tidak perlu baseURL backend — ini hit /api/auth/* di domain frontend sendiri
+export const authProxyClient = axios.create({
+  baseURL: "/api/auth",
+  headers: { "Content-Type": "application/json" },
+  timeout: 15000,
+  withCredentials: true,
+});
+
 // Variables to handle concurrent requests so we don't spam the refresh endpoint
 let isRefreshing = false;
 let failedQueue: Array<{
@@ -35,23 +44,21 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // If it's a 401 and we haven't retried yet
     if (
       typeof window !== "undefined" &&
       error.response?.status === 401 &&
       !originalRequest._retry
     ) {
-      // Jangan coba refresh kalau request-nya memang ke /auth/refresh atau /auth/logout
-      // — itu akan menyebabkan infinite loop
+      // Jangan refresh kalau request-nya memang ke auth endpoint
       const isAuthEndpoint =
         originalRequest.url?.includes("/auth/refresh") ||
-        originalRequest.url?.includes("/auth/logout");
+        originalRequest.url?.includes("/auth/logout") ||
+        originalRequest.url?.includes("/auth/login");
       if (isAuthEndpoint) {
         return Promise.reject(error);
       }
 
       if (isRefreshing) {
-        // If a refresh is already happening, queue this request
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
@@ -63,21 +70,17 @@ apiClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await axios.post(
-          `${baseURL}/auth/refresh`,
-          {},
-          { withCredentials: true }
-        );
+        // Hit Next.js proxy /api/auth/refresh (bukan backend langsung)
+        // supaya cookie di-set di domain frontend
+        await axios.post("/api/auth/refresh", {}, { withCredentials: true });
         processQueue(null);
         return apiClient(originalRequest);
       } catch (refreshError) {
-        // Refresh token expired atau tidak ada → logout user secara silent
         processQueue(refreshError);
+        // Hapus session via proxy
         await axios
-          .post(`${baseURL}/auth/logout`, {}, { withCredentials: true })
+          .post("/api/auth/logout", {}, { withCredentials: true })
           .catch(() => {});
-        // Redirect ke login hanya kalau user sedang di halaman yang butuh auth
-        // (bukan halaman publik seperti products, home, dll)
         const protectedPaths = ["/account", "/checkout", "/admin"];
         const isProtected = protectedPaths.some((p) =>
           window.location.pathname.startsWith(p)
