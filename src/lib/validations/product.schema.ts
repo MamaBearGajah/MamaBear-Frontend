@@ -3,23 +3,23 @@ import { z } from "zod";
 const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export const productFormSchema = z.object({
-  name: z.string().min(2, "Nama minimal 2 karakter").max(120, "Nama maksimal 120 karakter"),
+  name: z.string().min(2, "Name must be at least 2 characters").max(120, "Name must be at most 120 characters"),
   slug: z
     .string()
-    .min(1, "Slug wajib diisi")
-    .max(120, "Slug maksimal 120 karakter")
-    .regex(slugRegex, "Slug harus lowercase kebab-case (contoh: produk-saya)"),
-  sku: z.string().min(3, "SKU minimal 3 karakter").max(50, "SKU maksimal 50 karakter"),
-  description: z.string().max(5000, "Deskripsi maksimal 5000 karakter").optional(),
-  basePrice: z.coerce.number().min(0, "Harga dasar minimal 0"),
+    .min(1, "Slug is required")
+    .max(120, "Slug must be at most 120 characters")
+    .regex(slugRegex, "Slug must be lowercase kebab-case (e.g. my-product)"),
+  sku: z.string().min(3, "SKU must be at least 3 characters").max(50, "SKU must be at most 50 characters"),
+  description: z.string().max(5000, "Description must be at most 5000 characters").optional(),
+  basePrice: z.coerce.number().min(0, "Base price must be at least 0"),
   discountPrice: z
-    .union([z.literal(""), z.coerce.number().min(0, "Harga diskon minimal 0")])
+    .union([z.literal(""), z.coerce.number().min(0, "Discount price must be at least 0")])
     .optional(),
-  weight: z.coerce.number().min(1, "Berat minimal 1 gram"),
+  weight: z.coerce.number().min(1, "Weight must be at least 1 gram"),
   stock: z.coerce
     .number()
-    .int("Stok harus bilangan bulat")
-    .min(0, "Stok minimal 0"),
+    .int("Stock must be a whole number")
+    .min(0, "Stock must be at least 0"),
   status: z.enum(["active", "inactive", "draft"]),
   categoryId: z.string().optional(),
 });

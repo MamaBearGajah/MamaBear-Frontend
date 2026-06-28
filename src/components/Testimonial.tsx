@@ -1,5 +1,7 @@
 import Image from "next/image";
 import { CheckCircle2 } from "lucide-react";
+import { apiClient } from "@/lib/api/client";
+import type { Review } from "@/types";
 
 // Testimonial component for displaying customer stories and reasons to choose Mamabear
 
@@ -41,11 +43,29 @@ function BadgePill({
 type StoryCard = {
   initials: string;
   name: string;
-  city: string;
   quote: string;
   rating: number;
   tags: string[];
+  productName: string;
 };
+
+type ApiResponse<T> = {
+  success?: boolean;
+  data?: T;
+  meta?: {
+    total?: number;
+    page?: number;
+    limit?: number;
+    totalPages?: number;
+  };
+};
+
+const testimonialProductSlugs = [
+  "mamabear-asi-booster-30-kapsul",
+  "mamabear-zoyamix-rasa-cokelat-isi-10-sachet",
+  "mamabear-kukis-almond-oat",
+  "mamabear-almonmix-isi-6-sachet",
+];
 
 const reasonCards: ReasonCard[] = [
   {
@@ -70,72 +90,141 @@ const reasonCards: ReasonCard[] = [
   },
 ];
 
-const storyCards: StoryCard[] = [
-  {
-    initials: "SR",
-    name: "Siti Rahma",
-    city: "Jakarta",
-    quote:
-      '"ASI Booster Tea Thai Milk Tea rasa enak banget! Seminggu minum udah kerasa bedanya. Baby jadi lebih kenyang dan tidur lebih lama. Thank you Mamabear! 💕"',
-    rating: 5,
-    tags: ["ASI Booster Tea - Thai Milk Tea"],
-  },
-  {
-    initials: "DA",
-    name: "Dewi Anggraeni",
-    city: "Surabaya",
-    quote:
-      '"Kookie Bites jadi snack wajib saya saat nursing session: Enak, nggak bikin gemuk, dan ASI makin banyak. Udah order ke-5 nih" 😍',
-    rating: 5,
-    tags: ["Kookie Bites - Chocolate Chip"],
-  },
-  {
-    initials: "PM",
-    name: "Putri Maharani",
-    city: "Bandung",
-    quote:
-      '"Konsultasi laktasinya helpful banget! Konsultannya sabar dan helpful. Masalah latch yang udah 2 minggu akhirnya selesai dalam 1 sesi!"',
-    rating: 5,
-    tags: ["Lactation Consultation"],
-  },
-  {
-    initials: "AP",
-    name: "Ayu Permata",
-    city: "Yogyakarta",
-    quote:
-      '"Capsules Premium luar biasa! Dalam 3 hari ASI udah melimpah ruah. Bayi nggak perlu sufor lagi. Worth every rupiah! 🥹"',
-    rating: 5,
-    tags: ["ASI Booster Capsules - Premium"],
-  },
-];
+function normalizeReviewResponse(payload: unknown): Review[] {
+  const data =
+    payload && typeof payload === "object" && "data" in payload
+      ? (payload as ApiResponse<unknown[]>).data
+      : payload;
 
-const Testimonial = () => {
-  // API fetch rules (COMMENTED - API not available yet)
-  // --------------------------------------------------
-  // Endpoint: GET /api/testimonials
-  // Expected response shape: { items: StoryCard[] }
-  // Fields required per StoryCard: initials, name, city, quote, rating, tags
-  // Pagination: optional query params `?page=1&limit=20`
-  // Caching: client may cache for 30s; server should return stable ids
-  // Usage (enable when API ready):
-  // const [fetchedStories, setFetchedStories] = useState<StoryCard[] | null>(null);
-  // useEffect(() => {
-  //   let mounted = true;
-  //   fetch('/api/testimonials')
-  //     .then((res) => res.json())
-  //     .then((data) => {
-  //       if (!mounted) return;
-  //       setFetchedStories(Array.isArray(data.items) ? data.items : data);
-  //     })
-  //     .catch(() => {
-  //       if (!mounted) return;
-  //       setFetchedStories(null);
-  //     });
-  //   return () => {
-  //     mounted = false;
-  //   };
-  // }, []);
-  // In JSX replace `storyCards` with `fetchedStories ?? storyCards`
+  return Array.isArray(data) ? (data as Review[]) : [];
+}
+
+function toStoryCard(review: Review): StoryCard {
+  const name = review.user?.name?.trim() || "MamaBear Customer";
+  const initials =
+    name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? "")
+      .join("")
+      .slice(0, 2) || "MB";
+
+  return {
+    initials,
+    name,
+    quote: review.review,
+    rating: review.rating,
+    tags: [review.productId],
+    productName: review.productId,
+  };
+}
+
+async function fetchProductSourceBySlug(
+  slug: string
+): Promise<{ id: string; name: string } | null> {
+  try {
+    const response = await apiClient.get<
+      ApiResponse<{ id?: string; name?: string }>
+    >(`/products/slug/${slug}`);
+
+    const product = response.data?.data;
+    if (!product || typeof product.id !== "string") {
+      return null;
+    }
+
+    return {
+      id: product.id,
+      name: product.name ?? slug,
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function fetchReviewsByProductId(productId: string): Promise<Review[]> {
+  try {
+    const response = await apiClient.get(`/products/${productId}/reviews`, {
+      params: {
+        limit: 3,
+        sortBy: "rating",
+        sortOrder: "desc",
+      },
+    });
+
+    return normalizeReviewResponse(response.data);
+  } catch {
+    return [];
+  }
+}
+
+async function fetchHomepageReviewStories(): Promise<StoryCard[]> {
+  const products = await Promise.all(
+    testimonialProductSlugs.map((slug) => fetchProductSourceBySlug(slug))
+  );
+
+  const reviewBatches = await Promise.all(
+    products
+      .filter((product): product is { id: string; name: string } =>
+        Boolean(product)
+      )
+      .map((product) => fetchReviewsByProductId(product.id))
+  );
+
+  const productNameById = new Map(
+    products
+      .filter((product): product is { id: string; name: string } =>
+        Boolean(product)
+      )
+      .map((product) => [product.id, product.name] as const)
+  );
+
+  const allReviews = reviewBatches.flat().sort((left, right) => {
+    if (right.rating !== left.rating) {
+      return right.rating - left.rating;
+    }
+
+    if (right.helpfulCount !== left.helpfulCount) {
+      return right.helpfulCount - left.helpfulCount;
+    }
+
+    const leftCreatedAt = new Date(left.createdAt ?? 0).getTime();
+    const rightCreatedAt = new Date(right.createdAt ?? 0).getTime();
+    return rightCreatedAt - leftCreatedAt;
+  });
+
+  const uniqueReviews: Review[] = [];
+  const seenNames = new Set<string>();
+
+  for (const review of allReviews) {
+    const normalizedName = review.user?.name?.trim().toLowerCase();
+    const dedupeKey = normalizedName || review.id;
+
+    if (seenNames.has(dedupeKey)) {
+      continue;
+    }
+
+    seenNames.add(dedupeKey);
+    uniqueReviews.push(review);
+
+    if (uniqueReviews.length === 4) {
+      break;
+    }
+  }
+
+  return uniqueReviews.map((review) => {
+    const storyCard = toStoryCard(review);
+    return {
+      ...storyCard,
+      tags: [productNameById.get(review.productId) ?? storyCard.productName],
+      productName:
+        productNameById.get(review.productId) ?? storyCard.productName,
+    };
+  });
+}
+
+const Testimonial = async () => {
+  const fetchedStories = await fetchHomepageReviewStories();
 
   return (
     <section className="w-full bg-[#FEF2F5] pt-6 pb-8 md:py-10">
@@ -237,6 +326,7 @@ const Testimonial = () => {
                         src={card.imageSrc}
                         alt={card.title}
                         fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         className="object-cover"
                       />
                       <div className="pointer-events-none absolute inset-y-0 left-0 w-[58%] bg-[linear-gradient(90deg,rgba(255,255,255,1)_0%,rgba(255,255,255,0.94)_28%,rgba(255,255,255,0.72)_58%,rgba(255,255,255,0)_100%)]" />
@@ -262,6 +352,7 @@ const Testimonial = () => {
                       src={card.imageSrc}
                       alt={card.title}
                       fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       className="object-cover"
                     />
                     <div className="pointer-events-none absolute inset-y-0 left-0 w-[70%] bg-[linear-gradient(90deg,rgba(255,255,255,1)_0%,rgba(255,255,255,0.94)_24%,rgba(255,255,255,0.7)_56%,rgba(255,255,255,0)_100%)]" />
@@ -306,7 +397,7 @@ const Testimonial = () => {
         </h2>
 
         <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {storyCards.map((story) => (
+          {fetchedStories.map((story) => (
             <article
               key={story.name}
               className="rounded-[20px] border border-[#F0C7D5] bg-white p-4"
@@ -319,7 +410,6 @@ const Testimonial = () => {
                   <p className="text-[14px] leading-tight font-semibold text-[#6C4735]">
                     {story.name}
                   </p>
-                  <p className="text-[12px] text-[#9B7A6A]">{story.city}</p>
                 </div>
               </div>
               <div className="mt-3 flex items-center gap-0.5" aria-hidden>
@@ -344,7 +434,7 @@ const Testimonial = () => {
                 {story.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-full bg-[#FACBD8] px-3 py-1 text-[11px] font-bold text-[#D5557E]"
+                    className="rounded-lg bg-[#FACBD8] px-3 py-1 text-[11px] font-bold text-[#D5557E]"
                   >
                     {tag}
                   </span>

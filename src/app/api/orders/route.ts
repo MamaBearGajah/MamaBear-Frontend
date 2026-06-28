@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { getAllOrders, createOrder } from "@/lib/api/orders";
+import { getOrderList, createOrder } from "@/lib/api/orders";
 
 export async function GET() {
-  const orders = await getAllOrders();
+  const orders = await getOrderList();
   return NextResponse.json(orders, { status: 200 });
 }
 
@@ -10,17 +10,19 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    if (!body || !Array.isArray(body.items) || typeof body.total !== "number") {
+    if (!body || !body.addressId || !body.courier || !body.service) {
       return NextResponse.json({ message: "Invalid payload" }, { status: 400 });
     }
 
     const orderPayload = {
-      date: body.date || new Date().toISOString().slice(0, 10),
-      items: body.items,
-      total: body.total,
-      status: body.status || "Processing",
-      kurir: body.kurir,
-      resi: body.resi,
+      addressId: body.addressId,
+      courier: body.courier,
+      service: body.service,
+      paymentMethod: body.paymentMethod,
+      notes: body.notes,
+      // FIX: teruskan voucherId dan voucherShippingId agar diskon diterapkan
+      voucherId: body.voucherId || undefined,
+      voucherShippingId: body.voucherShippingId || undefined,
     };
 
     const created = await createOrder(orderPayload);

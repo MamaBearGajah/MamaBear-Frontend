@@ -1,11 +1,15 @@
-import { apiClient } from "@/lib/api/client";
+import { apiClient, authProxyClient } from "@/lib/api/client";
 import type { RegisterPayload, LoginPayload } from "@/types/index";
 
 export const authApi = {
+  // ── Auth endpoints — lewat Next.js proxy (/api/auth/*)
+  // supaya cookie di-set di domain frontend, bisa dibaca middleware
+  login: (d: LoginPayload) => authProxyClient.post("/login", d),
+  logout: () => authProxyClient.post("/logout"),
+  getMe: () => authProxyClient.get("/me"),
+
+  // ── Non-auth endpoints — langsung ke backend (tidak butuh cookie management)
   register: (d: RegisterPayload) => apiClient.post("/auth/register", d),
-  login: (d: LoginPayload) => apiClient.post("/auth/login", d),
-  logout: () => apiClient.post("/auth/logout"),
-  getMe: () => apiClient.get("/users/me"),
   forgotPassword: (email: string) =>
     apiClient.post("/auth/forgot-password", { email }),
   resetPassword: (token: string, newPassword: string) =>

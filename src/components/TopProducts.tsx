@@ -1,7 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingCart } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
+import type { ProductBadgeType } from "@/types";
+import { ShoppingCart } from "lucide-react";
+import BestsellerWishlistButton from "./product/BestsellerWishlistButton";
 
 type Product = {
   id: number;
@@ -11,6 +13,12 @@ type Product = {
   rating: number;
   description: string;
   imageUrls: string[];
+};
+
+const BADGE_LABELS: Record<ProductBadgeType, string> = {
+  "best-seller": "Best Seller",
+  "fan-favorite": "Fan Favorite",
+  new: "New",
 };
 
 type BestsellerProduct = {
@@ -33,6 +41,62 @@ type BestsellerProduct = {
 
 interface TopProductsProps {
   products?: (Product | BestsellerProduct)[];
+}
+
+function parseRatingValue(rating: string | number | undefined): number {
+  if (typeof rating === "number") {
+    if (Number.isNaN(rating)) return 0;
+    return Math.max(0, Math.min(5, rating));
+  }
+
+  if (typeof rating === "string") {
+    const match = rating.match(/\d+(?:\.\d+)?/);
+    if (!match) return 0;
+    const parsed = Number(match[0]);
+    if (Number.isNaN(parsed)) return 0;
+    return Math.max(0, Math.min(5, parsed));
+  }
+
+  return 0;
+}
+
+function renderRatingStars(rating: string | number | undefined) {
+  const rounded = Math.round(parseRatingValue(rating) * 2) / 2;
+  const fullStars = Math.floor(rounded);
+  const hasHalfStar = rounded % 1 !== 0;
+
+  return Array.from({ length: 5 }, (_, index) => {
+    const starKey = `star-${index}`;
+
+    if (index < fullStars) {
+      return (
+        <span key={starKey} className="text-[#F4A300]" aria-hidden>
+          ★
+        </span>
+      );
+    }
+
+    if (index === fullStars && hasHalfStar) {
+      return (
+        <span
+          key={starKey}
+          className="relative inline-block text-[#E3D7D1]"
+          aria-hidden
+        >
+          ★
+          <span className="absolute inset-y-0 left-0 w-1/2 overflow-hidden text-[#F4A300]">
+            ★
+          </span>
+        </span>
+      );
+    }
+
+    return (
+      <span key={starKey} className="text-[#E3D7D1]" aria-hidden>
+        ★
+      </span>
+    );
+  });
 }
 
 function isBestsellerProduct(product: any): product is BestsellerProduct {
@@ -119,7 +183,7 @@ type BestSellerApiProduct = {
   weight?: number | null;
   sku?: string;
   stock?: number;
-  soldCount?: number;
+  badge?: ProductBadgeType;
   status?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -158,6 +222,32 @@ function normalizeImageSrc(src?: string | null) {
   return encodeURI(prefixed);
 }
 
+function getTopProductKey(product: BestsellerProduct, index: number) {
+  if (product.id != null && product.id !== "" && !Number.isNaN(Number(product.id))) {
+    return String(product.id);
+  }
+
+  if (product.slug) {
+    return product.slug;
+  }
+
+  if (product.name) {
+    return product.name;
+  }
+
+  return `top-product-${index}`;
+}
+
+function getTopProductHref(product: BestsellerProduct, index: number) {
+  const path =
+    product.slug ??
+    (product.id != null && !Number.isNaN(Number(product.id)) ? String(product.id) : undefined) ??
+    product.name ??
+    `product-${index}`;
+
+  return `/products/${encodeURIComponent(String(path))}`;
+}
+
 function mapBestSellerToCard(product: BestSellerApiProduct): BestsellerProduct {
   const mainImage =
     product.images?.find((image) => image.imageType === "main") ??
@@ -170,6 +260,16 @@ function mapBestSellerToCard(product: BestSellerApiProduct): BestsellerProduct {
     typeof discountPrice === "number" &&
     typeof basePrice === "number" &&
     discountPrice < basePrice;
+  const discountPercent = hasDiscount
+    ? Math.round(((basePrice - discountPrice) / basePrice) * 100)
+    : undefined;
+
+  const badgeLabel = product.badge ? BADGE_LABELS[product.badge] : undefined;
+  const badgeClassName = product.badge
+    ? "bg-[#E35F8A] text-white"
+    : hasDiscount
+      ? "bg-[#FF3B30] text-white"
+      : "bg-[#E35F8A] text-white";
 
   return {
     id: product.id,
@@ -183,10 +283,17 @@ function mapBestSellerToCard(product: BestSellerApiProduct): BestsellerProduct {
     imageUrl: normalizeImageSrc(mainImage?.imageUrl),
     imageLabel: mainImage?.altText ?? product.name ?? "Product image",
     imageAccentClass: "from-[#F0E0F0] via-white to-[#E8D8E8]",
-    primaryBadgeLabel: product.soldCount
-      ? `Sold ${product.soldCount}`
-      : "Best Seller",
-    primaryBadgeClassName: "bg-[#E35F8A] text-white",
+    primaryBadgeLabel:
+      badgeLabel ?? (hasDiscount ? `-${discountPercent}%` : "Best Seller"),
+    primaryBadgeClassName: badgeClassName,
+    secondaryBadgeLabel:
+      badgeLabel && discountPercent != null
+        ? `-${discountPercent}%`
+        : undefined,
+    secondaryBadgeClassName:
+      badgeLabel && discountPercent != null
+        ? "bg-[#FF3B30] text-white"
+        : undefined,
   };
 }
 
@@ -260,29 +367,22 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
 
         <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
           {shownProducts.map((product, index) => {
-            const toggleId = `top-products-cart-toggle-${index}`;
-            const cartHref = `/cart?add=${encodeURIComponent(String(product.id ?? product.slug ?? product.name))}`;
+            const productHref = getTopProductHref(product, index);
 
             return (
               <article
-                key={product.name}
+                key={getTopProductKey(product, index)}
                 className="group relative flex flex-col overflow-hidden rounded-[18px] border border-[#F1D0DB] bg-white shadow-[0_8px_24px_rgba(108,67,53,0.08)]"
               >
-                <input
-                  id={toggleId}
-                  type="checkbox"
-                  className="peer sr-only md:hidden"
-                  aria-hidden="true"
+                <Link
+                  href={productHref}
+                  aria-label={`View details for ${product.name}`}
+                  className="absolute inset-0 z-10"
                 />
                 {/* Image Section - Full cover */}
                 <div
                   className={`relative h-[280px] w-full flex-shrink-0 overflow-hidden bg-gradient-to-br ${product.imageAccentClass}`}
                 >
-                  <label
-                    htmlFor={toggleId}
-                    className="absolute inset-0 z-10 cursor-pointer md:pointer-events-none md:cursor-default"
-                    aria-label={`Show add to cart for ${product.name}`}
-                  />
                   {/* Badge - Top Left Overlay (only primary/secondary labels) */}
                   {product.primaryBadgeLabel || product.secondaryBadgeLabel ? (
                     <div className="absolute top-4 left-4 z-10 inline-grid w-fit grid-rows-2 gap-1">
@@ -305,6 +405,12 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                     </div>
                   ) : null}
 
+                  {product.id != null && (
+                    <div className="relative z-20">
+                      <BestsellerWishlistButton productId={String(product.id)} />
+                    </div>
+                  )}
+
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#6C4735]/35 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 peer-checked:opacity-100" />
 
                   {/* Image Area */}
@@ -313,7 +419,8 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                       src={product.imageUrl}
                       alt={product.name}
                       fill
-                      className="object-cover"
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      className="object-cover transition-transform duration-300 group-hover:scale-110"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-center text-[#6C4735]">
@@ -328,13 +435,6 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                     </div>
                   )}
 
-                  <Link
-                    href={cartHref}
-                    className="absolute inset-x-3 bottom-3 z-20 flex translate-y-3 items-center justify-center gap-2 rounded-xl bg-[#D5557E] px-4 py-2.5 text-sm font-semibold text-white opacity-0 shadow-md transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100 peer-checked:translate-y-0 peer-checked:opacity-100 hover:bg-[#C84E77]"
-                  >
-                    <ShoppingCart className="size-4" strokeWidth={1.85} />
-                    Add to Cart
-                  </Link>
                 </div>
 
                 {/* Detail Section - Bottom: category, name; rating, variant, price */}
@@ -347,7 +447,12 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                   </h3>
 
                   <div className="mt-2 flex items-center gap-2 text-[12px] font-normal text-[#8D6B5B]">
-                    <span className="text-[#F4A300]">★★★★★</span>
+                    <span
+                      className="inline-flex items-center"
+                      aria-label={`Rating ${parseRatingValue(product.rating)} out of 5`}
+                    >
+                      {renderRatingStars(product.rating)}
+                    </span>
                     <span>{product.rating}</span>
                   </div>
 
@@ -355,9 +460,9 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                     <div className="mt-2 flex flex-wrap items-center gap-[3px]">
                       {product.variant
                         .filter((t) => !t.trim().startsWith("+"))
-                        .map((variant) => (
+                        .map((variant, variantIndex) => (
                           <span
-                            key={variant}
+                            key={`variant-${variantIndex}-${variant}`}
                             className="rounded-full bg-[#F6D6DF] px-2 py-[2px] text-[10px] leading-none text-[#6C4735]"
                           >
                             {variant}
@@ -385,6 +490,14 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                       </span>
                     ) : null}
                   </div>
+
+                  <Link
+                    href={productHref}
+                    className="relative z-20 mt-3 inline-flex w-fit items-center gap-2 rounded-lg bg-[#D5557E] px-3 py-2 text-[12px] font-semibold text-white transition hover:bg-[#C84E77]"
+                  >
+                    <ShoppingCart className="size-3.5" aria-hidden="true" />
+                    See Details
+                  </Link>
                 </div>
               </article>
             );
@@ -416,28 +529,21 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
 
         <div className="mt-5 grid grid-cols-2 gap-3 px-4">
           {shownProducts.map((product, index) => {
-            const toggleId = `top-products-mobile-cart-toggle-${index}`;
-            const cartHref = `/cart?add=${encodeURIComponent(String(product.id ?? product.slug ?? product.name))}`;
+            const productHref = getTopProductHref(product, index);
 
             return (
               <article
-                key={product.name}
+                key={getTopProductKey(product, index)}
                 className="group relative overflow-hidden rounded-[14px] border border-[#F1D0DB] bg-white shadow-[0_6px_18px_rgba(108,67,53,0.08)]"
               >
-                <input
-                  id={toggleId}
-                  type="checkbox"
-                  className="peer sr-only md:hidden"
-                  aria-hidden="true"
+                <Link
+                  href={productHref}
+                  aria-label={`View details for ${product.name}`}
+                  className="absolute inset-0 z-10"
                 />
                 <div
                   className={`relative h-[138px] w-full overflow-hidden bg-gradient-to-br ${product.imageAccentClass}`}
                 >
-                  <label
-                    htmlFor={toggleId}
-                    className="absolute inset-0 z-10 cursor-pointer md:pointer-events-none md:cursor-default"
-                    aria-label={`Show add to cart for ${product.name}`}
-                  />
                   {product.primaryBadgeLabel || product.secondaryBadgeLabel ? (
                     <div className="absolute top-2 left-2 z-10 inline-grid w-fit grid-rows-2 gap-1">
                       {product.primaryBadgeLabel ? (
@@ -459,6 +565,12 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                     </div>
                   ) : null}
 
+                  {product.id != null && (
+                    <div className="relative z-20">
+                      <BestsellerWishlistButton productId={String(product.id)} />
+                    </div>
+                  )}
+
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#6C4735]/35 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 peer-checked:opacity-100" />
 
                   {product.imageUrl ? (
@@ -466,7 +578,8 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                       src={product.imageUrl}
                       alt={product.name}
                       fill
-                      className="object-cover"
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      className="object-cover transition-transform duration-300 group-hover:scale-110"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center px-3 text-center text-[#6C4735]">
@@ -482,11 +595,10 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                   )}
 
                   <Link
-                    href={cartHref}
-                    className="absolute inset-x-2 bottom-2 z-20 flex translate-y-2 items-center justify-center gap-1.5 rounded-lg bg-[#D5557E] px-3 py-1.5 text-[10px] font-semibold text-white opacity-0 shadow-md transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100 peer-checked:translate-y-0 peer-checked:opacity-100 hover:bg-[#C84E77]"
+                    href={productHref}
+                    className="absolute inset-x-2 bottom-2 z-20 flex items-center justify-center gap-1.5 rounded-lg bg-[#D5557E] px-3 py-1.5 text-[10px] font-semibold text-white opacity-0 shadow-md transition-all duration-300 ease-out group-hover:opacity-100 hover:bg-[#C84E77]"
                   >
-                    <ShoppingCart className="size-3" strokeWidth={1.85} />
-                    Add to Cart
+                    Shop Now
                   </Link>
                 </div>
 
@@ -499,7 +611,12 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                   </h3>
 
                   <div className="mt-1.5 flex items-center gap-1.5 text-[10px] font-normal text-[#8D6B5B]">
-                    <span className="text-[#F4A300]">★★★★★</span>
+                    <span
+                      className="inline-flex items-center"
+                      aria-label={`Rating ${parseRatingValue(product.rating)} out of 5`}
+                    >
+                      {renderRatingStars(product.rating)}
+                    </span>
                     <span>{product.rating}</span>
                   </div>
 
@@ -508,9 +625,9 @@ export default async function TopProducts({ products }: TopProductsProps = {}) {
                       {product.variant
                         .filter((t) => !t.trim().startsWith("+"))
                         .slice(0, 2)
-                        .map((variant) => (
+                        .map((variant, variantIndex) => (
                           <span
-                            key={variant}
+                            key={`variant-${variantIndex}-${variant}`}
                             className="rounded-full bg-[#F6D6DF] px-1.5 py-[1px] text-[8px] leading-none text-[#6C4735]"
                           >
                             {variant}

@@ -20,7 +20,6 @@ interface CategoryCardProps {
   mobileSize?: boolean;
 }
 
-
 function CategoryCard({
   category,
   gradientClass,
@@ -57,7 +56,7 @@ function CategoryCard({
       {/* Hover overlay */}
       <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/0 opacity-0 transition duration-300 group-hover:bg-white/10 group-hover:opacity-100">
         <span className="inline-flex items-center rounded-full bg-[#6C4735] px-2 py-0.5 text-[11px] font-semibold tracking-[0.15em] text-white uppercase shadow-[0_2px_6px_rgba(0,0,0,0.15)]">
-          shop now
+          see more
         </span>
       </div>
 
@@ -114,12 +113,6 @@ export default async function CategorySection({
       : propCategories && propCategories.length > 0
         ? propCategories
         : [];
-
-
-    //   const categories =
-    // fetchedCategories.length > 0
-    //   ? fetchedCategories
-    //   : null;
 
   // gradient variants per card (deterministic for SSR)
   const gradientClasses = [

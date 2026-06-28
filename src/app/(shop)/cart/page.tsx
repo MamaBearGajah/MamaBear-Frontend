@@ -1,446 +1,270 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import CartItem from "../../../components/cart/CartItem";
+import CartSummary from "../../../components/cart/CartSummary";
+import EmptyCart from "../../../components/cart/EmptyCart";
+import { useCheckout } from "@/context/CheckoutContext";
+import { voucherApi } from "@/lib/api/voucher";
+import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/hooks/useCart";
-import { safeFormatPrice } from "@/lib/utils";
-import CartItem from "@/components/cart/CartItem";
-import {
-  Minus,
-  Plus,
-  Trash2,
-  ShoppingBag,
-  ArrowRight,
-  Tag,
-  ChevronRight,
-  Truck,
-  Shield,
- RotateCcw,
-} from "lucide-react";
+import { ArrowLeft, ChevronRight, Trash2, Truck, Shield, RotateCcw } from "lucide-react";
+
+// FIX: Semua voucher ongkir membership menggunakan prefix "SHIP-".
+// Voucher ini punya usageLimit:1, sehingga backend akan throw "Voucher sudah habis"
+// bahkan sebelum sempat return tipe voucher — kita cegat di sini sebelum hit API
+// agar pesan error yang ditampilkan jelas dan tidak menyesatkan user.
+const isShippingVoucherCode = (code: string) => /^SHIP-/i.test(code.trim());
 
 const CartPage = () => {
-  const {
-    state,
-    itemCount,
-    removeItem,
-    updateQuantity,
-    clearCart,
-  } = useCart();
+  const { state, itemCount, removeItem, updateQuantity, clearCart } = useCart();
+  const { state: authState } = useAuth();
+  const { setVoucher, clearVoucher } = useCheckout();
 
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [promoCode, setPromoCode] = useState("");
   const [promoApplied, setPromoApplied] = useState(false);
   const [promoError, setPromoError] = useState("");
+  const [appliedDiscount, setAppliedDiscount] = useState(0);
 
-  const { items, subtotal, guestCartId, loading } = state;
+  const { items, loading } = state;
 
-  // =========================
-  // CALCULATIONS
-  // =========================
+  const checkoutHref = authState.user
+    ? "/checkout/info"
+    : "/auth/login?redirect=/checkout/info";
 
-  const discount = promoApplied ? subtotal * 0.15 : 0;
+  const selectedItems = items.filter((item) => selectedItemIds.includes(item.id));
 
-  const shipping = subtotal >= 200000 ? 0 : 15000;
+  const selectedSubtotal = selectedItems.reduce((total, item) => {
+    const price = item.discountPrice ?? item.basePrice;
+    return total + price * item.quantity;
+  }, 0);
 
-  const finalTotal = subtotal - discount + shipping;
+  const selectedCount = selectedItems.length;
+  const discount = promoApplied ? appliedDiscount : 0;
+  const finalTotal = selectedSubtotal > 0 ? selectedSubtotal - discount : 0;
 
-  // =========================
-  // HELPERS
-  // =========================
+  useEffect(() => {
+    setSelectedItemIds((current) =>
+      current.filter((id) => items.some((item) => item.id === id))
+    );
+  }, [items]);
 
-  const getPrice = (item: {
-    basePrice: number;
-    discountPrice?: number;
-  }) => {
-    return item.discountPrice ?? item.basePrice;
+  const handleToggleItemSelection = (itemId: string, checked: boolean) => {
+    setSelectedItemIds((current) =>
+      checked ? [...current, itemId] : current.filter((id) => id !== itemId)
+    );
   };
 
-  // =========================
-  // PROMO
-  // =========================
+  const handleRemoveSelected = () => {
+    selectedItems.forEach((item) => removeItem(item.productId, item.variantId));
+    setSelectedItemIds([]);
+  };
 
-  const handleApplyPromo = () => {
-    if (promoCode.toUpperCase() === "MAMABEAR15") {
+  const handleClearCart = () => {
+    clearCart();
+    setSelectedItemIds([]);
+  };
+
+  const handleApplyPromo = async () => {
+    setPromoError("");
+    setPromoApplied(false);
+    setAppliedDiscount(0);
+    clearVoucher();
+
+    const trimmedCode = promoCode.trim().toUpperCase();
+
+    if (!trimmedCode) {
+      setPromoError("Masukkan kode voucher");
+      return;
+    }
+
+    if (selectedSubtotal <= 0) {
+      setPromoError("Pilih produk terlebih dahulu");
+      return;
+    }
+
+    // FIX: cek prefix SHIP- sebelum hit API.
+    // Voucher ongkir (SHIP-SILVER, SHIP-GOLD, SHIP-PLATINUM) punya usageLimit:1 —
+    // backend langsung throw "Voucher sudah habis" tanpa sempat return tipe voucher,
+    // sehingga catch menampilkan pesan yang menyesatkan. Kita blokir di sini duluan.
+    if (isShippingVoucherCode(trimmedCode)) {
+      setPromoError(
+        "Voucher ongkir tidak bisa dipakai di sini. Masukkan kode voucher ongkir di halaman pilih metode pengiriman saat checkout."
+      );
+      return;
+    }
+
+    try {
+      const res = await voucherApi.validate(
+        trimmedCode,
+        selectedSubtotal,
+        0, // shippingCost belum diketahui di cart
+      );
+
+      if (!res.valid) {
+        setPromoError("Voucher tidak valid atau sudah tidak aktif");
+        return;
+      }
+
+      // Double-check tipe dari response (untuk voucher ongkir non-SHIP- jika ada)
+      if (res.voucher.type === "free_shipping") {
+        setPromoError(
+          "Voucher ongkir tidak bisa dipakai di sini. Masukkan kode voucher ongkir di halaman pilih metode pengiriman saat checkout."
+        );
+        return;
+      }
+
       setPromoApplied(true);
       setPromoError("");
-    } else {
+      setAppliedDiscount(res.discountAmount);
+      setVoucher(trimmedCode, res.voucher.id, res.discountAmount);
+    } catch (err: any) {
       setPromoApplied(false);
-      setPromoError("Invalid promo code. Try MAMABEAR15");
+      setAppliedDiscount(0);
+      clearVoucher();
+
+      const serverMsg: string =
+        err?.response?.data?.error?.message ??
+        err?.response?.data?.message ??
+        "";
+
+      // FIX: jika backend throw error untuk kode ongkir (lolos pre-check karena alasan lain),
+      // tetap tampilkan pesan yang benar, bukan "Voucher sudah habis"
+      if (isShippingVoucherCode(trimmedCode)) {
+        setPromoError(
+          "Voucher ongkir tidak bisa dipakai di sini. Masukkan kode voucher ongkir di halaman pilih metode pengiriman saat checkout."
+        );
+      } else {
+        setPromoError(serverMsg || "Voucher tidak valid atau sudah habis");
+      }
     }
   };
 
-  // =========================
-  // EMPTY CART
-  // =========================
-
   if (!loading && items.length === 0) {
-    return (
-      <div
-        className="min-h-screen flex items-center justify-center px-4"
-        style={{
-          backgroundColor: "#FFF5F8",
-          fontFamily: "'Urbanist', sans-serif",
-        }}
-      >
-        <div className="bg-white rounded-3xl p-10 max-w-md w-full text-center shadow-sm border border-pink-100">
-          <ShoppingBag
-            size={70}
-            className="mx-auto mb-5"
-            style={{ color: "#D5557E" }}
-          />
-
-          <h1
-            className="text-3xl font-black mb-3"
-            style={{ color: "#6C4735" }}
-          >
-            Your Cart is Empty
-          </h1>
-
-          <p className="text-sm mb-6" style={{ color: "#8B6352" }}>
-            Looks like you haven’t added anything yet.
-          </p>
-
-          <Link
-            href="/products"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-bold text-white transition hover:scale-105"
-            style={{ backgroundColor: "#D5557E" }}
-          >
-            Continue Shopping
-            <ArrowRight size={18} />
-          </Link>
-        </div>
-      </div>
-    );
+    return <EmptyCart />;
   }
 
   return (
     <div
-      className="min-h-screen py-8 px-4"
-      style={{
-        backgroundColor: "#FFF5F8",
-        fontFamily: "'Urbanist', sans-serif",
-      }}
+      className="min-h-screen overflow-x-hidden py-6 md:py-10"
+      style={{ backgroundColor: "#FFF5F8", fontFamily: "'Urbanist', sans-serif" }}
     >
-      <div className="max-w-7xl mx-auto">
+      <div className="container-main space-y-4 md:space-y-8">
         {/* Breadcrumb */}
-        <div
-          className="flex items-center gap-2 text-xs mb-6"
-          style={{ color: "#8B6352" }}
-        >
-          <Link href="/" className="hover:text-pink-600">
-            Home
-          </Link>
-
+        <div className="mb-6 flex items-center gap-2 text-xs" style={{ color: "#8B6352" }}>
+          <Link href="/" className="hover:text-pink-600">Home</Link>
           <ChevronRight size={12} />
-
           <span style={{ color: "#D5557E" }}>Shopping Cart</span>
         </div>
 
         {/* Header */}
         <div className="mb-8">
-          <h1
-            className="text-3xl font-black mb-2"
-            style={{ color: "#6C4735" }}
-          >
+          <h1 className="mb-2 text-3xl font-black" style={{ color: "#6C4735" }}>
             Shopping Cart 🛒
           </h1>
-
           <p className="text-sm" style={{ color: "#8B6352" }}>
-            {itemCount} item{itemCount > 1 ? "s" : ""} in your cart
+            {itemCount} item{itemCount !== 1 ? "s" : ""} in your cart
           </p>
-
-          {guestCartId && (
-            <p
-              className="text-xs mt-2 px-3 py-1 inline-block rounded-full bg-pink-100"
-              style={{ color: "#D5557E" }}
-            >
-              Guest Cart ID: {guestCartId}
-            </p>
-          )}
         </div>
 
-        {/* Features */}
-        <div className="grid md:grid-cols-3 gap-3 mb-8">
+        {/* Feature badges */}
+        <div className="mb-8 grid gap-3 md:grid-cols-3">
           {[
-            {
-              icon: Truck,
-              text: "Free shipping for orders > Rp 200K",
-            },
-            {
-              icon: Shield,
-              text: "Secure payment guaranteed",
-            },
-            {
-              icon: RotateCcw,
-              text: "7-day return & exchange",
-            },
+            { icon: Truck, text: "Free shipping for orders > Rp 200K" },
+            { icon: Shield, text: "Secure payment guaranteed" },
+            { icon: RotateCcw, text: "7-day return & exchange" },
           ].map((badge) => (
             <div
               key={badge.text}
-              className="flex items-center gap-2.5 p-3 rounded-xl bg-white border text-xs"
-              style={{
-                borderColor: "#FACBD8",
-                color: "#8B6352",
-              }}
+              className="flex items-center gap-2.5 rounded-xl border bg-white p-3 text-xs"
+              style={{ borderColor: "#FACBD8", color: "#8B6352" }}
             >
-              <badge.icon
-                size={16}
-                style={{ color: "#D5557E" }}
-                className="shrink-0"
-              />
-
+              <badge.icon size={16} style={{ color: "#D5557E" }} className="shrink-0" />
               {badge.text}
             </div>
           ))}
         </div>
 
-        {/* MAIN */}
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* LEFT */}
-          <div className="lg:col-span-2 space-y-4">
-            {items.map((item) => {
-              const price = getPrice(item);
-
-              return (
-                <div
-                  key={item.id}
-                  className="bg-white rounded-3xl p-5 border border-pink-100"
-                >
-                  <div className="flex gap-4">
-                    {/* IMAGE */}
-                    <div className="w-28 h-28 rounded-2xl overflow-hidden bg-pink-50 shrink-0">
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-
-                    {/* INFO */}
-                    <div className="flex-1">
-                      <div className="flex justify-between gap-3">
-                        <div>
-                          <h2
-                            className="font-bold text-lg"
-                            style={{ color: "#6C4735" }}
-                          >
-                            {item.name}
-                          </h2>
-                          {item.variantLabel ? (
-                            <p className="text-sm text-gray-500 mt-1">
-                              {item.variantLabel}
-                            </p>
-                          ) : null}
-
-                          <div className="flex items-center gap-2 mt-1">
-                            {item.discountPrice && item.basePrice && (
-                              <span
-                                className="text-sm line-through"
-                                style={{ color: "#B9998D" }}
-                              >
-                                {safeFormatPrice(item.basePrice)}
-                              </span>
-                            )}
-
-                            <span
-                              className="font-bold"
-                              style={{ color: "#D5557E" }}
-                            >
-                              {safeFormatPrice(price)}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* REMOVE */}
-                        <button
-                          onClick={() => removeItem(item.productId, item.variantId)}
-                          className="p-2 rounded-full hover:bg-pink-50 transition"
-                        >
-                          <Trash2
-                            size={18}
-                            style={{ color: "#D5557E" }}
-                          />
-                        </button>
-                      </div>
-
-                      {/* QUANTITY */}
-                      <div className="flex items-center justify-between mt-5">
-                        <div className="flex items-center border rounded-full overflow-hidden border-pink-200">
-                          <button
-                            onClick={() =>
-                              updateQuantity(
-                                item.productId,
-                                item.variantId,
-                                item.quantity - 1
-                              )
-                            }
-                            className="w-10 h-10 flex items-center justify-center hover:bg-pink-50"
-                          >
-                            <Minus size={16} />
-                          </button>
-
-                          <div className="w-12 text-center font-bold">
-                            {item.quantity}
-                          </div>
-
-                          <button
-                            onClick={() =>
-                              updateQuantity(
-                                item.productId,
-                                item.variantId,
-                                item.quantity + 1
-                              )
-                            }
-                            className="w-10 h-10 flex items-center justify-center hover:bg-pink-50"
-                          >
-                            <Plus size={16} />
-                          </button>
-                        </div>
-
-                        {/* TOTAL */}
-                        <div
-                          className="font-black text-lg"
-                          style={{ color: "#D5557E" }}
-                        >
-                          {safeFormatPrice(price * item.quantity)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* CLEAR CART */}
-            <button
-              onClick={clearCart}
-              className="text-sm font-semibold hover:underline"
-              style={{ color: "#D5557E" }}
-            >
-              Clear Cart
-            </button>
-          </div>
-
-          {/* RIGHT */}
-          <div>
-            <div className="bg-white rounded-3xl p-6 border border-pink-100 sticky top-5">
-              <h2
-                className="text-2xl font-black mb-5"
-                style={{ color: "#6C4735" }}
-              >
-                Order Summary
-              </h2>
-
-              {/* PROMO */}
-              <div className="mb-6">
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Tag
-                      size={16}
-                      className="absolute left-3 top-1/2 -translate-y-1/2"
-                      style={{ color: "#D5557E" }}
-                    />
-
-                    <input
-                      type="text"
-                      placeholder="Promo code"
-                      value={promoCode}
-                      onChange={(e) => setPromoCode(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 rounded-full border outline-none"
-                      style={{
-                        borderColor: "#FACBD8",
-                      }}
-                    />
-                  </div>
-
+        <div className="grid min-w-0 gap-4 lg:grid-cols-3 lg:gap-8">
+          {/* Cart items */}
+          <div className="min-w-0 space-y-4 lg:col-span-2">
+            <div className="w-full min-w-0 overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-sm sm:rounded-3xl">
+              <div className="flex items-center justify-between gap-3 border-b border-pink-100 px-3 py-3 sm:px-5 sm:py-4">
+                <h2 className="text-[15px] font-bold text-[#6C4735]">Products</h2>
+                <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+                  {selectedCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveSelected}
+                      className="inline-flex max-w-full items-center gap-1.5 rounded-2xl border border-[#F6B8CB] bg-[#FFF5F8] px-3 py-2 text-xs font-medium text-[#D5557E] transition hover:bg-[#FDE7EE] sm:px-4 sm:text-sm"
+                    >
+                      <Trash2 size={16} />
+                      <span className="truncate">Delete selected ({selectedCount})</span>
+                    </button>
+                  )}
                   <button
-                    onClick={handleApplyPromo}
-                    className="px-5 rounded-full font-bold text-white"
-                    style={{ backgroundColor: "#D5557E" }}
+                    type="button"
+                    onClick={handleClearCart}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-[#D5557E] transition hover:opacity-80 sm:text-sm"
                   >
-                    Apply
+                    <Trash2 size={16} />
+                    Clear Cart
                   </button>
                 </div>
-
-                {promoApplied && (
-                  <p className="text-green-600 text-sm mt-2">
-                    Promo applied successfully 🎉
-                  </p>
-                )}
-
-                {promoError && (
-                  <p className="text-red-500 text-sm mt-2">
-                    {promoError}
-                  </p>
-                )}
               </div>
 
-              {/* SUMMARY */}
-              <div className="space-y-4 text-sm">
-                <div className="flex justify-between">
-                  <span style={{ color: "#8B6352" }}>
-                    Subtotal
-                  </span>
-
-                  <span className="font-bold">
-                    {safeFormatPrice(subtotal)}
-                  </span>
-                </div>
-
-                <div className="flex justify-between">
-                  <span style={{ color: "#8B6352" }}>
-                    Discount
-                  </span>
-
-                  <span className="font-bold text-green-600">
-                    - {safeFormatPrice(discount)}
-                  </span>
-                </div>
-
-                <div className="flex justify-between">
-                  <span style={{ color: "#8B6352" }}>
-                    Shipping
-                  </span>
-
-                  <span className="font-bold">
-                    {shipping === 0
-                      ? "FREE"
-                      : safeFormatPrice(shipping)}
-                  </span>
-                </div>
-
-                <div className="border-t border-pink-100 pt-4 flex justify-between">
-                  <span
-                    className="font-black text-lg"
-                    style={{ color: "#6C4735" }}
-                  >
-                    Total
-                  </span>
-
-                  <span
-                    className="font-black text-2xl"
-                    style={{ color: "#D5557E" }}
-                  >
-                    {safeFormatPrice(finalTotal)}
-                  </span>
-                </div>
+              <div className="divide-y divide-pink-100">
+                {items.map((item) => (
+                  <CartItem
+                    key={item.id}
+                    item={item}
+                    selected={selectedItemIds.includes(item.id)}
+                    onToggleSelected={(checked: boolean) =>
+                      handleToggleItemSelection(item.id, checked)
+                    }
+                    onRemove={() => removeItem(item.productId, item.variantId)}
+                    onChangeQty={(qty: number) =>
+                      updateQuantity(item.productId, item.variantId, qty)
+                    }
+                  />
+                ))}
               </div>
-
-              {/* CHECKOUT */}
-              <button
-                className="w-full mt-6 py-4 rounded-full font-black text-white flex items-center justify-center gap-2 hover:scale-[1.02] transition"
-                style={{ backgroundColor: "#D5557E" }}
-              >
-                <Link href="/checkout" className="flex items-center gap-2">
-                  Proceed to Checkout
-                  <ArrowRight size={18} />
-                </Link>
-              </button>
             </div>
+
+            <div className="px-1 pt-1">
+              <Link
+                href="/products"
+                className="inline-flex items-center gap-1 text-sm font-semibold text-[#D5557E] transition hover:underline"
+              >
+                <ArrowLeft size={16} />
+                Continue Shopping
+              </Link>
+            </div>
+          </div>
+
+          {/* Order summary */}
+          <div className="flex w-full min-w-0 lg:justify-end lg:pt-0">
+            <CartSummary
+              selectedItems={selectedItems}
+              subtotal={selectedSubtotal}
+              itemCount={selectedCount}
+              discount={discount}
+              finalTotal={finalTotal}
+              promoCode={promoCode}
+              promoApplied={promoApplied}
+              promoError={promoError}
+              onPromoCodeChange={setPromoCode}
+              onApplyPromo={handleApplyPromo}
+              checkoutHref={checkoutHref}
+              removeSelectedItems={() => setSelectedItemIds([])}
+            />
           </div>
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default CartPage;

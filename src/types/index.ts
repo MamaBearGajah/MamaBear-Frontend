@@ -54,19 +54,19 @@ export interface ProductCategory {
 }
 
 export interface ProductVariant {
-  id: string;
-  productId: string;
-  name: string;
-  value: string;
+  id?: string;
+  productId?: string;
+  name?: string;
+  value?: string;
   basePrice: number;
   discountPrice: number;
   priceAdjustment: number;
-  stock: number;
-  imageUrl: string;
+  stock?: number;
+  imageUrl?: string;
   sku?: string | null;
-  isActive: boolean;
-  createdAt: string | Date;
-  updatedAt: string | Date;
+  isActive?: boolean;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
   product?: ProductVariantOption;
 }
 
@@ -91,14 +91,8 @@ export interface ProductVariantList {
     name: string;
     slug: string;
     stock: number;
-    images: {
-      imageUrl: string;
-    }[];
-    category: {
-      id: string;
-      name: string;
-      slug: string;
-    };
+    images: { imageUrl: string }[];
+    category: { id: string; name: string; slug: string };
   };
 }
 
@@ -147,20 +141,19 @@ export interface Review {
   review: string;
   isVerifiedPurchase: boolean;
   helpfulCount: number;
-  // reviewerName: string;
-  user: {
-    id: string;
-    name: string;
-  };
+  user: { id: string; name: string };
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 export type ProductBadgeType = "best-seller" | "fan-favorite" | "new";
 
-// export interface ReviewParams {
+export interface VariantOption {
+  name: string;
+  value: string;
+  stock?: number;
+}
 
-// }
 export interface ProductListItem {
   id: string;
   name: string;
@@ -176,6 +169,7 @@ export interface ProductListItem {
   images?: ProductImage[];
   badge?: ProductBadgeType;
   flavorTags?: string[];
+  variantOptions?: VariantOption[];
 }
 
 export interface ProductPayload {
@@ -201,6 +195,7 @@ export interface CartItem {
   id: string;
   productId: string;
   variantId?: string;
+  categoryName?: string;
   variantName?: string;
   variantValue?: string;
   variantLabel?: string;
@@ -209,6 +204,23 @@ export interface CartItem {
   basePrice: number;
   discountPrice?: number;
   image: string;
+  notes?: string;
+}
+
+export interface CheckoutItem {
+  id: string;
+  productId: string;
+  variantId?: string;
+  categoryName?: string;
+  variantName?: string;
+  variantValue?: string;
+  variantLabel?: string;
+  quantity: number;
+  name: string;
+  basePrice: number;
+  discountPrice?: number;
+  image: string;
+  notes?: string;
 }
 
 export interface CartItemVariant {
@@ -241,84 +253,225 @@ export interface CartItemVariantCategory {
   name: string;
   slug: string;
 }
+
+// ─── Order types ──────────────────────────────────────────────────────────────
+
+export interface OrderAddress {
+  id: string;
+  receiverName: string;
+  phone: string;
+  address: string;
+  cityId: string;
+  provinceId: string;
+  postalCode: string;
+  label?: string;
+  notes?: string;
+}
+
+export interface OrderStatusHistoryEntry {
+  id: string;
+  orderId: string;
+  status: OrderStatus;
+  note?: string | null;
+  createdAt: string;
+}
+
 export interface OrderItem {
   id: string;
   productId: string;
   variantId?: string;
+  productName?: string;
+  variantName?: string | null;
   quantity: number;
   price: number;
   name: string;
+  discountPrice?: number;
+  notes?: string | null;
+  variant?: ProductVariant;
 }
+
+export type OrderStatus =
+  | "pending"
+  | "paid"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
+
+export type PaymentStatus = "pending" | "paid" | "failed" | "expired" | "refunded";
 
 export interface Order {
   id: string;
+  orderNumber?: string;
   userId: string;
   addressId: string;
-  status:
-    | "pending"
-    | "paid"
-    | "processing"
-    | "shipped"
-    | "delivered"
-    | "cancelled";
-  paymentStatus: "pending" | "paid" | "failed" | "expired" | "refunded";
+  status: OrderStatus;
+  paymentStatus: PaymentStatus;
+  subtotal?: number;
+  discountAmount?: number;
+  discountShipping?: number; // NEW
   total: number;
   shippingCost: number;
   courier: string;
   service: string;
   trackingNumber?: string;
+  estimatedDelivery?: string | null;
+  deliveredAt?: string | null;
+  cancelledAt?: string | null;
+  cancelReason?: string | null;
+  notes?: string | null;
+  paymentDeadline?: string | null;
+  cancelDeadline?: string | null;
+  paymentMethod?: string;
+  paymentProvider?: "xendit" | "midtrans";
   items: OrderItem[];
+  address?: OrderAddress | null;
+  statusHistory?: OrderStatusHistoryEntry[];
   createdAt: string;
+  updatedAt?: string;
+  user?: { name: string; email?: string; phone?: string };
+  voucher?: { code: string; type: string; value: number } | null;
+  voucherShipping?: { code: string; type: string; value: number } | null; // NEW
 }
 
-export interface ResFetchReviewsByProductId {
-  success: boolean;
-  data: Review[];
-  pagination: Pagination;
+export interface OrderListParams {
+  page?: number;
+  limit?: number;
+  status?: OrderStatus;
+  q?: string;
 }
 
-/** Admin + shop category list item */
-export interface Category {
-  id: string;
-  parentId?: string | null;
-  name: string;
-  slug: string;
-  description?: string;
-  imageUrl?: string;
-  isActive: boolean;
+export interface CreateOrderPayload {
+  addressId: string;
+  courier: string;
+  service: string;
+  paymentMethod?: "xendit" | "midtrans";
+  notes?: string;
+  voucherId?: string;
+  voucherShippingId?: string; // NEW
 }
 
-export interface PaginationMeta {
-  page: number;
-  limit: number;
-  totalItems: number;
-  totalPages: number;
+export interface CreateOrderResult {
+  orderId: string;
+  status: string;
+  total: number;
+}
+
+export interface CheckoutPaymentPayload {
+  orderId: string;
+  provider: "xendit" | "midtrans";
+  amount: number;
+}
+
+export interface CheckoutPaymentResult {
+  paymentUrl: string;
+  provider: string;
+  externalId?: string;
+  snapToken?: string;
+  expiredAt?: string;
 }
 
 export interface ApiResponse<T> {
-  success: boolean;
+  success?: boolean;
   data: T;
-  meta?: PaginationMeta;
   message?: string;
+  meta?: {
+    page?: number;
+    limit?: number;
+    total?: number;
+    totalItems?: number;
+    totalPages?: number;
+  };
 }
 
-export type ProductSortBy = "createdAt" | "name" | "price" | "avgRating";
+export interface LoginPayload {
+  email: string;
+  password: string;
+  rememberMe?: boolean;
+}
+
+export interface RegisterPayload {
+  name: string;
+  email: string;
+  password: string;
+  phone?: string;
+}
+
+// ─── Profile & Address ────────────────────────────────────────────────────────
+
+export interface UserPreferences {
+  newsletter: boolean;
+  emailOrderUpdates: boolean;
+  smsNotifications: boolean;
+}
+
+export interface Address {
+  id: string;
+  label: string;
+  receiverName: string;
+  phone: string;
+  address: string;
+  cityId: string;
+  provinceId: string;
+  postalCode: string;
+  isDefault?: boolean;
+}
+
+export type AddressPayload = Omit<Address, "id">;
+
+export interface UserProfile extends User {
+  dateOfBirth?: string;
+  memberSince: string;
+  preferences: UserPreferences;
+  addresses: Address[];
+}
+
+export interface UpdateProfilePayload {
+  name: string;
+  email: string;
+  phone?: string;
+  dateOfBirth?: string;
+  preferences?: UserPreferences;
+}
+
+// ─── Misc / Admin ─────────────────────────────────────────────────────────────
+
+export interface ProductPriceFields {
+  basePrice: number;
+  discountPrice?: number;
+}
+
+export interface PaginationMeta {
+  page?: number;
+  limit?: number;
+  totalItems?: number;
+  total?: number;
+  totalPages?: number;
+}
+
+export interface ApiErrorBody {
+  message?: string;
+  errors?: Record<string, unknown> | unknown[];
+  error?: { message?: string; code?: string; details?: { field: string; message: string }[] } | null;
+}
+
+export type ProductSortBy = "createdAt" | "name" | "price" | "basePrice" | "avgRating";
 export type SortOrder = "asc" | "desc";
 
 export interface ProductListParams {
   page?: number;
   limit?: number;
   q?: string;
-  /** @deprecated Prefer categoryIds for multi-select */
   categoryId?: string;
   categoryIds?: string[];
   minPrice?: number;
   maxPrice?: number;
   inStock?: boolean;
-  /** Storefront: request only sellable products when API supports it */
   status?: ProductStatus;
   sortBy?: ProductSortBy;
   sortOrder?: SortOrder;
+  variantName?: string;
+  variantValue?: string;
 }
 
 export interface CategoryListParams {
@@ -326,6 +479,49 @@ export interface CategoryListParams {
   page?: number;
   limit?: number;
   parentId?: string;
+}
+
+export type BlogStatus = "draft" | "published" | "cancelled";
+
+export interface BlogList {
+  id: string;
+  authorId: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  coverImage: string;
+  content: string;
+  status: BlogStatus;
+  viewCount: number;
+  publishedAt: Date;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  author: User;
+}
+
+export interface BlogListParams {
+  page?: number;
+  limit?: number;
+}
+
+export interface BlogCreateListParams {
+  title: string;
+  slug: string;
+  excerpt: string;
+  coverImage: string;
+  coverPublicId?: string;
+  status: BlogStatus;
+  content: string;
+}
+
+export interface BlogUpdateListParams {
+  title?: string;
+  slug?: string;
+  excerpt?: string;
+  coverImage?: string;
+  coverPublicId?: string;
+  status?: BlogStatus;
+  content?: string;
 }
 
 export interface SearchSuggestion {
@@ -340,6 +536,8 @@ export interface ShopFiltersState {
   limit: number;
   q?: string;
   categoryId?: string;
+  variantName?: string;
+  variantValue?: string;
   minPrice?: number;
   maxPrice?: number;
   inStock?: boolean;
@@ -352,18 +550,86 @@ export interface ShopPriceBounds {
   max: number;
 }
 
-export interface LoginPayload {
-  email: string;
-  password: string;
+export interface homeBannerParams {
+  imageUrl: string;
+  altText: string;
+  label: string;
+  title: string;
+  desc: string;
+  path: string;
+  isActive: boolean;
+  sortOrder: number;
+  startDate: string | Date;
+  endDate: string | Date;
 }
 
-export interface RegisterPayload {
+export interface bundleHamperParams {
   name: string;
-  email: string;
-  password: string;
+  slug: string;
+  description: string;
+  imageUrl: string;
+  publicId: string;
+  bundlePrice: number;
+  discountPrice: number;
+  isActive: boolean;
+  stock: number;
+  sortOrder: number;
+  startDate: string | Date;
+  endDate: string | Date;
+  items: {
+    productId: string;
+    quantity: number;
+  }[];
 }
 
-export interface ProductPriceFields {
-  basePrice: number;
-  discountPrice?: number;
+export interface wishlistItem {
+  productId: string;
+}
+
+export interface Category {
+  id: string;
+  parentId?: string | null;
+  name: string;
+  slug: string;
+  description?: string;
+  imageUrl?: string;
+  sortOrder?: number;
+  isActive: boolean;
+  productCount?: number;
+}
+
+export interface ResFetchReviewsByProductId {
+  success: boolean;
+  data: Review[];
+  pagination: Pagination;
+}
+
+export interface ReportDateRange {
+  from: string;
+  to: string;
+}
+
+export interface ReportQueryParams extends ReportDateRange {
+  limit?: number;
+}
+
+export interface SalesReportSummary {
+  from: string;
+  to: string;
+  totalSales: number;
+  orderCount: number;
+  avgOrderValue: number;
+}
+
+export interface TopProductReport {
+  productId: string;
+  name: string;
+  qty: number;
+  revenue: number;
+}
+
+export interface TopCategoryReport {
+  categoryId: string;
+  name: string;
+  revenue: number;
 }

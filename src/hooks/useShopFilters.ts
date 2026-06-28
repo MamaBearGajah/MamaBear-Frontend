@@ -10,7 +10,14 @@ export function useShopFilters() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const filters = parseShopListParams(searchParams);
+
+  // Convert ReadonlyURLSearchParams → plain Record supaya parseShopListParams bisa baca
+  const paramsRecord: Record<string, string> = {};
+  searchParams.forEach((value, key) => {
+    paramsRecord[key] = value;
+  });
+
+  const filters = parseShopListParams(paramsRecord);
 
   const updateFilter = useCallback(
     (updates: FilterUpdate, options?: { resetPage?: boolean }) => {

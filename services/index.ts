@@ -7,8 +7,8 @@ import {
 } from "@/types/index";
 import axios from "axios";
 
-// const BASE_URL = "https://werent-backend-production.up.railway.app";
-const BASE_URL = "http://localhost:3000/api"; //Change to deployed BASE_URL later
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+// const BASE_URL = "http://localhost:3000/api"; //Change to deployed BASE_URL later
 
 export const fetchProducts = async (): Promise<Product> => {
   try {

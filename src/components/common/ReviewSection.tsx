@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReviewDialog } from "./ReviewDialog";
-import type { Order as OrderType } from "@/lib/api/orders";
+import type { Order as OrderType } from "@/types";
 
 interface ReviewSectionProps {
   order: OrderType;
@@ -13,7 +13,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({ order }) => {
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
 
-  const isDelivered = order.status === "Delivered";
+  const isDelivered = order.status === "delivered";
 
   if (!isDelivered) {
     return null;

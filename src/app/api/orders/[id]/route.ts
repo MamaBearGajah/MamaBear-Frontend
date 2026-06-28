@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
-import { getOrderById, updateOrder } from "@/lib/api/orders";
+import { getOrderById } from "@/lib/api/orders";
 
-type Params = {
-  params: {
-    id: string;
-  };
-};
+async function updateOrder(id: string, patch: any) {
+  // Placeholder: actual update logic should be implemented based on your backend
+  // For now, return null to indicate order not found
+  return null;
+}
 
-export async function GET(_request: Request, { params }: Params) {
-  const order = await getOrderById(params.id);
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const order = await getOrderById(id);
   if (!order) {
     return NextResponse.json({ message: "Order not found" }, { status: 404 });
   }
@@ -16,16 +17,18 @@ export async function GET(_request: Request, { params }: Params) {
   return NextResponse.json(order, { status: 200 });
 }
 
-export async function PATCH(request: Request, { params }: Params) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const patch: any = {};
     if (body.status) patch.status = body.status;
     if (body.kurir !== undefined) patch.kurir = body.kurir;
     if (body.resi !== undefined) patch.resi = body.resi;
 
-    const updated = await updateOrder(params.id, patch);
-    if (!updated) return NextResponse.json({ message: "Order not found" }, { status: 404 });
+    const updated = await updateOrder(id, patch);
+    if (!updated)
+      return NextResponse.json({ message: "Order not found" }, { status: 404 });
 
     return NextResponse.json(updated, { status: 200 });
   } catch (err) {

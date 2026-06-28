@@ -96,7 +96,7 @@ export default function VariantsToolbar({
     <>
       <div className="mb-6 space-y-4">
         <h2 className="font-heading text-foreground text-lg font-semibold">
-          Products ({meta.totalItems})
+          Variants ({meta.totalItems})
         </h2>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <div className="relative flex-1">
@@ -139,7 +139,7 @@ export default function VariantsToolbar({
             >
               <Link href="/admin/variants/create">
                 <Plus className="size-4" />
-                Add Product
+                Add Variant
               </Link>
             </Button>
           </div>

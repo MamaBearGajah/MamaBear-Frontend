@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Eye,
-  EyeOff,
-  LockIcon,
-  MailIcon,
-  PhoneIcon,
-  UserIcon,
-} from "lucide-react";
+import { Eye, EyeOff, LockIcon, MailIcon, PhoneIcon, UserIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import {
   InputGroup,
@@ -41,6 +34,7 @@ export default function Register() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+
   const registerSchema = z
     .object({
       name: z.string().min(1, "Name is required"),
@@ -63,40 +57,28 @@ export default function Register() {
 
   const form = useForm<RegisterSchema>({
     resolver: zodResolver(registerSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      password: "",
-      confirmPassword: "",
-      terms: false,
-    },
+    defaultValues: { name: "", email: "", phone: "", password: "", confirmPassword: "", terms: false },
   });
 
   const errorMessage = (statusCode: number) => {
     switch (statusCode) {
-      case 409:
-        return "Email or phone already exists";
-      case 401:
-        return "Invalid credentials";
-      case 500:
-        return "Internal server error";
-      default:
-        return "Unknown error";
+      case 409: return "Email or phone already exists";
+      case 401: return "Invalid credentials";
+      case 500: return "Internal server error";
+      default: return "Unknown error";
     }
   };
 
   const onSubmit = async (data: RegisterSchema) => {
-    const registerData = {
-      name: data.name,
-      email: data.email,
-      password: data.password,
-      phone: data.phone?.trim() === "" ? null : data.phone,
-    };
     try {
       setError(null);
       setIsLoading(true);
-      await authApi.register(registerData);
+      await authApi.register({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        phone: data.phone?.trim() === "" ? undefined : data.phone,
+      });
       toast.success("Account created successfully", {
         description: "Please check your email to verify your account",
       });
@@ -115,208 +97,172 @@ export default function Register() {
   };
 
   return (
-    <div
-      className={`my-auto flex h-screen w-full flex-col items-center justify-center bg-[#FFF5F8] lg:flex-row`}
-    >
+    <div className="flex min-h-screen flex-col lg:flex-row">
       <AuthBanner />
-      <div className="form flex w-full flex-col items-center justify-center px-4 py-10 text-[#6C4735] sm:px-8 lg:w-[50%]">
-        <div className="w-full max-w-md">
-          <h1 className="mb-1 text-2xl font-black">Join Mamabear! 🐻</h1>
-          <p className="mb-6 text-sm">Create your account in just a minute</p>
+
+      {/* Form side — scrollable */}
+      <div className="flex flex-1 flex-col items-center justify-center bg-[#FFF5F8] px-6 py-12">
+        <div className="w-full max-w-sm">
+          <h1 className="mb-1 text-2xl font-black text-[#6C4735]">Join Mamabear! 🐻</h1>
+          <p className="mb-6 text-sm text-[#6C4735]/70">Create your account in just a minute</p>
+
           {error && <AuthErrorMessage error={error} />}
-          {/* FORM */}
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-3 lg:max-w-md"
-          >
+
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FieldGroup>
+              {/* Full Name */}
               <Controller
                 name="name"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field>
-                    <FieldLabel>Full Name</FieldLabel>
+                    <FieldLabel className="text-[#6C4735]">Full Name</FieldLabel>
                     <InputGroup>
-                      <InputGroupInput
-                        {...field}
-                        type="text"
-                        placeholder="Enter your full name"
-                      />
                       <InputGroupAddon>
-                        <UserIcon />
+                        <UserIcon size={16} className="text-gray-400" />
                       </InputGroupAddon>
+                      <InputGroupInput {...field} type="text" placeholder="Enter your full name" />
                     </InputGroup>
-                    {fieldState.invalid && (
-                      <FieldError>{fieldState.error?.message}</FieldError>
-                    )}
+                    {fieldState.invalid && <FieldError>{fieldState.error?.message}</FieldError>}
                   </Field>
                 )}
               />
+
+              {/* Email */}
               <Controller
                 name="email"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field>
-                    <FieldLabel>Email</FieldLabel>
+                    <FieldLabel className="text-[#6C4735]">Email</FieldLabel>
                     <InputGroup>
-                      <InputGroupInput
-                        {...field}
-                        type="email"
-                        placeholder="Enter your email"
-                      />
                       <InputGroupAddon>
-                        <MailIcon />
+                        <MailIcon size={16} className="text-gray-400" />
                       </InputGroupAddon>
+                      <InputGroupInput {...field} type="email" placeholder="Enter your email" />
                     </InputGroup>
-                    {fieldState.invalid && (
-                      <FieldError>{fieldState.error?.message}</FieldError>
-                    )}
+                    {fieldState.invalid && <FieldError>{fieldState.error?.message}</FieldError>}
                   </Field>
                 )}
               />
+
+              {/* Phone */}
               <Controller
                 name="phone"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field>
-                    <FieldLabel>Phone</FieldLabel>
+                    <FieldLabel className="text-[#6C4735]">Phone</FieldLabel>
                     <InputGroup>
-                      <InputGroupInput
-                        {...field}
-                        type="text"
-                        placeholder="Enter your phone"
-                      />
                       <InputGroupAddon>
-                        <PhoneIcon />
+                        <PhoneIcon size={16} className="text-gray-400" />
                       </InputGroupAddon>
+                      <InputGroupInput {...field} type="text" placeholder="Enter your phone" />
                     </InputGroup>
-                    {fieldState.invalid && (
-                      <FieldError>{fieldState.error?.message}</FieldError>
-                    )}
+                    {fieldState.invalid && <FieldError>{fieldState.error?.message}</FieldError>}
                   </Field>
                 )}
               />
 
+              {/* Password */}
               <Controller
                 name="password"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field>
-                    <FieldLabel>Password</FieldLabel>
+                    <FieldLabel className="text-[#6C4735]">Password</FieldLabel>
                     <InputGroup>
+                      <InputGroupAddon>
+                        <LockIcon size={16} className="text-gray-400" />
+                      </InputGroupAddon>
                       <InputGroupInput
                         {...field}
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter your password"
                       />
-                      <InputGroupAddon>
-                        <LockIcon />
-                      </InputGroupAddon>
-                      <InputGroupAddon align="inline-end">
-                        <InputGroupButton
-                          onClick={() => setShowPassword(!showPassword)}
-                          aria-label={
-                            showPassword ? "Hide password" : "Show password"
-                          }
-                        >
-                          {showPassword ? <EyeOff /> : <Eye />}
-                        </InputGroupButton>
-                      </InputGroupAddon>
+                      <InputGroupButton
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? <EyeOff size={16} className="text-gray-400" /> : <Eye size={16} className="text-gray-400" />}
+                      </InputGroupButton>
                     </InputGroup>
-                    {fieldState.invalid && (
-                      <FieldError>{fieldState.error?.message}</FieldError>
-                    )}
+                    {fieldState.invalid && <FieldError>{fieldState.error?.message}</FieldError>}
                   </Field>
                 )}
               />
 
+              {/* Confirm Password */}
               <Controller
                 name="confirmPassword"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field>
-                    <FieldLabel>Confirm Password</FieldLabel>
+                    <FieldLabel className="text-[#6C4735]">Confirm Password</FieldLabel>
                     <InputGroup>
+                      <InputGroupAddon>
+                        <LockIcon size={16} className="text-gray-400" />
+                      </InputGroupAddon>
                       <InputGroupInput
                         {...field}
                         type={showConfirmPassword ? "text" : "password"}
                         placeholder="Enter your confirm password"
                       />
-                      <InputGroupAddon>
-                        <LockIcon />
-                      </InputGroupAddon>
-                      <InputGroupAddon align="inline-end">
-                        <InputGroupButton
-                          onClick={() =>
-                            setShowConfirmPassword(!showConfirmPassword)
-                          }
-                          aria-label={
-                            showConfirmPassword
-                              ? "Hide password"
-                              : "Show password"
-                          }
-                        >
-                          {showConfirmPassword ? <EyeOff /> : <Eye />}
-                        </InputGroupButton>
-                      </InputGroupAddon>
+                      <InputGroupButton
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                      >
+                        {showConfirmPassword ? <EyeOff size={16} className="text-gray-400" /> : <Eye size={16} className="text-gray-400" />}
+                      </InputGroupButton>
                     </InputGroup>
-                    {fieldState.invalid && (
-                      <FieldError>{fieldState.error?.message}</FieldError>
-                    )}
+                    {fieldState.invalid && <FieldError>{fieldState.error?.message}</FieldError>}
                   </Field>
                 )}
               />
 
-              <div className="flex items-center justify-between">
-                <Controller
-                  name="terms"
-                  control={form.control}
-                  render={({ field, fieldState }) => (
-                    <Field>
-                      <div className="flex items-center gap-4">
-                        <Checkbox
-                          id="terms"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                        <span className="text-sm text-black">
-                          I agree to Mamabear&apos;s
-                          <Link href="/terms" className="px-1 text-pink-500">
-                            Terms of Service
-                          </Link>
-                          and
-                          <Link href="/policy" className="px-1 text-pink-500">
-                            Privacy Policy
-                          </Link>
-                        </span>
-                      </div>
-                      {fieldState.invalid && (
-                        <FieldError>{fieldState.error?.message}</FieldError>
-                      )}
-                    </Field>
-                  )}
-                />
-              </div>
-              <Field>
-                <Button
-                  disabled={isLoading}
-                  type="submit"
-                  className="w-full bg-[#D5557E] hover:bg-[#D5557E]/90 disabled:cursor-not-allowed"
-                >
-                  Register
-                </Button>
-              </Field>
+              {/* Terms */}
+              <Controller
+                name="terms"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field>
+                    <div className="flex items-start gap-3">
+                      <Checkbox
+                        id="terms"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        className="mt-0.5"
+                      />
+                      <label htmlFor="terms" className="cursor-pointer text-sm text-[#6C4735]/80">
+                        I agree to Mamabear&apos;s{" "}
+                        <Link href="/terms" className="text-[#D5557E] hover:underline">Terms of Service</Link>
+                        {" "}and{" "}
+                        <Link href="/policy" className="text-[#D5557E] hover:underline">Privacy Policy</Link>
+                      </label>
+                    </div>
+                    {fieldState.invalid && <FieldError>{fieldState.error?.message}</FieldError>}
+                  </Field>
+                )}
+              />
+
+              <Button
+                disabled={isLoading}
+                type="submit"
+                className="w-full rounded-full bg-[#D5557E] py-2.5 text-sm font-semibold text-white hover:bg-[#D5557E]/90 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isLoading ? "Creating account..." : "Register"}
+              </Button>
             </FieldGroup>
           </form>
-          {/* register */}
-          <div className="flex items-center justify-center">
-            <h3 className="text-sm text-black">
-              Already have an account?{" "}
-              <Link href="/login" className="text-lg font-bold text-pink-500">
-                Login Here
-              </Link>
-            </h3>
-          </div>
+
+          <p className="mt-6 text-center text-sm text-[#6C4735]/70">
+            Already have an account?{" "}
+            <Link href="/login" className="font-bold text-[#D5557E] hover:underline">
+              Login Here
+            </Link>
+          </p>
         </div>
       </div>
     </div>

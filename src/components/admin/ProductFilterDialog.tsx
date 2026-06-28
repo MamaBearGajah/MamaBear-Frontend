@@ -96,16 +96,16 @@ export default function ProductFilterDialog({
         </DialogHeader>
         <div className="grid gap-4 py-2">
           <div className="grid gap-2">
-            <Label htmlFor="filter-category">Kategori</Label>
+            <Label htmlFor="filter-category">Category</Label>
             <Select
               value={categoryId || "all"}
               onValueChange={(v) => setCategoryId(v === "all" ? "" : v)}
             >
               <SelectTrigger id="filter-category" className="w-full">
-                <SelectValue placeholder="Semua kategori" />
+                <SelectValue placeholder="All categories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Semua kategori</SelectItem>
+                <SelectItem value="all">All categories</SelectItem>
                 {categories.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
                     {c.name}
@@ -134,7 +134,7 @@ export default function ProductFilterDialog({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label htmlFor="filter-min-price">Harga min</Label>
+              <Label htmlFor="filter-min-price">Min price</Label>
               <Input
                 id="filter-min-price"
                 type="number"
@@ -145,7 +145,7 @@ export default function ProductFilterDialog({
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="filter-max-price">Harga max</Label>
+              <Label htmlFor="filter-max-price">Max price</Label>
               <Input
                 id="filter-max-price"
                 type="number"

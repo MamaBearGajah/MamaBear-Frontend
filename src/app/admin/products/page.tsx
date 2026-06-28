@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { unstable_noStore as noStore } from "next/cache";
 import { Suspense } from "react";
 import AdminPageHeader from "@/components/layout/AdminPageHeader";
 import ProductsPageClient from "@/components/admin/ProductsPageClient";
@@ -11,6 +12,8 @@ import type { ProductListParams } from "@/types";
 export const metadata: Metadata = {
   title: "Products",
 };
+
+export const dynamic = "force-dynamic";
 
 interface ProductsPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -30,6 +33,7 @@ function parseNumber(value: string | undefined): number | undefined {
 }
 
 export default async function AdminProductsPage({ searchParams }: ProductsPageProps) {
+  noStore();
   const params = await searchParams;
   const session = await getServerSession();
   const accessToken = session?.accessToken;
@@ -94,6 +98,7 @@ export default async function AdminProductsPage({ searchParams }: ProductsPagePr
           categories={categoriesRes.data}
           categoryMap={categoryMap}
           initialFilters={initialFilters}
+          listParams={listParams}
           accessToken={accessToken}
         />
       </Suspense>

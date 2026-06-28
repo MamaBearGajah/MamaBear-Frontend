@@ -24,7 +24,7 @@ import {
   filterProductsByEffectivePrice,
   filterStorefrontProducts,
 } from "@/lib/shop/storefront-products";
-import type { PaginationMeta, ProductListItem } from "@/types";
+import type { PaginationMeta, ProductListItem, VariantOption } from "@/types";
 
 export const metadata: Metadata = {
   title: "Search | MamaBear",
@@ -33,6 +33,23 @@ export const metadata: Metadata = {
 
 interface SearchPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+function extractVariantOptions(products: ProductListItem[]): VariantOption[] {
+  const seen = new Set<string>();
+  const options: VariantOption[] = [];
+
+  for (const product of products) {
+    for (const v of product.variantOptions ?? []) {
+      const key = `${v.name}::${v.value}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        options.push({ name: v.name, value: v.value });
+      }
+    }
+  }
+
+  return options;
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
@@ -90,6 +107,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     filters.sortBy,
     filters.sortOrder,
   );
+  const variantOptions = extractVariantOptions(priceFilteredProducts);
   const page = filters.page ?? 1;
   const limit = filters.limit ?? 20;
   const start = (page - 1) * limit;
@@ -117,19 +135,22 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         totalItems: priceFilteredProducts.length,
         totalPages: Math.max(1, Math.ceil(priceFilteredProducts.length / limit)),
       }
-    : (productsRes.meta ?? {
-        page,
-        limit,
-        totalItems: products.length,
-        totalPages: 1,
-      });
+    : {
+        page: productsRes.meta?.page ?? page,
+        limit: productsRes.meta?.limit ?? limit,
+        totalItems:
+          productsRes.meta?.totalItems ??
+          productsRes.meta?.total ??
+          products.length,
+        totalPages: productsRes.meta?.totalPages ?? 1,
+      };
 
   return (
     <main className="bg-light-pink/25 min-h-[60vh] py-6 md:py-10">
       <div className="container-main space-y-4">
         <Suspense fallback={null}>
           <SearchPageHeader
-            totalItems={meta.totalItems}
+            totalItems={meta.totalItems ?? 0}
             categories={categoriesRes.data}
           />
         </Suspense>
@@ -144,6 +165,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             categoryCounts={categoryCounts}
             basePath="/search"
             priceBounds={DEFAULT_PRICE_BOUNDS}
+            variantOptions={variantOptions}
           />
 
           <div className="min-w-0 flex-1 space-y-4">

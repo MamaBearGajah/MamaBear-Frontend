@@ -6,6 +6,8 @@ import {
 } from "@/lib/categories/buildCategoryTree";
 import { getTreeNodeProductCount } from "@/lib/categories/category-tree-counts";
 import { cn } from "@/lib/utils";
+import { ChevronRight } from "lucide-react";
+import { useState } from "react";
 import type { Category } from "@/types";
 
 interface CategoryTreeFilterProps {
@@ -29,37 +31,69 @@ function CategoryTreeNodeItem({
   onSelect: (categoryId: string | null) => void;
 }) {
   const isRoot = node.id === "cat-root";
-  const isSelected = isRoot
-    ? !selectedCategoryId
-    : selectedCategoryId === node.id;
+  const isSelected = isRoot ? !selectedCategoryId : selectedCategoryId === node.id;
+  const hasChildren = node.children.length > 0;
   const count = isRoot
-    ? Object.values(categoryCounts).reduce((sum, value) => sum + value, 0)
+    ? Object.values(categoryCounts).reduce((sum, v) => sum + v, 0)
     : getTreeNodeProductCount(node, categoryCounts);
-  const paddingClass =
-    depth === 0 ? "" : depth === 1 ? "pl-4" : "pl-6";
+
+  const [expanded, setExpanded] = useState(() => isSelected && hasChildren);
+
+  const paddingLeft = depth * 16;
+
+  const handleSelect = () => {
+    onSelect(isRoot ? null : node.id);
+    if (hasChildren) setExpanded(true);
+  };
 
   return (
     <li>
-      <label
-        className={cn(
-          "flex cursor-pointer items-start gap-2.5 text-sm text-brown",
-          paddingClass,
-          isSelected && "font-medium text-dark-pink",
+      <div className="flex items-center gap-1" style={{ paddingLeft: `${paddingLeft}px` }}>
+        <button
+          type="button"
+          onClick={handleSelect}
+          className={cn(
+            "flex flex-1 cursor-pointer items-start gap-2 text-sm text-brown text-left",
+            isSelected && "font-medium text-dark-pink",
+          )}
+        >
+          {/* Custom radio indicator */}
+          <span
+            className={cn(
+              "mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+              isSelected
+                ? "border-dark-pink bg-dark-pink"
+                : "border-border bg-white",
+            )}
+          >
+            {isSelected && (
+              <span className="size-1.5 rounded-full bg-white" />
+            )}
+          </span>
+          <span className="leading-snug">
+            {node.name}{" "}
+            <span className="text-muted-foreground">({count})</span>
+          </span>
+        </button>
+
+        {hasChildren && (
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            className="rounded p-0.5 text-brown/40 hover:text-dark-pink transition-colors"
+            aria-label={expanded ? "Collapse" : "Expand"}
+          >
+            <ChevronRight
+              className={cn(
+                "size-3.5 transition-transform duration-200",
+                expanded && "rotate-90",
+              )}
+            />
+          </button>
         )}
-      >
-        <input
-          type="radio"
-          name="shop-category"
-          checked={isSelected}
-          onChange={() => onSelect(isRoot ? null : node.id)}
-          className="mt-1 size-4 shrink-0 accent-dark-pink"
-        />
-        <span className="leading-snug">
-          {node.name}{" "}
-          <span className="text-muted-foreground">({count})</span>
-        </span>
-      </label>
-      {node.children.length > 0 && (
+      </div>
+
+      {hasChildren && expanded && (
         <ul className="mt-2 space-y-2">
           {node.children.map((child) => (
             <CategoryTreeNodeItem

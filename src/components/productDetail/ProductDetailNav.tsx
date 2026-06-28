@@ -1,98 +1,62 @@
-"use client"
+"use client";
 
-import {useState,useEffect, React} from 'react';
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { useState, useEffect } from "react";
 
 type Props = {
-    setParentNavValue: (value: string) => void
-}
+  setParentNavValue: (value: string) => void;
+};
 
-export default function ProductDetailNav({setParentNavValue}: Props){
-    const [navValue, setnavValue] = useState('Description')
-    const [active, setActive] = useState("Description")
-    const handleClick = (value: string) => {
-        setnavValue(value)
-        setParentNavValue(value)
-        setActive(value)
-    }
-    return(
+export default function ProductDetailNav({ setParentNavValue }: Props) {
+  const [navValue, setnavValue] = useState("Description");
+  const [active, setActive] = useState("Description");
+  const handleClick = (value: string) => {
+    setnavValue(value);
+    setParentNavValue(value);
+    setActive(value);
+  };
+  return (
     <div>
-        <div className='hidden md:flex md:justify-start md:items-center gap-10 pb-5 font-bold w-full'>
-                <p onClick={() => handleClick("Description")} className={`cursor-pointer ${active==="Description" ? "underline text-[var(--mamabear-dark-pink)]" : null}`}>
-                    Description
-                </p>
+      <div className="hidden w-full gap-10 pb-5 font-bold md:flex md:items-center md:justify-start">
+        <p
+          onClick={() => handleClick("Description")}
+          className={`cursor-pointer ${active === "Description" ? "text-[var(--mamabear-dark-pink)] underline" : null}`}
+        >
+          Description
+        </p>
 
-                <p onClick={() => handleClick("Ingredients")} className={`cursor-pointer ${active==="Ingredients" ? "underline text-[var(--mamabear-dark-pink)]" : null}`}>
-                    Ingredients
-                </p>
+        <p
+          onClick={() => handleClick("Review")}
+          className={`cursor-pointer ${active === "Review" ? "text-[var(--mamabear-dark-pink)] underline" : null}`}
+        >
+          Review
+        </p>
+      </div>
 
-                <p onClick={() => handleClick("How To Use")} className={`cursor-pointer ${active==="How To Use" ? "underline text-[var(--mamabear-dark-pink)]" : null}`}>
-                    How To Use
-                </p>
-
-                <p onClick={() => handleClick("Review")} className={`cursor-pointer ${active==="Review" ? "underline text-[var(--mamabear-dark-pink)]" : null}`}>
-                    Review
-                </p>
+      <div className="block w-full md:hidden">
+        <div className="flex w-full gap-3">
+          <button
+            onClick={() => handleClick("Description")}
+            className={`flex-1 rounded-3xl px-4 py-2 transition-all duration-300 ${
+              active === "Description"
+                ? "border border-[var(--mamabear-dark-pink)] bg-[var(--mamabear-dark-pink)] font-bold text-white shadow-sm"
+                : "border border-[var(--mamabear-light-pink)] bg-white text-[var(--mamabear-dark-pink)]"
+            }`}
+          >
+            Description
+          </button>
+          <button
+            onClick={() => handleClick("Review")}
+            className={`flex-1 rounded-3xl px-4 py-2 transition-all duration-300 ${
+              active === "Review"
+                ? "border border-[var(--mamabear-dark-pink)] bg-[var(--mamabear-dark-pink)] font-bold text-white shadow-sm"
+                : "border border-[var(--mamabear-light-pink)] bg-white text-[var(--mamabear-dark-pink)]"
+            }`}
+          >
+            Review
+          </button>
         </div>
-
-        <div className='block md:hidden gap-10 w-full'>
-
-            <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="outline"><img className='w-[20px] cursor-pointer' src='/info.svg'/></Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-                <DropdownMenuGroup>
-                <DropdownMenuLabel>Menu</DropdownMenuLabel>
-                <DropdownMenuItem>                
-                    <p onClick={() => handleClick("Description")} className={`cursor-pointer ${active==="Description" ? "underline text-[var(--mamabear-light-pink)]" : null}`}>
-                        Description
-                    </p>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                    <p onClick={() => handleClick("Ingredients")} className={`cursor-pointer ${active==="Ingredients" ? "underline text-[var(--mamabear-light-pink)]" : null}`}>
-                        Ingredients
-                    </p>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                    <p onClick={() => handleClick("How To Use")} className={`cursor-pointer ${active==="How To Use" ? "underline text-[var(--mamabear-light-pink)]" : null}`}>
-                        How To Use
-                    </p>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                    <p onClick={() => handleClick("Review")} className={`cursor-pointer ${active==="Review" ? "underline text-[var(--mamabear-light-pink)]" : null}`}>
-                        Review
-                    </p>
-                </DropdownMenuItem>
-                </DropdownMenuGroup>
-            </DropdownMenuContent>
-            </DropdownMenu>
-                {/* <p onClick={() => handleClick("Description")} className={`cursor-pointer ${active==="Description" ? "underline text-[var(--mamabear-light-pink)]" : null}`}>
-                    Description
-                </p>
-
-                <p onClick={() => handleClick("Ingredients")} className={`cursor-pointer ${active==="Ingredients" ? "underline text-[var(--mamabear-light-pink)]" : null}`}>
-                    Ingredients
-                </p>
-
-                <p onClick={() => handleClick("How To Use")} className={`cursor-pointer ${active==="How To Use" ? "underline text-[var(--mamabear-light-pink)]" : null}`}>
-                    How To Use
-                </p>
-
-                <p onClick={() => handleClick("Review")} className={`cursor-pointer ${active==="Review" ? "underline text-[var(--mamabear-light-pink)]" : null}`}>
-                    Review
-                </p> */}
-        </div>
-        <hr></hr>
+      </div>
+      <hr></hr>
     </div>
-    )
+  );
 }

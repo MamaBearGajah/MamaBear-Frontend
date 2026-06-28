@@ -27,8 +27,8 @@ export default function ConfirmDialog({
   onOpenChange,
   title,
   description,
-  confirmLabel = "Konfirmasi",
-  cancelLabel = "Batal",
+  confirmLabel = "Confirm",
+  cancelLabel = "Cancel",
   variant = "default",
   loading = false,
   onConfirm,
@@ -64,7 +64,7 @@ export default function ConfirmDialog({
             }
             onClick={handleConfirm}
           >
-            {loading ? "Memproses…" : confirmLabel}
+            {loading ? "Processing…" : confirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

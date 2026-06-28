@@ -1,35 +1,52 @@
-import { NextResponse } from "next/server";
-import { Xendit } from "xendit-node";
+import type {
+  ApiResponse,
+  CheckoutPaymentPayload,
+  CheckoutPaymentResult,
+} from "@/types";
+import { apiClient } from "./client";
+import { normalizeApiResponse } from "./normalize-api-response";
 
-const xenditClient = new Xendit({
-  secretKey: process.env.XENDIT_SECRET_KEY!,
-});
+/**
+ * FIX: checkoutPayment
+ *
+ * Backend POST /payments/checkout membutuhkan { orderId, provider, amount }.
+ * Sebelumnya amount tidak selalu dikirim dari frontend.
+ * Sekarang payload harus include amount.
+ */
+export interface PaymentCheckoutPayload {
+  orderId: string;
+  provider: "xendit" | "midtrans";
+  amount: number;
+}
 
-const { Invoice } = xenditClient;
-const invoiceApi = new Invoice({});
+export interface PaymentCheckoutResult {
+  paymentUrl: string;
+  provider: string;
+  externalId?: string;
+  snapToken?: string;   // Midtrans
+  expiredAt?: string;
+}
 
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
+export async function checkoutPayment(
+  payload: PaymentCheckoutPayload
+): Promise<ApiResponse<PaymentCheckoutResult>> {
+  const { data } = await apiClient.post<ApiResponse<PaymentCheckoutResult>>(
+    "/payments/checkout",
+    payload
+  );
+  const normalized = normalizeApiResponse<PaymentCheckoutResult>(data);
 
-    const invoice = await invoiceApi.createInvoice({
-      externalId: `ORDER-${Date.now()}`,
-      amount: body.amount,
-      payerEmail: body.email,
-      description: "Order Payment",
-      successRedirectUrl:
-        `${process.env.NEXT_PUBLIC_APP_URL}/payment/success`,
-      failureRedirectUrl:
-        `${process.env.NEXT_PUBLIC_APP_URL}/payment/failed`,
-    });
+  // Cast once through unknown to safely access either camelCase or snake_case fields
+  const raw = normalized.data as unknown as Record<string, unknown>;
 
-    return NextResponse.json(invoice);
-  } catch (error) {
-    console.error(error);
-
-    return NextResponse.json(
-      { message: "Failed to create invoice" },
-      { status: 500 }
-    );
-  }
+  return {
+    ...normalized,
+    data: {
+      paymentUrl: String(raw?.paymentUrl ?? raw?.payment_url ?? ""),
+      provider: String(raw?.provider ?? payload.provider),
+      externalId: raw?.externalId as string | undefined,
+      snapToken: raw?.snapToken as string | undefined,
+      expiredAt: raw?.expiredAt as string | undefined,
+    },
+  };
 }

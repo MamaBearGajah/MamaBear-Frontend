@@ -40,7 +40,7 @@ export default function ProductsTable({ products, categoryMap }: ProductsTablePr
     startTransition(async () => {
       try {
         await deleteProductAction(deleteTarget.id);
-        toast.success(`"${deleteTarget.name}" berhasil dihapus.`);
+        toast.success(`"${deleteTarget.name}" deleted successfully.`);
         setDeleteTarget(null);
         router.refresh();
       } catch (error) {
@@ -52,7 +52,7 @@ export default function ProductsTable({ products, categoryMap }: ProductsTablePr
   if (products.length === 0) {
     return (
       <div className="rounded-xl border border-border bg-card py-16 text-center">
-        <p className="text-muted-foreground">Tidak ada produk ditemukan.</p>
+        <p className="text-muted-foreground">No products found.</p>
       </div>
     );
   }
@@ -166,13 +166,13 @@ export default function ProductsTable({ products, categoryMap }: ProductsTablePr
       <ConfirmDialog
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
-        title="Hapus produk?"
+        title="Delete product?"
         description={
           deleteTarget
-            ? `Produk "${deleteTarget.name}" akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.`
+            ? `Product "${deleteTarget.name}" will be permanently deleted. This action cannot be undone.`
             : undefined
         }
-        confirmLabel="Hapus"
+        confirmLabel="Delete"
         variant="destructive"
         loading={pending}
         onConfirm={handleDelete}

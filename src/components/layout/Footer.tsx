@@ -2,14 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { Mail, MapPin, Phone, Check } from "lucide-react";
 import { FaInstagram, FaFacebook, FaYoutube, FaComments } from "react-icons/fa";
-
 const certifications = ["BPOM Certified", "Halal MUI", "ISO 9001"];
-
-import Newsletter from "../Newsletter";
 export default function Footer() {
   return (
-    <footer className=" bg-[#D5557E] font-[var(--font-quicksand)] text-white">
-      <div className="mx-auto w-full max-w-[1280px] px-4 py-8 md:px-[3cm]">
+    <footer className="bg-[#D5557E] font-[var(--font-quicksand)] text-white">
+      <div className="mx-auto w-full max-w-[1280px] px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid gap-8 md:grid-cols-[1.25fr_1fr_1fr_1.25fr]">
           <div>
             <div className="mb-3 flex items-center gap-3">
@@ -32,7 +29,7 @@ export default function Footer() {
 
             <div className="mt-5 flex items-center gap-3">
               <Link
-                href="#"
+                href="https://www.instagram.com/mamabearid/"
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white transition hover:bg-white/30"
                 title="Instagram"
                 aria-label="Instagram"
@@ -40,7 +37,7 @@ export default function Footer() {
                 <FaInstagram size={16} />
               </Link>
               <Link
-                href="#"
+                href="https://www.facebook.com/mamabearcoid/"
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white transition hover:bg-white/30"
                 title="Facebook"
                 aria-label="Facebook"
@@ -48,7 +45,7 @@ export default function Footer() {
                 <FaFacebook size={16} />
               </Link>
               <Link
-                href="#"
+                href="https://www.youtube.com/channel/UCs2bKV4_gToSL_SFSHpMT8Q"
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white transition hover:bg-white/30"
                 title="YouTube"
                 aria-label="YouTube"
@@ -56,7 +53,7 @@ export default function Footer() {
                 <FaYoutube size={16} />
               </Link>
               <Link
-                href="#"
+                href="https://api.whatsapp.com/send/?phone=628888695757&text&type=phone_number&app_absent=0"
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white transition hover:bg-white/30"
                 title="Message"
                 aria-label="Message"
@@ -73,43 +70,43 @@ export default function Footer() {
               </h4>
               <div className="space-y-3 text-[13px] leading-[1.6] text-white/90">
                 <Link
-                  href="#"
+                  href="/products/mamabear-teh-pelancar-asi-isi-20-sachet"
                   className="block transition hover:text-[#FACBD8]"
                 >
                   ASI Booster Tea
                 </Link>
                 <Link
-                  href="#"
+                  href="/products/mamabear-asi-booster-30-kapsul"
                   className="block transition hover:text-[#FACBD8]"
                 >
                   ASI Booster Capsules
                 </Link>
                 <Link
-                  href="#"
+                  href="/products/mamabear-kukis-almond-oat"
                   className="block transition hover:text-[#FACBD8]"
                 >
                   Kookie Bites
                 </Link>
                 <Link
-                  href="#"
+                  href="/products/mamabear-kukis-almond-oat"
                   className="block transition hover:text-[#FACBD8]"
                 >
                   Almond Oat Cookies
                 </Link>
                 <Link
-                  href="#"
+                  href="/products/mamabear-zoyamix-rasa-cokelat-isi-10-sachet"
                   className="block transition hover:text-[#FACBD8]"
                 >
                   Zoya Mix
                 </Link>
                 <Link
-                  href="#"
+                  href="/products/mamabear-almonmix-isi-6-sachet"
                   className="block transition hover:text-[#FACBD8]"
                 >
                   Almon Mix
                 </Link>
                 <Link
-                  href="#"
+                  href="/products"
                   className="block transition hover:text-[#FACBD8]"
                 >
                   Bundle Packages
@@ -123,46 +120,46 @@ export default function Footer() {
               </h4>
               <div className="space-y-3 text-[13px] leading-[1.6] text-white/90">
                 <Link
-                  href="#"
+                  href="/consultation"
                   className="block transition hover:text-[#FACBD8]"
                 >
                   Lactation Consultation
                 </Link>
                 <Link
-                  href="#"
+                  href="/faq"
                   className="block transition hover:text-[#FACBD8]"
                 >
                   FAQ
                 </Link>
                 <Link
-                  href="#"
+                  href="/about"
                   className="block transition hover:text-[#FACBD8]"
                 >
                   Shipping Info
                 </Link>
                 <Link
-                  href="#"
+                  href="/about"
                   className="block transition hover:text-[#FACBD8]"
                 >
                   Returns & Refunds
                 </Link>
                 <Link
-                  href="#"
+                  href="/account/orders"
                   className="block transition hover:text-[#FACBD8]"
                 >
                   Track My Order
                 </Link>
                 <Link
-                  href="#"
+                  href="/contact"
                   className="block transition hover:text-[#FACBD8]"
                 >
                   Contact Us
                 </Link>
                 <Link
-                  href="#"
+                  href="/articles"
                   className="block transition hover:text-[#FACBD8]"
                 >
-                  Blog & Tips
+                  Articles
                 </Link>
               </div>
             </div>
@@ -236,14 +233,11 @@ export default function Footer() {
               nursing mama.
             </p>
             <div className="flex items-center gap-4">
-              <Link href="#" className="transition hover:text-[#FACBD8]">
+              <Link href="/privacy" className="transition hover:text-[#FACBD8]">
                 Privacy Policy
               </Link>
-              <Link href="#" className="transition hover:text-[#FACBD8]">
+              <Link href="/terms" className="transition hover:text-[#FACBD8]">
                 Terms of Service
-              </Link>
-              <Link href="#" className="transition hover:text-[#FACBD8]">
-                Cookie Policy
               </Link>
             </div>
           </div>

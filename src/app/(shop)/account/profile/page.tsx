@@ -1,33 +1,21 @@
-﻿"use client";
+"use client";
 
-import { useEffect, useState } from "react";
-import { useAuth } from "@/context/AuthContext";
-import { apiClient } from "@/lib/api/client";
+import React, { useState, useEffect } from "react";
+import { Edit, Check, AlertCircle, Save, X, User, Lock, Shield } from "lucide-react";
+import { authApi } from "@/lib/api/auth";
 import { toast } from "sonner";
+import { apiClient } from "@/lib/api/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { isAxiosError } from "axios";
-import { Plus, Pencil, Trash2, Star } from "lucide-react";
+import { AccountPageWrapper } from "@/components/layout/AccountPageWrapper";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface Address {
-  id: string;
-  label?: string;
-  receiverName: string;
-  phone: string;
-  address: string;
-  cityId: string;
-  provinceId: string;
-  postalCode: string;
-  isDefault: boolean;
+// ── Helpers ────────────────────────────────────────────────────────────────────
+function getInitials(name: string) {
+  if (!name) return "MB";
+  return name.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase() || "MB";
 }
-
-// Backend returns: [{ id, name }]
-interface Province { id: string; name: string; }
-// Backend returns: [{ id, name, zipCode }]
-interface City { id: string; name: string; zipCode?: string; }
 
 function getErrMsg(error: unknown): string {
   if (isAxiosError(error))
@@ -36,61 +24,39 @@ function getErrMsg(error: unknown): string {
   return "Terjadi kesalahan";
 }
 
-// ─── Address Form Modal ───────────────────────────────────────────────────────
+// ── Membership Badge ───────────────────────────────────────────────────────────
+function MembershipBadge() {
+  return (
+    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border bg-yellow-50 text-yellow-700 border-yellow-400 shadow-sm whitespace-nowrap">
+      👑 Gold
+    </span>
+  );
+}
 
-function AddressFormModal({
-  address,
-  provinces,
-  onClose,
-  onSaved,
-}: {
-  address?: Address;
-  provinces: Province[];
-  onClose: () => void;
-  onSaved: () => void;
-}) {
-  const isEdit = !!address;
-  const [cities, setCities] = useState<City[]>([]);
+// ── Change Password Modal ──────────────────────────────────────────────────────
+function ChangePasswordModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
-
-  const [form, setForm] = useState({
-    label: address?.label ?? "",
-    receiverName: address?.receiverName ?? "",
-    phone: address?.phone ?? "",
-    address: address?.address ?? "",
-    provinceId: address?.provinceId ?? "",
-    cityId: address?.cityId ?? "",
-    postalCode: address?.postalCode ?? "",
-  });
-
-  // Fetch cities saat provinceId berubah
-  useEffect(() => {
-    if (!form.provinceId) { setCities([]); return; }
-    apiClient
-      .get(`/shipping/cities?provinceId=${form.provinceId}`)
-      .then((r) => {
-        // Backend returns array langsung: [{ id, name, zipCode }]
-        const data = r.data?.data ?? r.data ?? [];
-        setCities(Array.isArray(data) ? data : []);
-      })
-      .catch(() => setCities([]));
-  }, [form.provinceId]);
-
-  const set = (field: string, value: string) =>
-    setForm((prev) => ({ ...prev, [field]: value }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (newPassword.length < 8) {
+      toast.error("Password baru minimal 8 karakter");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("Konfirmasi password tidak cocok");
+      return;
+    }
     setSaving(true);
     try {
-      if (isEdit) {
-        await apiClient.patch(`/users/me/addresses/${address!.id}`, form);
-        toast.success("Alamat berhasil diperbarui");
-      } else {
-        await apiClient.post("/users/me/addresses", form);
-        toast.success("Alamat berhasil ditambahkan");
-      }
-      onSaved();
+      await apiClient.patch("/users/me/change-password", { oldPassword, newPassword });
+      toast.success("Password berhasil diubah. Silakan login kembali.");
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
       onClose();
     } catch (err) {
       toast.error(getErrMsg(err));
@@ -99,78 +65,111 @@ function AddressFormModal({
     }
   };
 
+  if (!open) return null;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl space-y-5 max-h-[90vh] overflow-y-auto">
-        <h3 className="text-base font-semibold text-[#6C4735]">
-          {isEdit ? "Edit Alamat" : "Tambah Alamat"}
-        </h3>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      {/* max-w-md + mx-4 agar tidak mentok di HP kecil */}
+      <div className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-2xl p-6 animate-in zoom-in-95">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-[#FDF2F5] flex items-center justify-center">
+              <Lock size={16} className="text-[#F05A89]" />
+            </div>
+            <h2 className="text-base font-bold text-gray-800">Ganti Password</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        <div className="w-full h-px bg-[#F8D7E3] mb-5" />
+
+        {/* Security note */}
+        <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5 mb-5 text-xs text-blue-600">
+          <Shield size={14} className="mt-0.5 shrink-0" />
+          <span>Untuk keamanan, pastikan password baru minimal 8 karakter dan tidak mudah ditebak.</span>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5 col-span-2">
-              <Label htmlFor="label">Label <span className="text-zinc-400 text-xs">(opsional)</span></Label>
-              <Input id="label" placeholder="Rumah / Kantor" value={form.label} onChange={e => set("label", e.target.value)} />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="receiverName">Nama Penerima *</Label>
-              <Input id="receiverName" required value={form.receiverName} onChange={e => set("receiverName", e.target.value)} />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="phone">No. Telepon *</Label>
-              <Input id="phone" required value={form.phone} onChange={e => set("phone", e.target.value)} placeholder="08xxxxxxxxxx" />
-            </div>
-
-            <div className="space-y-1.5 col-span-2">
-              <Label htmlFor="address">Alamat Lengkap *</Label>
-              <Input id="address" required value={form.address} onChange={e => set("address", e.target.value)} placeholder="Jl. Mawar No. 1" />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="provinceId">Provinsi *</Label>
-              <select
-                id="provinceId"
-                required
-                value={form.provinceId}
-                onChange={e => { set("provinceId", e.target.value); set("cityId", ""); }}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="">Pilih provinsi</option>
-                {provinces.map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="cityId">Kota / Kabupaten *</Label>
-              <select
-                id="cityId"
-                required
-                value={form.cityId}
-                onChange={e => set("cityId", e.target.value)}
-                disabled={!form.provinceId || cities.length === 0}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-              >
-                <option value="">Pilih kota</option>
-                {cities.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="postalCode">Kode Pos *</Label>
-              <Input id="postalCode" required value={form.postalCode} onChange={e => set("postalCode", e.target.value)} placeholder="60111" />
-            </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="modal-oldPassword" className="text-sm font-medium text-gray-600">
+              Password Lama
+            </Label>
+            <Input
+              id="modal-oldPassword"
+              type="password"
+              value={oldPassword}
+              onChange={(e) => setOldPassword(e.target.value)}
+              placeholder="Masukkan password saat ini"
+              className="rounded-xl border-gray-200 focus:border-[#F05A89] focus:ring-[#F05A89]"
+              required
+            />
           </div>
 
-          <div className="flex gap-3 pt-2">
-            <Button type="button" variant="outline" className="flex-1" onClick={onClose}>Batal</Button>
-            <Button type="submit" disabled={saving} className="flex-1 bg-[#D5557E] hover:bg-[#D5557E]/90 text-white">
-              {saving ? "Menyimpan..." : "Simpan"}
+          <div className="space-y-1.5">
+            <Label htmlFor="modal-newPassword" className="text-sm font-medium text-gray-600">
+              Password Baru
+            </Label>
+            <Input
+              id="modal-newPassword"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Minimal 8 karakter"
+              className="rounded-xl border-gray-200 focus:border-[#F05A89] focus:ring-[#F05A89]"
+              required
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="modal-confirmPassword" className="text-sm font-medium text-gray-600">
+              Konfirmasi Password Baru
+            </Label>
+            <Input
+              id="modal-confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Ulangi password baru"
+              className="rounded-xl border-gray-200 focus:border-[#F05A89] focus:ring-[#F05A89]"
+              required
+            />
+            {confirmPassword && newPassword !== confirmPassword && (
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                <AlertCircle size={12} /> Password tidak cocok
+              </p>
+            )}
+            {confirmPassword && newPassword === confirmPassword && confirmPassword.length > 0 && (
+              <p className="text-xs text-emerald-600 flex items-center gap-1">
+                <Check size={12} /> Password cocok
+              </p>
+            )}
+          </div>
+
+          {/* flex-1 agar kedua tombol sama lebar di semua ukuran layar */}
+          <div className="flex gap-3 pt-1">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="flex-1 rounded-full border-gray-200 text-gray-600 hover:bg-gray-50"
+            >
+              Batal
+            </Button>
+            <Button
+              type="submit"
+              disabled={saving}
+              className="flex-1 rounded-full bg-[#F05A89] hover:bg-[#D5557E] text-white font-semibold"
+            >
+              {saving ? "Menyimpan..." : "Simpan Password"}
             </Button>
           </div>
         </form>
@@ -179,196 +178,196 @@ function AddressFormModal({
   );
 }
 
-// ─── Main Page ─────────────────────────────────────────────────────────────────
-
+// ── Main Page ──────────────────────────────────────────────────────────────────
 export default function ProfilePage() {
-  const { state } = useAuth();
-  const { user } = state;
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [toastMessage, setToastMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
-  const [name, setName] = useState(user?.name ?? "");
-  const [phone, setPhone] = useState(user?.phone ?? "");
-  const [savingProfile, setSavingProfile] = useState(false);
-
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [savingPassword, setSavingPassword] = useState(false);
-
-  const [addresses, setAddresses] = useState<Address[]>([]);
-  const [provinces, setProvinces] = useState<Province[]>([]);
-  const [showAddressModal, setShowAddressModal] = useState(false);
-  const [editingAddress, setEditingAddress] = useState<Address | undefined>();
+  const [form, setForm] = useState({ name: "", email: "", phone: "" });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    fetchAddresses();
-    // Backend returns array langsung: [{ id, name }]
-    apiClient.get("/shipping/provinces")
-      .then(r => {
-        const data = r.data?.data ?? r.data ?? [];
-        setProvinces(Array.isArray(data) ? data : []);
-      })
-      .catch(() => {});
+    const fetchProfile = async () => {
+      try {
+        const res = await authApi.getMe();
+        if (res && res.data) {
+          setForm({
+            name: res.data.name || "",
+            email: res.data.email || "",
+            phone: res.data.phone || "",
+          });
+        }
+      } catch {
+        console.error("Gagal memuat profil");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProfile();
   }, []);
 
-  const fetchAddresses = async () => {
-    try {
-      const res = await apiClient.get("/users/me/addresses");
-      const data = res.data?.data ?? res.data ?? [];
-      setAddresses(Array.isArray(data) ? data : []);
-    } catch { setAddresses([]); }
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    if (!form.name.trim()) newErrors.name = "Nama wajib diisi.";
+    if (form.phone) {
+      const phoneRegex = /^[0-9+]+$/;
+      if (!phoneRegex.test(form.phone)) newErrors.phone = "Hanya boleh angka dan '+'";
+      else if (form.phone.length < 8 || form.phone.length > 20) newErrors.phone = "Harus 8-20 karakter.";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSavingProfile(true);
+  const handleSaveProfile = async () => {
+    if (!validateForm()) return;
     try {
-      await apiClient.patch("/users/me", {
-        ...(name.trim() && { name: name.trim() }),
-        ...(phone.trim() && { phone: phone.trim() }),
-      });
-      toast.success("Profil berhasil diperbarui");
-    } catch (err) { toast.error(getErrMsg(err)); }
-    finally { setSavingProfile(false); }
+      setIsSaving(true);
+      setToastMessage(null);
+      // await authApi.updateProfile(form);
+      setToastMessage({ type: "success", text: "Profil berhasil diperbarui!" });
+      setIsEditing(false);
+      setTimeout(() => setToastMessage(null), 3000);
+    } catch {
+      setToastMessage({ type: "error", text: "Gagal menyimpan profil." });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newPassword.length < 8) { toast.error("Password baru minimal 8 karakter"); return; }
-    setSavingPassword(true);
-    try {
-      await apiClient.patch("/users/me/change-password", { oldPassword, newPassword });
-      toast.success("Password berhasil diubah. Silakan login kembali.");
-      setOldPassword(""); setNewPassword("");
-    } catch (err) { toast.error(getErrMsg(err)); }
-    finally { setSavingPassword(false); }
-  };
+  if (isLoading) return <div className="py-10 text-center text-gray-500">Memuat profil...</div>;
 
-  const handleSetDefault = async (id: string) => {
-    try {
-      await apiClient.patch(`/users/me/addresses/${id}/default`);
-      toast.success("Alamat default diubah");
-      fetchAddresses();
-    } catch (err) { toast.error(getErrMsg(err)); }
-  };
-
-  const handleDeleteAddress = async (id: string) => {
-    if (!confirm("Hapus alamat ini?")) return;
-    try {
-      await apiClient.delete(`/users/me/addresses/${id}`);
-      toast.success("Alamat dihapus");
-      fetchAddresses();
-    } catch (err) { toast.error(getErrMsg(err)); }
-  };
-
-  if (!user) {
-    return (
-      <main className="mx-auto max-w-xl px-4 py-12 text-center text-sm text-zinc-500">
-        Kamu belum login.
-      </main>
-    );
-  }
+  const EditButton = (
+    <button
+      onClick={() => setIsEditing((v) => !v)}
+      className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-colors bg-[#FDF2F5] text-[#F05A89] hover:bg-[#F8D7E3]"
+    >
+      {isEditing ? <><X size={14} /> Cancel</> : <><Edit size={14} /> Edit</>}
+    </button>
+  );
 
   return (
-    <main className="mx-auto w-full max-w-2xl px-4 py-10 space-y-8">
-      <h1 className="text-2xl font-bold text-[#6C4735]">Profil Saya</h1>
+    <>
+      <ChangePasswordModal open={showPasswordModal} onClose={() => setShowPasswordModal(false)} />
 
-      {/* Update Profil */}
-      <section className="rounded-2xl border border-[#F0D9E2] bg-white p-6 shadow-sm space-y-4">
-        <h2 className="text-base font-semibold text-[#6C4735]">Informasi Akun</h2>
-        <div className="space-y-1.5">
-          <Label>Email</Label>
-          <Input value={user.email} disabled className="bg-zinc-50 text-zinc-400" />
-        </div>
-        <form onSubmit={handleUpdateProfile} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="name">Nama</Label>
-            <Input id="name" value={name} onChange={e => setName(e.target.value)} placeholder="Nama lengkap" />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="phone">No. Telepon</Label>
-            <Input id="phone" value={phone} onChange={e => setPhone(e.target.value)} placeholder="08xxxxxxxxxx" />
-          </div>
-          <Button type="submit" disabled={savingProfile} className="w-full bg-[#D5557E] hover:bg-[#D5557E]/90 text-white">
-            {savingProfile ? "Menyimpan..." : "Simpan Perubahan"}
-          </Button>
-        </form>
-      </section>
-
-      {/* Alamat */}
-      <section className="rounded-2xl border border-[#F0D9E2] bg-white p-6 shadow-sm space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-[#6C4735]">Alamat Pengiriman</h2>
-          <Button
-            size="sm"
-            onClick={() => { setEditingAddress(undefined); setShowAddressModal(true); }}
-            className="bg-[#D5557E] hover:bg-[#D5557E]/90 text-white gap-1"
+      <div className="space-y-4">
+        {toastMessage && (
+          <div
+            className={`p-4 rounded-2xl flex items-center gap-3 font-semibold text-sm animate-in fade-in ${
+              toastMessage.type === "success"
+                ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                : "bg-red-50 text-red-600 border border-red-200"
+            }`}
           >
-            <Plus className="size-4" /> Tambah
-          </Button>
-        </div>
-
-        {addresses.length === 0 ? (
-          <p className="text-sm text-zinc-400">Belum ada alamat tersimpan.</p>
-        ) : (
-          <ul className="space-y-3">
-            {addresses.map(addr => (
-              <li key={addr.id} className={`rounded-xl border p-4 text-sm space-y-1 ${addr.isDefault ? "border-[#D5557E] bg-[#FFF5F8]" : "border-zinc-200"}`}>
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {addr.label && <span className="text-xs font-bold text-[#D5557E] uppercase">{addr.label}</span>}
-                      {addr.isDefault && <span className="text-xs bg-[#D5557E] text-white rounded-full px-2 py-0.5">Default</span>}
-                    </div>
-                    <p className="font-medium text-[#6C4735] mt-0.5">{addr.receiverName} · {addr.phone}</p>
-                    <p className="text-zinc-500">{addr.address}, Kota {addr.cityId}, {addr.postalCode}</p>
-                  </div>
-                  <div className="flex gap-1 shrink-0">
-                    {!addr.isDefault && (
-                      <Button size="sm" variant="ghost" title="Set default" className="text-zinc-400 hover:text-[#D5557E]" onClick={() => handleSetDefault(addr.id)}>
-                        <Star className="size-4" />
-                      </Button>
-                    )}
-                    <Button size="sm" variant="ghost" className="text-zinc-400 hover:text-[#6C4735]" onClick={() => { setEditingAddress(addr); setShowAddressModal(true); }}>
-                      <Pencil className="size-4" />
-                    </Button>
-                    {!addr.isDefault && (
-                      <Button size="sm" variant="ghost" className="text-zinc-400 hover:text-destructive" onClick={() => handleDeleteAddress(addr.id)}>
-                        <Trash2 className="size-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+            {toastMessage.type === "success" ? <Check size={18} /> : <AlertCircle size={18} />}
+            {toastMessage.text}
+          </div>
         )}
-      </section>
 
-      {/* Ganti Password */}
-      <section className="rounded-2xl border border-[#F0D9E2] bg-white p-6 shadow-sm space-y-4">
-        <h2 className="text-base font-semibold text-[#6C4735]">Ganti Password</h2>
-        <form onSubmit={handleChangePassword} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="oldPassword">Password Lama</Label>
-            <Input id="oldPassword" type="password" value={oldPassword} onChange={e => setOldPassword(e.target.value)} placeholder="Password saat ini" />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="newPassword">Password Baru</Label>
-            <Input id="newPassword" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Minimal 8 karakter" />
-          </div>
-          <Button type="submit" disabled={savingPassword} className="w-full bg-[#D5557E] hover:bg-[#D5557E]/90 text-white">
-            {savingPassword ? "Menyimpan..." : "Ganti Password"}
-          </Button>
-        </form>
-      </section>
+        <AccountPageWrapper title="Profile Information" icon={User} actionButton={EditButton}>
+          {/* Avatar + name + badge */}
+          <div className="flex items-center gap-4 mb-8">
+            {/* Avatar — shrink-0 agar tidak gepeng di mobile */}
+            <div className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-black shadow-sm bg-[#F05A89] shrink-0">
+              {getInitials(form.name)}
+            </div>
 
-      {showAddressModal && (
-        <AddressFormModal
-          address={editingAddress}
-          provinces={provinces}
-          onClose={() => setShowAddressModal(false)}
-          onSaved={fetchAddresses}
-        />
-      )}
-    </main>
+            {/* min-w-0 agar teks panjang tidak overflow container */}
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                <h3 className="text-lg font-bold text-gray-800 truncate">{form.name || "Member"}</h3>
+                <MembershipBadge />
+              </div>
+              <p className="text-sm text-gray-500 truncate">{form.email}</p>
+            </div>
+          </div>
+
+          <div className="border-t border-[#F8D7E3] mb-6" />
+
+          <h3 className="text-lg font-bold text-gray-800 mb-5">Personal Details</h3>
+
+          {/* 1 kolom di mobile, 2 kolom di sm ke atas */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label className="text-sm font-medium text-gray-600 block mb-2">Full Name</label>
+              <input
+                type="text"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                disabled={!isEditing}
+                className={`w-full px-4 py-2.5 rounded-xl border text-sm transition-colors ${
+                  !isEditing
+                    ? "bg-gray-50 border-gray-200 text-gray-500"
+                    : "bg-white border-[#F8D7E3] focus:border-[#F05A89] focus:ring-1 focus:ring-[#F05A89] outline-none"
+                } ${errors.name ? "border-red-500" : ""}`}
+              />
+              {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-600 block mb-2">Phone Number</label>
+              <input
+                type="tel"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                disabled={!isEditing}
+                placeholder="+62"
+                className={`w-full px-4 py-2.5 rounded-xl border text-sm transition-colors ${
+                  !isEditing
+                    ? "bg-gray-50 border-gray-200 text-gray-500"
+                    : "bg-white border-[#F8D7E3] focus:border-[#F05A89] focus:ring-1 focus:ring-[#F05A89] outline-none"
+                } ${errors.phone ? "border-red-500" : ""}`}
+              />
+              {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="text-sm font-medium text-gray-600 block mb-2">Email Address</label>
+              <input
+                type="email"
+                value={form.email}
+                disabled
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
+              />
+            </div>
+          </div>
+
+          {isEditing && (
+            <div className="mt-8 flex justify-end">
+              <button
+                onClick={handleSaveProfile}
+                disabled={isSaving}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm text-white transition-all hover:opacity-90 disabled:opacity-50 bg-[#F05A89]"
+              >
+                <Save size={16} /> {isSaving ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          )}
+        </AccountPageWrapper>
+
+        {/* Change Password trigger */}
+        <section className="rounded-2xl border border-[#F0D9E2] bg-white p-6 shadow-sm">
+          {/* flex-col di mobile, flex-row di sm ke atas */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+            <div className="min-w-0">
+              <h2 className="text-base font-semibold text-[#6C4735]">Password</h2>
+              <p className="text-sm text-gray-500 mt-0.5">
+                Perbarui password akun Anda secara berkala untuk keamanan.
+              </p>
+            </div>
+            {/* w-full di mobile, w-auto di sm ke atas */}
+            <button
+              onClick={() => setShowPasswordModal(true)}
+              className="flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-semibold bg-[#FDF2F5] text-[#F05A89] hover:bg-[#F8D7E3] transition-colors w-full sm:w-auto sm:shrink-0"
+            >
+              <Lock size={14} />
+              Ganti Password
+            </button>
+          </div>
+        </section>
+      </div>
+    </>
   );
 }

@@ -14,6 +14,7 @@ export function mapProductListItem(row: Record<string, unknown>): ProductListIte
         (img): ProductImage => ({
           id: String(img.id ?? ""),
           productId: String(img.productId ?? row.id ?? ""),
+          publicId: String(img.publicId ?? ""),
           imageUrl: resolveProductImageUrl(String(img.imageUrl ?? "")),
           altText: String(img.altText ?? ""),
           sortOrder: Number(img.sortOrder ?? 0),
@@ -26,8 +27,34 @@ export function mapProductListItem(row: Record<string, unknown>): ProductListIte
 
   const featured = images?.find((i) => i.isFeatured) ?? images?.[0];
 
+  const variantOptions = Array.isArray(row.variants)
+    ? (row.variants as Record<string, unknown>[])
+        .filter((v) => v.isActive !== false)
+        .map((v) => ({
+          name: String(v.name ?? ""),
+          value: String(v.value ?? ""),
+          stock: Number(v.stock ?? 0),
+        }))
+    : undefined;
+
+  const normalizedId = (() => {
+    const rawId = row.id;
+    if (typeof rawId === "number") {
+      return Number.isFinite(rawId) ? String(rawId) : undefined;
+    }
+    if (typeof rawId === "string") {
+      const trimmed = rawId.trim();
+      if (trimmed && trimmed.toLowerCase() !== "nan") {
+        return trimmed;
+      }
+    }
+    return undefined;
+  })();
+
+  const fallbackId = String(row.slug ?? row.name ?? row.categoryId ?? "");
+
   return {
-    id: String(row.id),
+    id: normalizedId ?? (fallbackId || `product-${Math.random().toString(36).slice(2, 10)}`),
     name: String(row.name),
     slug: String(row.slug),
     basePrice: toNumber(row.basePrice) ?? 0,
@@ -37,6 +64,7 @@ export function mapProductListItem(row: Record<string, unknown>): ProductListIte
     weight: toNumber(row.weight),
     status: row.status as ProductStatus | undefined,
     images: featured ? [{ ...featured, isFeatured: true }] : images,
+    variantOptions,
   };
 }
 

@@ -1,13 +1,21 @@
+import { CheckoutProvider } from "@/context/CheckoutContext";
+import StepperHeader from "@/components/checkout/StepperHeader";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
-import LoadingComponent from "@/components/LoadingComponent";
-const Loading = () => {
+
+export default function CheckoutLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <div className='flex flex-col items-center justify-center h-screen'>
-      <div className='flex flex-col items-center justify-center gap-4'>
-        <img src='/loading.gif' alt='Loading...' className='rounded-md' /></div>
-        <h2>Loading <LoadingComponent/></h2>
+    <div className="bg-pink-50">
+      <div className="mx-auto max-w-6xl">
+        <CheckoutProvider>
+          {/* Page Title */}
+          {children}
+        </CheckoutProvider>
+      </div>
     </div>
   );
-};
-
-export default Loading;
+}

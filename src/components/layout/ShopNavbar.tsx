@@ -4,10 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, useState } from "react";
-import { Heart, Settings, ShoppingCart, User, Menu, X, LogOut } from "lucide-react";
+import { Settings, ShoppingCart, User, Menu, X, LogOut } from "lucide-react";
+import WishlistNavLink from "@/components/layout/WishlistNavLink";
 import SearchBar from "./SearchBar";
 import { cn } from "@/lib/utils";
 import { useAuth } from "../../context/AuthContext";
+import ProfileDropdown from "@/components/layout/ProfileDropdown";
 import { useCart } from "@/hooks/useCart";
 
 const NAV_LINKS = [
@@ -36,7 +38,9 @@ function NavLink({
       className={cn(
         "shrink-0 rounded-full font-medium transition-colors",
         size === "sm" ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm",
-        isActive ? "bg-dark-pink text-white" : "text-brown hover:text-dark-pink",
+        isActive
+          ? "bg-dark-pink text-white"
+          : "text-brown hover:text-dark-pink",
         size === "sm" && !isActive && "hover:bg-light-pink/60"
       )}
     >
@@ -52,7 +56,7 @@ function CartButton({ href, className }: { href: string; className?: string }) {
       <div className="relative">
         <ShoppingCart className="size-5" strokeWidth={1.75} />
         {itemCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 flex size-4 items-center justify-center rounded-full bg-dark-pink text-[10px] font-bold text-white">
+          <span className="bg-dark-pink absolute -top-1.5 -right-1.5 flex size-4 items-center justify-center rounded-full text-[10px] font-bold text-white">
             {itemCount > 9 ? "9+" : itemCount}
           </span>
         )}
@@ -66,90 +70,86 @@ function NavbarContent() {
   const { state, logout } = useAuth();
   const { user, isAuthenticated, isLoading } = state;
   const isAdmin = user?.role === "admin" || user?.role === "super_admin";
-  const firstName = user?.data?.name?.split(" ")[0];
+  const firstName = user?.name?.split(" ")[0];
+
+  const currentUser = state.user || {
+    name: "Member MamaBear",
+    email: "member@mamabear.co.id",
+  };
 
   return (
     <div className="border-border/60 border-b bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/90">
-      <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center gap-3 px-[2cm] py-3 md:gap-4 md:py-3.5">
+      <div className="mx-auto flex w-full max-w-[1280px] flex-nowrap items-center gap-2 px-4 py-3 lg:gap-3 lg:px-6 lg:py-3.5">
         {/* Logo */}
-        <Link href="/" className="flex shrink-0 items-center gap-2.5">
+        <Link href="/" className="flex shrink-0 items-center">
           <Image
             src="/Logo Mamabear.png"
             alt="MamaBear"
             width={164}
             height={48}
-            className="h-12 w-auto object-contain"
+            className="h-10 w-auto object-contain lg:h-12"
             priority
           />
         </Link>
 
         {/* Desktop nav links */}
-        <nav className="ml-[3cm] hidden items-center gap-1 lg:flex">
+        <nav className="hidden shrink-0 items-center gap-0.5 lg:flex">
           {NAV_LINKS.map((link) => (
             <NavLink key={link.href} {...link} pathname={pathname} />
           ))}
         </nav>
 
         {/* Search bar */}
-        <div className="order-3 w-full min-w-0 md:order-none md:max-w-xl md:flex-1 lg:max-w-2xl">
+        <div className="min-w-0 flex-1 px-1 lg:px-3">
           <SearchBar />
         </div>
 
         {/* Right actions */}
-        <div className="ml-auto flex items-center gap-2 sm:gap-3">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           {!isLoading && (
             <>
-              {isAuthenticated && !isAdmin && (
+              {/* Wishlist — selalu tampil */}
+              <WishlistNavLink className="text-brown hover:bg-light-pink/60 hover:text-dark-pink inline-flex rounded-full p-2 transition-colors" />
+
+              {/* Cart — selalu tampil */}
+              <CartButton
+                href="/cart"
+                className="text-brown hover:bg-light-pink/60 hover:text-dark-pink rounded-full p-2 transition-colors"
+              />
+
+              {isAuthenticated && (
                 <>
-                  {/* Nama user — klik ke profile */}
-                  <Link href="/account/profile" className="hidden sm:inline text-sm font-medium text-brown hover:text-dark-pink transition-colors">
-                    Hi, {firstName}
-                  </Link>
+                  {/* Nama user (non-admin) */}
+                  {!isAdmin && (
+                    <Link
+                      href="/account/profile"
+                      className="text-brown hover:text-dark-pink hidden text-sm font-medium transition-colors sm:inline"
+                    >
+                      Hi, {firstName}
+                    </Link>
+                  )}
 
-                  {/* Wishlist */}
-                  <Link
-                    href="/wishlist"
-                    aria-label="Wishlist"
-                    className="text-brown hover:bg-light-pink/60 hover:text-dark-pink rounded-full p-2 transition-colors"
-                  >
-                    <Heart className="size-5" strokeWidth={1.75} />
-                  </Link>
-
-                  {/* Cart dengan badge */}
-                  <CartButton
-                    href="/cart"
-                    className="text-brown hover:bg-light-pink/60 hover:text-dark-pink rounded-full p-2 transition-colors"
-                  />
+                  {/* Admin: profile dropdown + link admin panel */}
+                  {isAdmin && (
+                    <>
+                      <ProfileDropdown user={currentUser} onLogout={logout} />
+                      <Link
+                        href="/admin"
+                        className="border-brown/30 text-brown hover:bg-light-pink/40 inline-flex items-center gap-1.5 rounded-full border bg-white px-3 py-2 text-sm font-medium transition-colors lg:px-4"
+                      >
+                        <Settings className="size-4" />
+                        <span className="hidden xl:inline">Admin</span>
+                      </Link>
+                    </>
+                  )}
 
                   {/* Logout */}
                   <button
                     onClick={logout}
-                    className="bg-dark-pink hover:bg-dark-pink/90 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium text-white transition-colors"
+                    className="bg-dark-pink hover:bg-dark-pink/90 inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-white transition-colors lg:px-4"
                   >
                     <LogOut className="size-4" />
-                    <span className="hidden sm:inline">Logout</span>
-                  </button>
-                </>
-              )}
-
-              {isAuthenticated && isAdmin && (
-                <>
-                  <Link href="/account/profile" className="hidden sm:inline text-sm font-medium text-brown hover:text-dark-pink transition-colors">
-                    Hi, {firstName}
-                  </Link>
-                  <Link
-                    href="/admin"
-                    className="border-brown/30 text-brown hover:bg-light-pink/40 inline-flex items-center gap-1.5 rounded-full border bg-white px-4 py-2 text-sm font-medium transition-colors"
-                  >
-                    <Settings className="size-4" />
-                    <span className="hidden sm:inline">Admin</span>
-                  </Link>
-                  <button
-                    onClick={logout}
-                    className="bg-dark-pink hover:bg-dark-pink/90 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium text-white transition-colors"
-                  >
-                    <LogOut className="size-4" />
-                    <span className="hidden sm:inline">Logout</span>
+                    <span className="hidden xl:inline">Logout</span>
                   </button>
                 </>
               )}
@@ -158,7 +158,7 @@ function NavbarContent() {
                 <>
                   <Link
                     href="/register"
-                    className="border border-dark-pink text-dark-pink hover:bg-light-pink/40 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-colors"
+                    className="border-dark-pink text-dark-pink hover:bg-light-pink/40 inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-colors"
                   >
                     Register
                   </Link>
@@ -187,7 +187,9 @@ export default function ShopNavbar() {
           <NavbarContent />
         </Suspense>
       </div>
-      <MobileHeaderInline />
+      <Suspense fallback={<div className="h-[72px] border-b bg-white" />}>
+        <MobileHeaderInline />
+      </Suspense>
     </>
   );
 }
@@ -203,30 +205,28 @@ function MobileHeaderInline() {
     <div className="relative w-full md:hidden">
       <div className="w-full border-b bg-white px-3 py-2 sm:px-4">
         <div className="flex items-center gap-1.5">
-          <Link href="/" className="flex-shrink-0">
+          <Link href="/" className="flex shrink-0 items-center gap-1.5">
             <Image
               src="/Logo Mamabear.png"
               alt="MamaBear"
-              width={32}
-              height={32}
-              className="h-8 w-8 object-contain"
+              width={36}
+              height={36}
+              className="h-9 w-9 object-contain"
               priority
             />
+            <span className="text-sm font-black text-[#6C4735]">mamabear</span>
           </Link>
 
           <div className="min-w-0 flex-1">
             <SearchBar />
           </div>
 
-          {isAuthenticated && !isAdmin && (
+          {isAuthenticated && (
             <>
-              <Link
-                href="/wishlist"
-                aria-label="Wishlist"
+              <WishlistNavLink
                 className="text-brown hover:bg-light-pink/60 hover:text-dark-pink inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors"
-              >
-                <Heart className="size-4" strokeWidth={1.75} />
-              </Link>
+                iconClassName="size-4"
+              />
               <CartButton
                 href="/cart"
                 className="text-brown hover:bg-light-pink/60 hover:text-dark-pink inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors"
@@ -259,58 +259,63 @@ function MobileHeaderInline() {
               </Link>
             ))}
 
+            {isAuthenticated && (
+              <Link
+                href="/account/profile"
+                onClick={() => setMenuOpen(false)}
+                className="mt-1 inline-flex h-10 items-center gap-1.5 rounded-full bg-[#FACBD8] px-4 text-sm font-semibold text-[#6C4735] transition hover:opacity-90"
+              >
+                Hi, {firstName} 👋
+              </Link>
+            )}
+
             <div className="my-2 h-px bg-[#D5557E]/30" />
 
             {!isLoading && (
-              <>
-                {isAuthenticated && (
-                  <p className="px-4 py-1 text-xs text-brown/60">
-                    Hi, {firstName} 👋
-                  </p>
-                )}
-
-                <div className="flex gap-2 mt-1">
-                  {isAuthenticated ? (
-                    <>
-                      {isAdmin && (
-                        <Link
-                          href="/admin"
-                          onClick={() => setMenuOpen(false)}
-                          className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full border-2 border-[#D5557E] bg-white px-4 text-sm font-semibold text-[#D5557E] transition hover:bg-[#D5557E]/10"
-                        >
-                          <Settings className="size-4" />
-                          <span>Admin</span>
-                        </Link>
-                      )}
-                      <button
-                        onClick={() => { setMenuOpen(false); logout(); }}
-                        className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#D5557E] px-4 text-sm font-semibold text-white transition hover:opacity-90"
-                      >
-                        <LogOut className="size-4" />
-                        <span>Logout</span>
-                      </button>
-                    </>
-                  ) : (
-                    <>
+              <div className="mt-2 flex gap-2">
+                {isAuthenticated ? (
+                  <>
+                    {isAdmin && (
                       <Link
-                        href="/register"
+                        href="/admin"
                         onClick={() => setMenuOpen(false)}
                         className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full border-2 border-[#D5557E] bg-white px-4 text-sm font-semibold text-[#D5557E] transition hover:bg-[#D5557E]/10"
                       >
-                        Register
+                        <Settings className="size-4" />
+                        <span>Admin</span>
                       </Link>
-                      <Link
-                        href="/login"
-                        onClick={() => setMenuOpen(false)}
-                        className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#D5557E] px-4 text-sm font-semibold text-white transition hover:opacity-90"
-                      >
-                        <User className="size-4" />
-                        <span>Login</span>
-                      </Link>
-                    </>
-                  )}
-                </div>
-              </>
+                    )}
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false);
+                        logout();
+                      }}
+                      className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#D5557E] px-4 text-sm font-semibold text-white transition hover:opacity-90"
+                    >
+                      <LogOut className="size-4" />
+                      <span>Logout</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/register"
+                      onClick={() => setMenuOpen(false)}
+                      className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full border-2 border-[#D5557E] bg-white px-4 text-sm font-semibold text-[#D5557E] transition hover:bg-[#D5557E]/10"
+                    >
+                      Register
+                    </Link>
+                    <Link
+                      href="/login"
+                      onClick={() => setMenuOpen(false)}
+                      className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#D5557E] px-4 text-sm font-semibold text-white transition hover:opacity-90"
+                    >
+                      <User className="size-4" />
+                      <span>Login</span>
+                    </Link>
+                  </>
+                )}
+              </div>
             )}
           </div>
         </div>
