@@ -7,30 +7,31 @@ export interface UpdateOrderStatusPayload {
   note?: string;
 }
 
+// FIX: semua URL dikoreksi ke /admin/orders/* (sesuai backend AdminOrdersController)
+// Sebelumnya getAll() memanggil /orders/admin (tidak ada di backend)
+// dan updateStatus() memanggil /orders/:id/status (endpoint user, bukan admin)
 export const adminOrdersApi = {
   getAll: (config?: AxiosRequestConfig) =>
-    apiClient.get("/orders/admin", config),
+    apiClient.get("/admin/orders", config),
 
   getAllCustomer: (config?: AxiosRequestConfig) =>
     apiClient.get("/orders", config),
 
   getById: (id: string, config?: AxiosRequestConfig) =>
-    apiClient.get(`/orders/${id}`, config),
+    apiClient.get(`/admin/orders/${id}`, config),
 
   updateStatus: (
     id: string,
     payload: UpdateOrderStatusPayload,
     config?: AxiosRequestConfig
-  ) => apiClient.patch(`/orders/${id}/status`, payload, config),
+  ) => apiClient.patch(`/admin/orders/${id}/status`, payload, config),
 
-  // ← TAMBAH: update tracking number
   updateTracking: (
     id: string,
     payload: { trackingNumber: string; note?: string },
     config?: AxiosRequestConfig
   ) => apiClient.patch(`/admin/orders/${id}/tracking`, payload, config),
 
-  // ← TAMBAH: export orders CSV
   exportCsv: (config?: AxiosRequestConfig) =>
     apiClient.get("/admin/orders/export", {
       ...config,

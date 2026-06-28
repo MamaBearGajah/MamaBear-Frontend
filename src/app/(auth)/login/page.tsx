@@ -49,9 +49,10 @@ export default function Login() {
 
   const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
+    // FIX: hapus hardcoded admin credentials
     defaultValues: {
-      email: "admin@mamabear.id",
-      password: "Admin@12345",
+      email: "",
+      password: "",
       rememberMe: false,
     },
   });
@@ -85,7 +86,6 @@ export default function Login() {
         setError(errorMessage(e.response?.status ?? 500));
         toast.error(errorMessage(e.response?.status ?? 500));
       } else {
-        // Surface the real error instead of swallowing it
         const message = e instanceof Error ? e.message : String(e);
         console.error("Login non-axios error:", e);
         setError(message || "An unexpected error occurred");
@@ -107,7 +107,6 @@ export default function Login() {
         setError(errorMessage(e.response?.status ?? 500));
         toast.error(errorMessage(e.response?.status ?? 500));
       } else {
-        // Surface the real error instead of swallowing it
         const message = e instanceof Error ? e.message : String(e);
         console.error("Login non-axios error:", e);
         setError(message || "An unexpected error occurred");
@@ -119,133 +118,116 @@ export default function Login() {
   };
 
   return (
-    <div
-      className={`my-auto flex h-screen w-full flex-col items-center justify-center bg-[#FFF5F8] lg:flex-row`}
-    >
+    <div className="flex min-h-screen">
       <AuthBanner />
-      <div className="form flex w-full flex-col items-center justify-center px-4 py-10 text-[#6C4735] sm:px-8 lg:w-[50%]">
-        <div className="w-full max-w-md">
-          <h1 className="mb-1 text-2xl font-black">Welcome back, Mama! 👋</h1>
-          <p className="mb-6 text-sm">Sign in to your Mamabear account</p>
+      <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
+        <div className="w-full max-w-sm">
+          <h1 className="mb-2 text-2xl font-bold text-gray-900">Sign in</h1>
+          <p className="mb-8 text-sm text-gray-500">
+            Welcome back to MamaBear
+          </p>
+
           {error && <AuthErrorMessage error={error} />}
           {error === "Email belum diverifikasi" && (
             <span
               onClick={handleResendVerificationEmail}
-              className="mb-2 block cursor-pointer text-sm text-[#6C4735] hover:underline"
+              className="mb-4 block cursor-pointer text-sm text-[#6C4735] hover:underline"
             >
-              Send email verification to your email
+              Kirim ulang email verifikasi
             </span>
           )}
-          {/* FORM */}
-          <form
-            onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-3 lg:max-w-md"
-          >
-            <FieldGroup>
-              <Controller
-                name="email"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field>
-                    <FieldLabel>Email</FieldLabel>
-                    <InputGroup>
-                      <InputGroupInput
-                        {...field}
-                        type="email"
-                        placeholder="Enter your email"
-                      />
-                      <InputGroupAddon>
-                        <MailIcon />
-                      </InputGroupAddon>
-                    </InputGroup>
-                    {fieldState.invalid && (
-                      <FieldError>{fieldState.error?.message}</FieldError>
-                    )}
-                  </Field>
-                )}
-              />
 
-              <Controller
-                name="password"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field>
-                    <FieldLabel>Password</FieldLabel>
-                    <InputGroup>
-                      <InputGroupInput
-                        {...field}
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password"
-                      />
-                      <InputGroupAddon>
-                        <LockIcon />
-                      </InputGroupAddon>
-                      <InputGroupAddon align="inline-end">
-                        <InputGroupButton
-                          onClick={() => setShowPassword(!showPassword)}
-                          aria-label={
-                            showPassword ? "Hide password" : "Show password"
-                          }
-                        >
-                          {showPassword ? <EyeOff /> : <Eye />}
-                        </InputGroupButton>
-                      </InputGroupAddon>
-                    </InputGroup>
-                    {fieldState.invalid && (
-                      <FieldError>{fieldState.error?.message}</FieldError>
-                    )}
-                  </Field>
-                )}
-              />
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
+            <Field>
+              <FieldLabel htmlFor="email">Email</FieldLabel>
+              <FieldGroup>
+                <InputGroup>
+                  <InputGroupAddon>
+                    <MailIcon size={16} className="text-gray-400" />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                    {...form.register("email")}
+                  />
+                </InputGroup>
+              </FieldGroup>
+              {form.formState.errors.email && (
+                <FieldError>{form.formState.errors.email.message}</FieldError>
+              )}
+            </Field>
 
-              <div className="flex items-center justify-between">
-                <Controller
-                  name="rememberMe"
-                  control={form.control}
-                  render={({ field }) => (
-                    <Field orientation={"horizontal"}>
-                      <Checkbox
-                        id="rememberMe"
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                      <span className="text-sm text-black">Remember me</span>
-                    </Field>
-                  )}
-                />
-                {/* forgot password */}
-                <Field>
-                  <Link
-                    href="/forgot-password"
-                    className="text-right text-sm text-pink-500"
+            <Field>
+              <FieldLabel htmlFor="password">Password</FieldLabel>
+              <FieldGroup>
+                <InputGroup>
+                  <InputGroupAddon>
+                    <LockIcon size={16} className="text-gray-400" />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    autoComplete="current-password"
+                    {...form.register("password")}
+                  />
+                  <InputGroupButton
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                   >
-                    Forgot password?
-                  </Link>
-                </Field>
-              </div>
-              <Field>
-                <Button
-                  disabled={isLoading}
-                  type="submit"
-                  className="w-full bg-[#D5557E] hover:bg-[#D5557E]/90"
-                >
-                  Sign in
-                </Button>
-              </Field>
-            </FieldGroup>
-          </form>
-          {/* register */}
-          <div className="flex items-center justify-center">
-            <h3 className="text-sm text-black">
-              Don&apos;t have an account?{" "}
+                    {showPassword ? (
+                      <EyeOff size={16} className="text-gray-400" />
+                    ) : (
+                      <Eye size={16} className="text-gray-400" />
+                    )}
+                  </InputGroupButton>
+                </InputGroup>
+              </FieldGroup>
+              {form.formState.errors.password && (
+                <FieldError>{form.formState.errors.password.message}</FieldError>
+              )}
+            </Field>
+
+            <div className="flex items-center justify-between">
+              <Controller
+                name="rememberMe"
+                control={form.control}
+                render={({ field }) => (
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-600">
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                    Remember me
+                  </label>
+                )}
+              />
               <Link
-                href="/register"
-                className="text-lg font-bold text-pink-500"
+                href="/forgot-password"
+                className="text-sm text-pink-600 hover:underline"
               >
-                Register Here
+                Forgot password?
               </Link>
-            </h3>
-          </div>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full rounded-full bg-[var(--mamabear-dark-pink)] py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-60"
+            >
+              {isLoading ? "Signing in..." : "Sign in"}
+            </Button>
+          </form>
+
+          <p className="mt-6 text-center text-sm text-gray-500">
+            Don&apos;t have an account?{" "}
+            <Link href="/register" className="text-pink-600 hover:underline">
+              Sign up
+            </Link>
+          </p>
         </div>
       </div>
     </div>

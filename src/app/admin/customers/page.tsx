@@ -4,14 +4,15 @@ import {
   Table, TableBody, TableCell, TableHead,
   TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Download, Eye } from "lucide-react";
+import { Eye } from "lucide-react";
 import Link from "next/link";
 import { getServerSession } from "@/lib/auth/session";
-import { adminCustomerApi } from "../../../lib/api/customers";
 import { format } from "date-fns";
-import { formatPrice } from "../../../lib/utils";
+import { formatPrice } from "@/lib/utils";
 import { cookies } from "next/headers";
 import CustomerExportButton from "@/components/admin/CustomerExportButton";
+import Pagination from "@/components/shared/Pagination";
+import { adminCustomersApi } from "@/lib/api/adminOrders";
 
 interface CustomerOrder { total: string; }
 
@@ -24,28 +25,61 @@ interface Customer {
   orders: CustomerOrder[];
 }
 
-export default async function AdminCustomersPage() {
+interface PageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+function parseNumber(v: string | string[] | undefined, fallback: number): number {
+  const s = Array.isArray(v) ? v[0] : v;
+  if (!s) return fallback;
+  const n = Number(s);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
+// FIX: halaman customers sebelumnya pakai adminCustomerApi (/users endpoint tanpa pagination)
+// yang mengambil SEMUA data sekaligus — lambat jika customer banyak.
+// Sekarang pakai adminCustomersApi (/admin/customers dengan page + limit) 
+// yang sudah support pagination dari backend (AdminCustomersController).
+export default async function AdminCustomersPage({ searchParams }: PageProps) {
   const session = await getServerSession();
+  const params = await searchParams;
   const cookieStore = await cookies();
   const cookieHeader = cookieStore.toString();
+
+  const page = parseNumber(params.page, 1);
+  const limit = parseNumber(params.limit, 20);
+  const search = typeof params.search === "string" ? params.search : undefined;
+
   let customersData: Customer[] = [];
+  let meta = { page, limit, total: 0, totalPages: 1, totalItems: 0 };
 
   try {
-    const { data: customerRes } = await adminCustomerApi.getAll({
-      headers: { Cookie: cookieHeader },
-    });
-    const payload = customerRes?.data ?? customerRes;
+    const { data: res } = await adminCustomersApi.getAll({ page, limit, search });
+    const payload = res?.data ?? res;
 
-    if (Array.isArray(payload?.user)) {
-      customersData = payload.user as Customer[];
-    } else if (Array.isArray(payload?.users)) {
-      customersData = payload.users as Customer[];
+    if (Array.isArray(payload?.data)) {
+      customersData = payload.data as Customer[];
+      meta = {
+        page: payload.meta?.page ?? page,
+        limit: payload.meta?.limit ?? limit,
+        total: payload.meta?.total ?? payload.meta?.totalItems ?? customersData.length,
+        totalItems: payload.meta?.totalItems ?? payload.meta?.total ?? customersData.length,
+        totalPages: payload.meta?.totalPages ?? 1,
+      };
     } else if (Array.isArray(payload)) {
       customersData = payload as Customer[];
+      meta = { page, limit, total: customersData.length, totalItems: customersData.length, totalPages: 1 };
     }
   } catch {
     customersData = [];
   }
+
+  const paginationMeta = {
+    page: meta.page,
+    limit: meta.limit,
+    totalItems: meta.totalItems,
+    totalPages: meta.totalPages,
+  };
 
   return (
     <div className="flex flex-1 flex-col p-6 md:p-8">
@@ -54,7 +88,12 @@ export default async function AdminCustomersPage() {
       <div className="mt-8 flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold tracking-tight">
-            Daftar Pelanggan ({customersData.length})
+            Daftar Pelanggan
+            {meta.totalItems > 0 && (
+              <span className="ml-2 text-base font-normal text-muted-foreground">
+                ({meta.totalItems} total)
+              </span>
+            )}
           </h2>
           <CustomerExportButton
             customers={customersData}
@@ -82,9 +121,9 @@ export default async function AdminCustomersPage() {
                 </TableRow>
               ) : (
                 customersData.map((customer) => {
-                  const totalSpent = customer.orders.reduce(
+                  const totalSpent = customer.orders?.reduce(
                     (sum, order) => sum + Number(order.total), 0
-                  );
+                  ) ?? 0;
                   return (
                     <TableRow key={customer.id}>
                       <TableCell className="py-4">
@@ -98,7 +137,9 @@ export default async function AdminCustomersPage() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="font-medium">{customer._count.orders}</TableCell>
+                      <TableCell className="font-medium">
+                        {customer._count?.orders ?? 0}
+                      </TableCell>
                       <TableCell className="font-medium">{formatPrice(totalSpent)}</TableCell>
                       <TableCell className="text-muted-foreground">
                         {format(new Date(customer.createdAt), "MMMM yyyy")}
@@ -118,6 +159,8 @@ export default async function AdminCustomersPage() {
             </TableBody>
           </Table>
         </div>
+
+        <Pagination meta={paginationMeta} />
       </div>
     </div>
   );

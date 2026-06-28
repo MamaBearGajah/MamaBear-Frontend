@@ -3,12 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isAxiosError } from "axios";
+import { cookies } from "next/headers";
 import {
   createProduct,
   deleteProduct,
   updateProduct,
 } from "@/lib/api/products";
-import { getServerSession, isAdminRole } from "@/lib/auth/session";
 import {
   formValuesToPayload,
   productFormSchema,
@@ -31,12 +31,38 @@ function parseFieldErrors(error: unknown): Record<string, string> | undefined {
   return undefined;
 }
 
-async function requireAdminSession() {
-  const session = await getServerSession();
-  if (!session || !isAdminRole(session.user.role)) {
-    throw new Error("Unauthorized");
+// FIX: requireAdminSession() lama memanggil getServerSession() yang membaca
+// cookie mamabear_session — cookie ini TIDAK PERNAH di-set oleh auth flow
+// (backend hanya set accessToken + refreshToken).
+// Akibatnya semua product server action selalu throw "Unauthorized" secara diam-diam.
+// Implementasi baru: decode accessToken cookie langsung + cek expiry.
+async function requireAdminSession(): Promise<{ role: string; accessToken: string }> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("accessToken")?.value;
+
+  if (!token) {
+    throw new Error("Unauthorized: tidak ada access token");
   }
-  return session;
+
+  let payload: { role?: string; sub?: string; exp?: number };
+  try {
+    const base64 = token.split(".")[1];
+    if (!base64) throw new Error("Token format tidak valid");
+    payload = JSON.parse(Buffer.from(base64, "base64url").toString("utf-8"));
+  } catch {
+    throw new Error("Unauthorized: token tidak valid");
+  }
+
+  if (payload.exp && payload.exp * 1000 < Date.now()) {
+    throw new Error("Unauthorized: token sudah expired");
+  }
+
+  const role = payload.role ?? "";
+  if (role !== "admin" && role !== "super_admin") {
+    throw new Error("Unauthorized: role tidak cukup");
+  }
+
+  return { role, accessToken: token };
 }
 
 function getErrorMessage(error: unknown): string {
@@ -50,9 +76,14 @@ function getErrorMessage(error: unknown): string {
 export async function createProductAction(
   values: ProductFormValues,
 ): Promise<ProductActionState> {
-  const session = await requireAdminSession();
-  const parsed = productFormSchema.safeParse(values);
+  let session: { role: string; accessToken: string };
+  try {
+    session = await requireAdminSession();
+  } catch (e) {
+    return { success: false, message: getErrorMessage(e) };
+  }
 
+  const parsed = productFormSchema.safeParse(values);
   if (!parsed.success) {
     const fieldErrors: Record<string, string> = {};
     parsed.error.issues.forEach((issue) => {
@@ -80,9 +111,14 @@ export async function updateProductAction(
   id: string,
   values: ProductFormValues,
 ): Promise<ProductActionState> {
-  const session = await requireAdminSession();
-  const parsed = productFormSchema.safeParse(values);
+  let session: { role: string; accessToken: string };
+  try {
+    session = await requireAdminSession();
+  } catch (e) {
+    return { success: false, message: getErrorMessage(e) };
+  }
 
+  const parsed = productFormSchema.safeParse(values);
   if (!parsed.success) {
     const fieldErrors: Record<string, string> = {};
     parsed.error.issues.forEach((issue) => {
@@ -108,8 +144,8 @@ export async function updateProductAction(
 }
 
 export async function deleteProductAction(id: string): Promise<{ success: boolean }> {
-  const session = await requireAdminSession();
-  await deleteProduct(id, session.accessToken);
+  const { accessToken } = await requireAdminSession();
+  await deleteProduct(id, accessToken);
   revalidatePath("/admin/products");
   return { success: true };
 }

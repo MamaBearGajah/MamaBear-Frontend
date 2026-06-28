@@ -46,18 +46,21 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { label: "Konsultasi", href: "/admin/consultations", icon: MessageCircle, roles: ["admin", "super_admin"] },
   { label: "Promosi",    href: "/admin/promotions",    icon: Tag,           roles: ["admin", "super_admin"] },
   { label: "Banner",     href: "/admin/HomeBanner",    icon: MonitorCog,    roles: ["admin", "super_admin"] },
-  // Analytics
-  { label: "Reports",    href: "/admin/reports", icon: BarChart3, roles: ["admin", "super_admin"] },
+  // Analytics — FIX: Reports dibatasi super_admin (berisi data keuangan sensitif)
+  { label: "Reports",    href: "/admin/reports", icon: BarChart3, roles: ["super_admin"] },
   // Dev
   { label: "Widgets",    href: "/admin/widget",   icon: Drill,    roles: ["admin", "super_admin"] },
   // Super Admin only
-  { label: "Admin Users", href: "/admin/users",    icon: UserCog,  roles: ["super_admin"] }, // ← BARU
+  { label: "Admin Users", href: "/admin/users",    icon: UserCog,  roles: ["super_admin"] },
   { label: "Settings",    href: "/admin/settings", icon: Settings, roles: ["super_admin"] },
 ];
 
+// FIX: tambah /admin/reports ke SUPER_ADMIN_ROUTE_PREFIXES
+// agar SuperAdminRouteGuard memblok akses dari role admin biasa
 export const SUPER_ADMIN_ROUTE_PREFIXES = [
   "/admin/settings",
-  "/admin/users",   // ← BARU
+  "/admin/users",
+  "/admin/reports",
 ] as const;
 
 export function getAdminNavForRole(role: UserRole): AdminNavItem[] {
