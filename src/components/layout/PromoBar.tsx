@@ -2,11 +2,11 @@ import Link from "next/link";
 
 export default function PromoBar() {
   const promoText =
-    "Mother’s Day Special: Get the all-in-one hamper bundle for only Rp 100.000! | Free shipping for orders above";
+    "Mother's Day Special: Get the all-in-one hamper bundle for only Rp 100.000! | Free shipping for orders above";
 
   return (
     <div className="bg-brown text-white">
-      <div className="mx-auto hidden w-full max-w-7xl justify-center px-[2cm] py-2 text-center text-sm sm:flex">
+      <div className="mx-auto hidden w-full max-w-7xl justify-center px-6 py-2 text-center text-sm sm:flex">
         <Link href="/promotion">
           {promoText}{" "}
           <span className="font-semibold">Rp 200.000</span> | ASI Booster

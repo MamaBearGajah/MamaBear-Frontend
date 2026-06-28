@@ -36,10 +36,6 @@ function parseNumber(v: string | string[] | undefined, fallback: number): number
   return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
-// FIX: halaman customers sebelumnya pakai adminCustomerApi (/users endpoint tanpa pagination)
-// yang mengambil SEMUA data sekaligus — lambat jika customer banyak.
-// Sekarang pakai adminCustomersApi (/admin/customers dengan page + limit) 
-// yang sudah support pagination dari backend (AdminCustomersController).
 export default async function AdminCustomersPage({ searchParams }: PageProps) {
   const session = await getServerSession();
   const params = await searchParams;
@@ -97,7 +93,7 @@ export default async function AdminCustomersPage({ searchParams }: PageProps) {
           </h2>
           <CustomerExportButton
             customers={customersData}
-            className="inline-flex items-center gap-2 rounded-lg border border-[var(--mamabear-dark-pink)] px-4 py-2 text-sm font-medium text-[var(--mamabear-dark-pink)] hover:bg-pink-50 transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg border border-dark-pink px-4 py-2 text-sm font-medium text-dark-pink hover:bg-pink-50 transition-colors"
           />
         </div>
 
