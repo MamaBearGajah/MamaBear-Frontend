@@ -11,10 +11,16 @@ import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/hooks/useCart";
 import { ArrowLeft, ChevronRight, Trash2, Truck, Shield, RotateCcw } from "lucide-react";
 
+// FIX: Semua voucher ongkir membership menggunakan prefix "SHIP-".
+// Voucher ini punya usageLimit:1, sehingga backend akan throw "Voucher sudah habis"
+// bahkan sebelum sempat return tipe voucher — kita cegat di sini sebelum hit API
+// agar pesan error yang ditampilkan jelas dan tidak menyesatkan user.
+const isShippingVoucherCode = (code: string) => /^SHIP-/i.test(code.trim());
+
 const CartPage = () => {
   const { state, itemCount, removeItem, updateQuantity, clearCart } = useCart();
   const { state: authState } = useAuth();
-  const { setVoucher, clearVoucher } = useCheckout(); // FIX: setVoucher bukan setDiscount
+  const { setVoucher, clearVoucher } = useCheckout();
 
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [promoCode, setPromoCode] = useState("");
@@ -65,9 +71,11 @@ const CartPage = () => {
     setPromoError("");
     setPromoApplied(false);
     setAppliedDiscount(0);
-    clearVoucher(); // FIX: reset context
+    clearVoucher();
 
-    if (!promoCode.trim()) {
+    const trimmedCode = promoCode.trim().toUpperCase();
+
+    if (!trimmedCode) {
       setPromoError("Masukkan kode voucher");
       return;
     }
@@ -77,10 +85,20 @@ const CartPage = () => {
       return;
     }
 
+    // FIX: cek prefix SHIP- sebelum hit API.
+    // Voucher ongkir (SHIP-SILVER, SHIP-GOLD, SHIP-PLATINUM) punya usageLimit:1 —
+    // backend langsung throw "Voucher sudah habis" tanpa sempat return tipe voucher,
+    // sehingga catch menampilkan pesan yang menyesatkan. Kita blokir di sini duluan.
+    if (isShippingVoucherCode(trimmedCode)) {
+      setPromoError(
+        "Voucher ongkir tidak bisa dipakai di sini. Masukkan kode voucher ongkir di halaman pilih metode pengiriman saat checkout."
+      );
+      return;
+    }
+
     try {
-      // FIX: pakai validate bukan apply, supaya dapat voucherId
       const res = await voucherApi.validate(
-        promoCode.trim().toUpperCase(),
+        trimmedCode,
         selectedSubtotal,
         0, // shippingCost belum diketahui di cart
       );
@@ -90,27 +108,37 @@ const CartPage = () => {
         return;
       }
 
-      // FIX: voucher ongkir tidak bisa dipakai di cart
+      // Double-check tipe dari response (untuk voucher ongkir non-SHIP- jika ada)
       if (res.voucher.type === "free_shipping") {
-        setPromoError("Voucher ongkir hanya bisa dipakai di halaman pilih pengiriman");
+        setPromoError(
+          "Voucher ongkir tidak bisa dipakai di sini. Masukkan kode voucher ongkir di halaman pilih metode pengiriman saat checkout."
+        );
         return;
       }
 
       setPromoApplied(true);
       setPromoError("");
       setAppliedDiscount(res.discountAmount);
-
-      // FIX: simpan code + id + amount ke context supaya terbawa ke checkout
-      setVoucher(promoCode.trim().toUpperCase(), res.voucher.id, res.discountAmount);
+      setVoucher(trimmedCode, res.voucher.id, res.discountAmount);
     } catch (err: any) {
       setPromoApplied(false);
       setAppliedDiscount(0);
       clearVoucher();
-      setPromoError(
+
+      const serverMsg: string =
         err?.response?.data?.error?.message ??
         err?.response?.data?.message ??
-        "Voucher tidak valid atau sudah habis"
-      );
+        "";
+
+      // FIX: jika backend throw error untuk kode ongkir (lolos pre-check karena alasan lain),
+      // tetap tampilkan pesan yang benar, bukan "Voucher sudah habis"
+      if (isShippingVoucherCode(trimmedCode)) {
+        setPromoError(
+          "Voucher ongkir tidak bisa dipakai di sini. Masukkan kode voucher ongkir di halaman pilih metode pengiriman saat checkout."
+        );
+      } else {
+        setPromoError(serverMsg || "Voucher tidak valid atau sudah habis");
+      }
     }
   };
 

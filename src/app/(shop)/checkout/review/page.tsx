@@ -11,11 +11,16 @@ import { toast } from "sonner";
 import OrderSummary from "@/components/checkout/OrderSummary";
 import { placeShopOrder } from "@/lib/shop/place-order";
 
-const DEV_FALLBACK_ORDER_ID = "ORD-2026-8921";
-
 const CheckoutPageReview = () => {
   const { state: checkoutState, prevStep, clearCheckout } = useCheckout();
-  const { method, shipping, voucherId, discount } = checkoutState; // FIX: tambah discount
+  const {
+    method,
+    shipping,
+    voucherId,
+    voucherShippingId, // FIX: tambah voucherShippingId
+    discount,
+    discountShipping,  // FIX: tambah discountShipping
+  } = checkoutState;
   const { state: cartState, clearCart } = useCart();
   const { items } = cartState;
   const router = useRouter();
@@ -42,7 +47,8 @@ const CheckoutPageReview = () => {
         courier: method.courier,
         service: method.service,
         provider: "xendit",
-        voucherId: voucherId ?? undefined,
+        voucherId: voucherId || undefined,
+        voucherShippingId: voucherShippingId || undefined, // FIX: kirim voucher ongkir
       });
 
       clearCart();
@@ -54,12 +60,14 @@ const CheckoutPageReview = () => {
       }
 
       router.push(`/order-success?orderId=${encodeURIComponent(result.orderId)}`);
-    } catch (error) {
-      console.error(error);
-      toast.info("Backend belum siap — menampilkan pesanan demo.");
-      clearCart();
-      clearCheckout();
-      router.push(`/order-success?orderId=${encodeURIComponent(DEV_FALLBACK_ORDER_ID)}`);
+    } catch (err: any) {
+      console.error(err);
+      // FIX: hapus DEV fallback — tampilkan error yang sebenarnya
+      toast.error(
+        err?.response?.data?.error?.message ??
+        err?.message ??
+        "Gagal membuat pesanan, coba lagi"
+      );
     } finally {
       setLoading(false);
     }
@@ -76,7 +84,12 @@ const CheckoutPageReview = () => {
       0
     );
 
-  const total = calculateSubtotal() + (method?.cost ?? 9000) - (discount ?? 0);
+  // FIX: kurangi discountShipping juga
+  const total =
+    calculateSubtotal() +
+    (method?.cost ?? 0) -
+    (discount ?? 0) -
+    (discountShipping ?? 0);
 
   return (
     <div className="min-h-screen bg-[#fff0f3] px-4 py-10 text-gray-800">
@@ -110,10 +123,10 @@ const CheckoutPageReview = () => {
                 <span className="font-medium text-gray-800">Shipping</span>
               </div>
               <div className="flex flex-col text-sm text-gray-600">
-                <span>{method?.courier || "POS Indonesia"}</span>
-                <span>{method?.etd || "4-6 days"}</span>
+                <span>{method?.courier || "Belum dipilih"}</span>
+                <span>{method?.etd || ""}</span>
                 <span className="mt-1 font-medium text-pink-600">
-                  {method?.cost ? safeFormatPrice(method.cost) : "Rp 9.000"}
+                  {method?.cost ? safeFormatPrice(method.cost) : "—"}
                 </span>
               </div>
             </div>

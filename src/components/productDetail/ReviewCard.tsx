@@ -22,11 +22,8 @@ const mockReviews: Review[] = [
     review: "This product is amazing! Highly recommend it.",
     helpfulCount: 10,
     isVerifiedPurchase: true,
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-    user: {
-      id: "u1",
-      name: "Alice",
-    },
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+    user: { id: "u1", name: "Alice" },
   },
   {
     id: "2",
@@ -37,11 +34,8 @@ const mockReviews: Review[] = [
     review: "Good product, but a bit expensive.",
     helpfulCount: 10,
     isVerifiedPurchase: true,
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-    user: {
-      id: "u2",
-      name: "Bob",
-    },
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+    user: { id: "u2", name: "Bob" },
   },
   {
     id: "3",
@@ -52,11 +46,8 @@ const mockReviews: Review[] = [
     review: "Good product, but I dont like it.",
     helpfulCount: 20,
     isVerifiedPurchase: true,
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-    user: {
-      id: "u3",
-      name: "Charlie",
-    },
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+    user: { id: "u3", name: "Charlie" },
   },
 ];
 
@@ -85,6 +76,7 @@ export default function ReviewCard({
     totalItems: 0,
     totalPages: 0,
   });
+
   useEffect(() => {
     async function fetchReviews() {
       try {
@@ -93,28 +85,17 @@ export default function ReviewCard({
           Array.isArray(response) && response.length > 0
             ? response
             : mockReviews;
-        
+
         setReviews(reviewsData);
-        
-        // Calculate pagination metadata
+
         const totalItems = reviewsData.length;
         const totalPages = Math.ceil(totalItems / limit);
-        setMeta({
-          page,
-          limit,
-          totalItems,
-          totalPages,
-        });
+        setMeta({ page, limit, totalItems, totalPages });
       } catch (error) {
         console.error("Error fetching reviews:", error);
         setReviews(mockReviews);
         const totalPages = Math.ceil(mockReviews.length / limit);
-        setMeta({
-          page,
-          limit,
-          totalItems: mockReviews.length,
-          totalPages,
-        });
+        setMeta({ page, limit, totalItems: mockReviews.length, totalPages });
       }
     }
 
@@ -122,15 +103,11 @@ export default function ReviewCard({
   }, [productId, page]);
 
   const nextPage = () => {
-    if (page < meta.totalPages) {
-      setPage((p) => p + 1);
-    }
+    if (page < meta.totalPages) setPage((p) => p + 1);
   };
 
   const prevPage = () => {
-    if (page > 1) {
-      setPage((p) => p - 1);
-    }
+    if (page > 1) setPage((p) => p - 1);
   };
 
   function addHelpfulVote(reviewId: string, isHelpful: boolean) {
@@ -173,12 +150,17 @@ export default function ReviewCard({
       return (
         <div className="mt-2 flex flex-col items-start justify-start md:h-[60%] md:w-[60%]">
           <p className="text-left font-bold">{product.name}</p>
-          <br></br>
-          <p className="text-gray-400">
-            <ProductDescription
-              productDescription={product.description}
-            ></ProductDescription>
-          </p>
+          <br />
+          {/*
+            FIX: ganti <p> menjadi <span className="text-gray-400">
+            ProductDescription me-render <div><p>...</p></div>, sehingga
+            membungkusnya dengan <p> menyebabkan dua hydration error:
+              1. <p> tidak boleh punya descendant <p>
+              2. <p> tidak boleh punya descendant <div>
+          */}
+          <span className="text-gray-400">
+            <ProductDescription productDescription={product.description} />
+          </span>
         </div>
       );
 
@@ -203,7 +185,6 @@ export default function ReviewCard({
               <div className="w-full max-w-md rounded-xl bg-white p-6">
                 <div className="mb-4 flex items-center justify-between">
                   <h2 className="text-xl font-bold">Add Review</h2>
-
                   <button
                     onClick={() => setIsOpen(false)}
                     className="text-gray-500"
@@ -212,47 +193,48 @@ export default function ReviewCard({
                   </button>
                 </div>
 
-                {/* FORM */}
-                <form 
+                <form
                   className="space-y-4"
                   onSubmit={async (e) => {
                     e.preventDefault();
                     setSubmitError("");
-                    
-                    // Validate inputs
+
                     if (!orderId.trim()) {
                       setSubmitError("Please enter an order ID");
                       return;
                     }
-                    
+
                     if (!reviewText.trim()) {
                       setSubmitError("Please enter a comment");
                       return;
                     }
-                    
+
                     if (reviewText.trim().length < 10) {
                       setSubmitError("Comment must be at least 10 characters");
                       return;
                     }
-                    
+
                     setIsSubmitting(true);
                     try {
                       const payload = {
                         orderId: orderId.trim(),
                         rating: Number(rating),
-                        review: reviewText.trim()
+                        review: reviewText.trim(),
                       };
                       console.log("Submitting review payload:", payload);
-                      
+
                       await reviewsApi.create(productId, payload);
                       setIsOpen(false);
                       setOrderId("");
                       setRating(5);
                       setReviewText("");
                       setSubmitError("");
-                      // Refresh reviews
+
                       const response = await getAllReviews(productId, 1, limit);
-                      const reviewsData = Array.isArray(response) && response.length > 0 ? response : mockReviews;
+                      const reviewsData =
+                        Array.isArray(response) && response.length > 0
+                          ? response
+                          : mockReviews;
                       setReviews(reviewsData);
                       const totalPages = Math.ceil(reviewsData.length / limit);
                       setMeta({
@@ -264,9 +246,10 @@ export default function ReviewCard({
                       setPage(1);
                     } catch (error: any) {
                       console.error("Error submitting review:", error);
-                      const errorMessage = error?.response?.data?.message || 
-                                         error?.message || 
-                                         "Failed to submit review. Please try again.";
+                      const errorMessage =
+                        error?.response?.data?.message ||
+                        error?.message ||
+                        "Failed to submit review. Please try again.";
                       setSubmitError(errorMessage);
                     } finally {
                       setIsSubmitting(false);
@@ -278,10 +261,9 @@ export default function ReviewCard({
                       {submitError}
                     </div>
                   )}
-                  
+
                   <div>
                     <label className="mb-1 block">Order ID</label>
-
                     <input
                       type="text"
                       className="w-full rounded border p-2"
@@ -292,11 +274,10 @@ export default function ReviewCard({
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <label className="mb-1 block">Rating</label>
-
-                    <select 
+                    <select
                       className="w-full rounded border p-2"
                       value={rating}
                       onChange={(e) => setRating(Number(e.target.value))}
@@ -311,10 +292,11 @@ export default function ReviewCard({
                   </div>
 
                   <div>
-                    <label className="mb-1 block">Comment (min. 10 characters)</label>
-
-                    <textarea 
-                      className="w-full rounded border p-2" 
+                    <label className="mb-1 block">
+                      Comment (min. 10 characters)
+                    </label>
+                    <textarea
+                      className="w-full rounded border p-2"
                       rows={4}
                       value={reviewText}
                       onChange={(e) => setReviewText(e.target.value)}
@@ -330,7 +312,7 @@ export default function ReviewCard({
                   <button
                     type="submit"
                     disabled={isSubmitting || !reviewText.trim()}
-                    className="w-full rounded bg-pink-500 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full rounded bg-pink-500 py-2 text-white disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {isSubmitting ? "Submitting..." : "Submit Review"}
                   </button>
@@ -344,73 +326,79 @@ export default function ReviewCard({
               const startIndex = (page - 1) * limit;
               const endIndex = startIndex + limit;
               const paginatedReviews = reviews.slice(startIndex, endIndex);
-              
-              return paginatedReviews.map((review) => (
+
+              return paginatedReviews.map((review) =>
                 (() => {
                   const isHelpful = helpfulVotes[review.id] ?? false;
-
                   return (
-              <div key={review.id} className="w-full border-b py-4">
-                <Card className="flex flex-col items-start justify-start rounded-lg border p-5">
-                  <div className="flex w-full items-center justify-start gap-3">
-                      <Image
-                        src="/Logo Mamabear.png"
-                        alt="Mamabear logo"
-                        width={40}
-                        height={40}
-                        className="w-10"
-                      />
-
-                    <div className="w-[90%]">
-                      <div className="flex flex-col items-start gap-1">
-                        <CardTitle className="text-base leading-tight whitespace-nowrap md:text-lg">
-                          {review.user.name}
-                        </CardTitle>
-                        {review.isVerifiedPurchase ? (
-                            <div className="inline-flex items-center rounded-full bg-light-pink px-2.5 py-1 text-xs font-medium text-dark-pink">
-                              <Image
-                                src="/check.svg"
-                                alt=""
-                                width={18}
-                                height={18}
-                                className="mr-1 w-4.5"
-                              />
-                            Verified Purchase
+                    <div key={review.id} className="w-full border-b py-4">
+                      <Card className="flex flex-col items-start justify-start rounded-lg border p-5">
+                        <div className="flex w-full items-center justify-start gap-3">
+                          <Image
+                            src="/Logo Mamabear.png"
+                            alt="Mamabear logo"
+                            width={40}
+                            height={40}
+                            className="w-10"
+                          />
+                          <div className="w-[90%]">
+                            <div className="flex flex-col items-start gap-1">
+                              <CardTitle className="text-base leading-tight whitespace-nowrap md:text-lg">
+                                {review.user.name}
+                              </CardTitle>
+                              {review.isVerifiedPurchase ? (
+                                <div className="inline-flex items-center rounded-full bg-light-pink px-2.5 py-1 text-xs font-medium text-dark-pink">
+                                  <Image
+                                    src="/check.svg"
+                                    alt=""
+                                    width={18}
+                                    height={18}
+                                    className="mr-1 w-4.5"
+                                  />
+                                  Verified Purchase
+                                </div>
+                              ) : null}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              <Stars rating={review.rating} />
+                            </div>
+                            <p className="text-sm text-gray-600">
+                              {getDaysAgo(review.createdAt)}
+                            </p>
                           </div>
-                        ) : null}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        <Stars rating={review.rating} />
-                      </div>
-                      <p className="text-sm text-gray-600">
-                        {getDaysAgo(review.createdAt)}
-                      </p>
+                          <button
+                            onClick={() =>
+                              addHelpfulVote(review.id, !isHelpful)
+                            }
+                            className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium shadow-sm transition-all duration-200 active:scale-95 ${
+                              isHelpful
+                                ? "bg-light-pink text-dark-pink hover:bg-light-pink hover:text-black hover:shadow-md"
+                                : "bg-dark-pink text-white hover:bg-light-pink hover:text-black hover:shadow-md"
+                            }`}
+                          >
+                            <Image
+                              src="/thumb.svg"
+                              alt=""
+                              width={16}
+                              height={16}
+                              className="h-4 w-4"
+                            />
+                            <span>{review.helpfulCount}</span>
+                          </button>
+                        </div>
+                        <div className="flex flex-col items-start justify-start">
+                          <CardDescription>{review.review}</CardDescription>
+                        </div>
+                      </Card>
                     </div>
-                    <button
-                      onClick={() => addHelpfulVote(review.id, !isHelpful)}
-                      className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium shadow-sm transition-all duration-200 active:scale-95 ${
-                        isHelpful
-                          ? "bg-light-pink text-dark-pink hover:bg-light-pink hover:text-black hover:shadow-md"
-                          : "bg-dark-pink text-white hover:bg-light-pink hover:text-black hover:shadow-md"
-                      }`}
-                    >
-                      <Image src="/thumb.svg" alt="" width={16} height={16} className="h-4 w-4" />
-
-                      <span>{review.helpfulCount}</span>
-                    </button>
-                  </div>
-                  <div className="flex flex-col items-start justify-start">
-                    <CardDescription>{review.review}</CardDescription>
-                  </div>
-                </Card>
-              </div>
-                );
-              })()
-              ));
+                  );
+                })(),
+              );
             })()
           ) : (
             <p>No reviews yet.</p>
           )}
+
           <div className="mt-4 flex items-center gap-2">
             <button
               onClick={prevPage}
@@ -419,11 +407,9 @@ export default function ReviewCard({
             >
               Prev
             </button>
-
             <span className="text-sm">
               Page {meta.page} of {meta.totalPages}
             </span>
-
             <button
               onClick={nextPage}
               disabled={page === meta.totalPages}
