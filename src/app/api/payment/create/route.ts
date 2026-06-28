@@ -1,49 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Xendit } from "xendit-node";
-
-const xenditClient = new Xendit({
-  secretKey: process.env.XENDIT_SECRET_KEY!,
-});
 
 export async function POST(req: NextRequest) {
   try {
-    const { amount, orderId } = await req.json();
+    const body = await req.json();
 
-    const checkout = await (xenditClient as any).Checkout.createCheckoutSession({
-      referenceId: orderId,
-      amount,
-      currency: "IDR",
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "http://localhost:3000/api";
 
-      successReturnUrl:
-        "http://localhost:3000/order-success",
-
-      failureReturnUrl:
-        "http://localhost:3000/payment",
-
-      items: [
-        {
-          referenceId: orderId,
-          name: "Shop Order",
-          quantity: 1,
-          price: amount,
-          category: "Product",
-        },
-      ],
+    const response = await fetch(`${backendUrl}/payments/create-invoice`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      credentials: "include",
     });
 
-    return NextResponse.json({
-      checkoutUrl: checkout.url,
-    });
+    const data = await response.json();
+    return NextResponse.json(data, { status: response.status });
   } catch (error) {
     console.error(error);
-
     return NextResponse.json(
-      {
-        error: "Failed to create payment",
-      },
-      {
-        status: 500,
-      }
+      { error: "Failed to create payment" },
+      { status: 500 }
     );
   }
 }
