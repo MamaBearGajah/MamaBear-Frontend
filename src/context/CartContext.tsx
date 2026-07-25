@@ -446,12 +446,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem = (item: CartItem) => {
     void (async () => {
+      const previousItems = state.items;
+      dispatch({ type: "ADD_ITEM", payload: item });
+
       const payload = {
         productId: item.productId,
         variantId: item.variantId,
         quantity: item.quantity,
       };
-      console.log(payload);
+
       try {
         let response;
 
@@ -472,7 +475,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
             response = await guestCartApi.addItem(guestPayload);
           } catch (error: unknown) {
             if (axios.isAxiosError(error) && error.response?.status === 404) {
-              // guestCartId = await ensureGuestCartExists(guestCartId);
+              guestCartId = await ensureGuestCartExists(guestCartId);
+              guestPayload.sessionId = guestCartId;
               response = await guestCartApi.addItem(guestPayload);
             } else {
               throw error;
@@ -485,6 +489,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           dispatch({ type: "SET_CART", payload: { items } });
         }
       } catch (error: unknown) {
+        dispatch({ type: "SET_CART", payload: { items: previousItems } });
         if (axios.isAxiosError(error)) {
           const status = error.response?.status;
           // 401 = session expired, interceptor sudah handle refresh/logout — jangan toast

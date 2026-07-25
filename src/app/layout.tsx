@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
 import { CheckoutProvider } from "@/context/CheckoutContext";
-import Script from "next/script";
 import { readFileSync } from "fs";
 import { join } from "path";
 
@@ -86,49 +86,9 @@ export default function RootLayout({
           </CartProvider>
         </AuthProvider>
 
-        {/* Google Tag Manager */}
-        {gtmId && (
-          <Script
-            id="gtm-script"
-            strategy="afterInteractive"
-            dangerouslySetInnerHTML={{
-              __html: `
-(function(w,d,s,l,i){
-  w[l]=w[l]||[];
-  w[l].push({'gtm.start': new Date().getTime(), event:'gtm.js'});
-  var f=d.getElementsByTagName(s)[0],
-      j=d.createElement(s),
-      dl=l!='dataLayer'?'&l='+l:'';
-  j.async=true;
-  j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
-  f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','${gtmId}');
-              `.trim(),
-            }}
-          />
-        )}
+        {gtmId && <GoogleTagManager gtmId={gtmId} />}
 
-        {/* Google Analytics 4 — only injected when GTM is not set */}
-        {!gtmId && gaId && (
-          <>
-            <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
-              strategy="afterInteractive"
-            />
-            <Script
-              id="ga4-init"
-              strategy="afterInteractive"
-              dangerouslySetInnerHTML={{
-                __html: `
-window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', '${gaId}');
-                `.trim(),
-              }}
-            />
-          </>
-        )}
+        {!gtmId && gaId && <GoogleAnalytics gaId={gaId} />}
       </body>
     </html>
   );

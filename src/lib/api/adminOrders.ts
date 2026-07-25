@@ -12,13 +12,13 @@ export interface UpdateOrderStatusPayload {
 // dan updateStatus() memanggil /orders/:id/status (endpoint user, bukan admin)
 export const adminOrdersApi = {
   getAll: (config?: AxiosRequestConfig) =>
-    apiClient.get("/admin/orders", config),
+    apiClient.get("/orders/admin", config),
 
   getAllCustomer: (config?: AxiosRequestConfig) =>
     apiClient.get("/orders", config),
 
   getById: (id: string, config?: AxiosRequestConfig) =>
-    apiClient.get(`/admin/orders/${id}`, config),
+    apiClient.get(`/orders/admin/${id}`, config),
 
   updateStatus: (
     id: string,

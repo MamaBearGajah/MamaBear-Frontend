@@ -1,14 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { cookies } from "next/headers";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import {
   ArrowLeft,
   Box,
   CreditCard,
-  MapPin,
   Package,
   Truck,
   User,
@@ -146,7 +144,7 @@ function SectionCard({
   return (
     <div className="rounded-xl border border-border bg-card p-5">
       <div className="mb-4 flex items-center gap-2">
-        <Icon className="size-4 text-[var(--mamabear-dark-pink)]" />
+        <Icon className="text-dark-pink size-4" />
         <h3 className="font-semibold text-foreground">{title}</h3>
       </div>
       <div className="divide-y divide-border">{children}</div>
@@ -163,14 +161,12 @@ interface PageProps {
 export default async function AdminOrderDetailPage({ params }: PageProps) {
   const { id } = await params;
   const session = await getServerSession();
-
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore.toString();
+  const accessToken = session?.accessToken;
 
   let order: Order | null = null;
   try {
     const { data: res } = await adminOrdersApi.getById(id, {
-      headers: { Cookie: cookieHeader },
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
     });
     // Try admin endpoint first; fall back to customer endpoint shape
     const raw = res?.data ?? res;
@@ -304,7 +300,7 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
             />
             <div className="flex items-center justify-between gap-4 pt-3 text-sm font-semibold">
               <span className="text-foreground">Total</span>
-              <span className="text-[var(--mamabear-dark-pink)]">
+              <span className="text-dark-pink">
                 {formatPrice(order.total)}
               </span>
             </div>
@@ -314,7 +310,7 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
         {/* Order Items */}
         <div className="rounded-xl border border-border bg-card">
           <div className="flex items-center gap-2 border-b border-border px-5 py-4">
-            <Package className="size-4 text-[var(--mamabear-dark-pink)]" />
+            <Package className="text-dark-pink size-4" />
             <h3 className="font-semibold text-foreground">
               Item Pesanan ({order.items.length})
             </h3>
@@ -373,7 +369,7 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
                 </div>
                 <div className="flex justify-between border-t border-border pt-2 text-sm font-bold text-foreground">
                   <span>Total</span>
-                  <span className="text-[var(--mamabear-dark-pink)]">
+                  <span className="text-dark-pink">
                     {formatPrice(order.total)}
                   </span>
                 </div>

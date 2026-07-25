@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import AdminPageHeader from "@/components/layout/AdminPageHeader";
 import OrdersPageClient from "@/components/admin/OrdersPageClient";
-import { getOrderList } from "@/lib/api/orders";
 import { getServerSession } from "@/lib/auth/session";
 import type { Order, OrderListParams } from "@/types";
 import { adminOrdersApi } from "../../../lib/api/adminOrders";
@@ -41,6 +40,7 @@ export default async function AdminOrdersPage({
 }: OrdersPageProps) {
   const params = await searchParams;
   const session = await getServerSession();
+  const accessToken = session?.accessToken;
 
   const page = parseNumber(parseParam(params.page)) ?? 1;
   const limit = parseNumber(parseParam(params.limit)) ?? 20;
@@ -56,13 +56,9 @@ export default async function AdminOrdersPage({
   let ordersData: Order[] = [];
   let meta = { page: 1, limit: 20, totalItems: 0, totalPages: 1 };
 
-  const { cookies } = await import("next/headers");
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore.toString();
-
   const { data: ordersRes } = await adminOrdersApi.getAll({
     params: listParams,
-    headers: { Cookie: cookieHeader },
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
   });
   ordersData = ordersRes?.data ?? [];
   meta = ordersRes?.meta ?? {

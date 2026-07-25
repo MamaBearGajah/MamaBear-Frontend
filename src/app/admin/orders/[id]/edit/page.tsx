@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { cookies } from "next/headers";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { ArrowLeft } from "lucide-react";
 import AdminPageHeader from "@/components/layout/AdminPageHeader";
 import OrderEditForm from "@/components/admin/OrderEditForm";
 import { getServerSession } from "@/lib/auth/session";
@@ -42,14 +40,12 @@ const STATUS_BADGE: Record<
 export default async function AdminOrderEditPage({ params }: PageProps) {
   const { id } = await params;
   const session = await getServerSession();
-
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore.toString();
+  const accessToken = session?.accessToken;
 
   let order: Order | null = null;
   try {
     const { data: res } = await adminOrdersApi.getById(id, {
-      headers: { Cookie: cookieHeader },
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
     });
     const raw = res?.data ?? res;
     order = mapOrderFromApi(raw);
