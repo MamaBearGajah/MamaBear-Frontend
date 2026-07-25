@@ -3,8 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/hooks/useCart";
-import { safeFormatPrice } from "@/lib/utils";
-import { ArrowLeft, CreditCard, Truck } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useCheckout } from "@/context/CheckoutContext";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -42,6 +41,7 @@ const CheckoutPageInfo = () => {
   const { state } = useCart();
   const { items } = state;
   const { state: checkoutState, setShipping, clearCheckout } = useCheckout();
+  const { state: authState } = useAuth();
   const router = useRouter();
 
   const [provinces, setProvinces] = useState<Province[]>([]);
@@ -71,6 +71,13 @@ const CheckoutPageInfo = () => {
   });
 
   useEffect(() => {
+    if (authState.isLoading) return;
+
+    if (!authState.user) {
+      router.replace("/login?redirect=/checkout/info");
+      return;
+    }
+
     async function fetchData() {
       setLoading(true);
       try {
@@ -130,7 +137,7 @@ const CheckoutPageInfo = () => {
       }
     }
     fetchData();
-  }, []);
+  }, [authState.isLoading, authState.user, checkoutState?.shipping?.receiverName, router]);
 
   useEffect(() => {
     if (!form.provinceId) return;
@@ -290,6 +297,20 @@ const CheckoutPageInfo = () => {
   // =========================
   // EMPTY CART GUARD
   // =========================
+
+  if (authState.isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-pink-50">
+        <div className="rounded-2xl bg-white px-6 py-5 text-sm text-[#8B6352] shadow-sm">
+          Checking your session...
+        </div>
+      </div>
+    );
+  }
+
+  if (!authState.user) {
+    return null;
+  }
 
   if (items.length === 0) {
     return (
@@ -521,7 +542,7 @@ const CheckoutPageInfo = () => {
                     onChange={handleChange}
                   >
                     <option value="">Select City</option>
-                    {cities.map((city: any) => (
+                    {cities.map((city: City) => (
                       <option key={city.id} value={city.id}>
                         {city.name}
                       </option>
@@ -588,7 +609,7 @@ const CheckoutPageInfo = () => {
                 <button
                   type="submit"
                   onClick={(e) => handleContinue(e, deliveryNotes)}
-                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--mamabear-dark-pink)] py-3 font-bold text-white"
+                  className="bg-dark-pink flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl py-3 font-bold text-white"
                 >
                   Continue
                 </button>

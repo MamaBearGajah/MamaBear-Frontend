@@ -32,7 +32,7 @@ const CartPage = () => {
 
   const checkoutHref = authState.user
     ? "/checkout/info"
-    : "/auth/login?redirect=/checkout/info";
+    : "/login?redirect=/checkout/info";
 
   const selectedItems = items.filter((item) => selectedItemIds.includes(item.id));
 
