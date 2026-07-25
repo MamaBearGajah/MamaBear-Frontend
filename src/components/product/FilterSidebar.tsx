@@ -36,7 +36,6 @@ interface FilterPanelProps {
   priceBounds: ShopPriceBounds;
   variantOptions?: VariantOption[];
   inStockId?: string;
-  pricePresetGroupName?: string;
   showCloseButton?: boolean;
   onClose?: () => void;
   onClearAll?: () => void;
@@ -49,7 +48,6 @@ function FilterPanel({
   priceBounds,
   variantOptions = [],
   inStockId = "in-stock-only",
-  pricePresetGroupName = "shop-price-preset",
   showCloseButton = false,
   onClose,
   onClearAll,
@@ -149,7 +147,6 @@ function FilterPanel({
             minPrice={filters.minPrice}
             maxPrice={filters.maxPrice}
             onSelect={handlePriceChange}
-            groupName={pricePresetGroupName}
           />
           <PriceRangeSlider
             bounds={priceBounds}
@@ -254,7 +251,7 @@ export default function FilterSidebar({
       <Dialog open={mobileOpen} onOpenChange={setMobileOpen}>
         <DialogContent
           showCloseButton={false}
-          className="max-w-105 w-[94vw] gap-0 overflow-hidden rounded-2xl border-0 p-0"
+          className="w-[94vw] max-w-[420px] gap-0 overflow-hidden rounded-2xl border-0 p-0"
         >
           <DialogHeader className="sr-only">
             <DialogTitle>Filters</DialogTitle>
@@ -267,7 +264,6 @@ export default function FilterSidebar({
               priceBounds={priceBounds}
               variantOptions={variantOptions}
               inStockId="in-stock-only-mobile"
-              pricePresetGroupName="shop-price-preset-mobile"
               showCloseButton
               onClose={() => setMobileOpen(false)}
               onClearAll={() => setMobileOpen(false)}
@@ -277,7 +273,7 @@ export default function FilterSidebar({
       </Dialog>
 
       {/* Desktop sidebar */}
-      <aside className="hidden w-70 shrink-0 lg:block">
+      <aside className="hidden w-[280px] shrink-0 lg:block">
         <div className="rounded-2xl border border-border/80 bg-white p-5 shadow-sm">
           <FilterPanel
             categories={categories}
@@ -285,7 +281,6 @@ export default function FilterSidebar({
             showSidebarSearch={showSidebarSearch}
             priceBounds={priceBounds}
             variantOptions={variantOptions}
-            pricePresetGroupName="shop-price-preset-desktop"
           />
         </div>
       </aside>

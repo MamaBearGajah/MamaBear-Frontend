@@ -11,14 +11,12 @@ interface PriceRangePresetsProps {
   minPrice?: number;
   maxPrice?: number;
   onSelect: (min: number | null, max: number | null) => void;
-  groupName?: string;
 }
 
 export default function PriceRangePresets({
   minPrice,
   maxPrice,
   onSelect,
-  groupName = "shop-price-preset",
 }: PriceRangePresetsProps) {
   const activeId = getActivePriceRangeId(minPrice, maxPrice);
   const isAnyPrice = minPrice == null && maxPrice == null;
@@ -34,7 +32,7 @@ export default function PriceRangePresets({
         >
           <input
             type="radio"
-            name={groupName}
+            name="shop-price-preset"
             checked={isAnyPrice}
             onChange={() => onSelect(null, null)}
             className="size-4 shrink-0 accent-dark-pink"
@@ -55,7 +53,7 @@ export default function PriceRangePresets({
             >
               <input
                 type="radio"
-                name={groupName}
+                name="shop-price-preset"
                 checked={isSelected}
                 onChange={() => {
                   const params = priceRangeToParams(range.id);

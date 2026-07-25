@@ -122,13 +122,8 @@ export function needsStorefrontClientCatalog(
   filters: ShopFiltersState,
 ): boolean {
   // Client-side catalog is needed when specific filter combinations require client-side processing
-  // For example: variant filtering or effective-price filtering (discount-aware)
-  return !!(
-    filters.variantName ||
-    filters.variantValue ||
-    filters.minPrice != null ||
-    filters.maxPrice != null
-  );
+  // For example: variant filtering or complex price+category combinations
+  return !!(filters.variantName || filters.variantValue);
 }
 
 /** Get full catalog params for client-side filtering — high limit to fetch comprehensive dataset */
