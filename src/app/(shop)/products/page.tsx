@@ -12,7 +12,9 @@ import { getProductList } from "@/lib/api/products";
 import { computeCategoryCounts } from "@/lib/shop/category-counts";
 import {
   DEFAULT_PRICE_BOUNDS,
+  needsStorefrontClientCatalog,
   parseShopListParamsFromRecord,
+  toStorefrontClientCatalogParams,
   toStorefrontProductListParams,
 } from "@/lib/shop/product-list-params";
 import {
@@ -74,6 +76,8 @@ export default async function ProductsPage({
   const params = await searchParams;
   const filters = parseShopListParamsFromRecord(params);
   const listParams = toStorefrontProductListParams(filters);
+  const needsClientCatalog = needsStorefrontClientCatalog(filters);
+  const clientCatalogParams = toStorefrontClientCatalogParams(filters);
 
   const activeCategoryId =
     filters.categoryId && filters.categoryId !== "cat-root"
@@ -82,19 +86,31 @@ export default async function ProductsPage({
 
   const [productsRes, categoriesRes, allProductsRes] = await Promise.all([
     activeCategoryId
-      ? getCategoryProducts(activeCategoryId, {
-          page: listParams.page,
-          limit: listParams.limit,
-          q: listParams.q,
-          sortBy: listParams.sortBy,
-          sortOrder: listParams.sortOrder,
-          inStock: listParams.inStock,
-          minPrice: listParams.minPrice,
-          maxPrice: listParams.maxPrice,
-          variantName: listParams.variantName,
-          variantValue: listParams.variantValue,
-        })
-      : getProductList(listParams),
+      ? getCategoryProducts(
+          activeCategoryId,
+          needsClientCatalog
+            ? {
+                page: 1,
+                limit: 1000,
+                q: clientCatalogParams.q,
+                sortBy: clientCatalogParams.sortBy,
+                sortOrder: clientCatalogParams.sortOrder,
+                inStock: clientCatalogParams.inStock,
+              }
+            : {
+                page: listParams.page,
+                limit: listParams.limit,
+                q: listParams.q,
+                sortBy: listParams.sortBy,
+                sortOrder: listParams.sortOrder,
+                inStock: listParams.inStock,
+                minPrice: listParams.minPrice,
+                maxPrice: listParams.maxPrice,
+                variantName: listParams.variantName,
+                variantValue: listParams.variantValue,
+              },
+        )
+      : getProductList(needsClientCatalog ? clientCatalogParams : listParams),
     getCategoryList(),
     getProductList({ page: 1, limit: 100 }),
   ]);
@@ -120,17 +136,27 @@ export default async function ProductsPage({
     filters.sortBy,
     filters.sortOrder,
   );
+  const page = filters.page ?? 1;
+  const limit = filters.limit ?? 20;
+  const start = (page - 1) * limit;
+  const paginatedProducts = needsClientCatalog
+    ? sortedProducts.slice(start, start + limit)
+    : sortedProducts;
   const variantOptions = extractVariantOptions(sortedProducts);
   const categoryCounts = computeCategoryCounts(allProductsRes.data);
 
   // Backend category endpoint pakai key 'total', products endpoint pakai 'totalItems'
 
   const meta: PaginationMeta = {
-  page: productsRes.meta?.page ?? filters.page,
-  limit: productsRes.meta?.limit ?? filters.limit,
-  totalItems: productsRes.meta?.totalItems ?? productsRes.meta?.total ?? sortedProducts.length,
-  totalPages: productsRes.meta?.totalPages ?? 1,
-};
+    page: needsClientCatalog ? page : productsRes.meta?.page ?? page,
+    limit: needsClientCatalog ? limit : productsRes.meta?.limit ?? limit,
+    totalItems: needsClientCatalog
+      ? sortedProducts.length
+      : productsRes.meta?.totalItems ?? productsRes.meta?.total ?? sortedProducts.length,
+    totalPages: needsClientCatalog
+      ? Math.max(1, Math.ceil(sortedProducts.length / limit))
+      : productsRes.meta?.totalPages ?? 1,
+  };
 
 
   return (
@@ -183,7 +209,7 @@ export default async function ProductsPage({
               </Suspense>
 
               <ShopProductGrid
-                products={sortedProducts}
+                products={paginatedProducts}
                 categories={categoriesRes.data}
               />
 
@@ -195,7 +221,7 @@ export default async function ProductsPage({
 
           <div className="space-y-4 lg:hidden">
             <ShopProductGrid
-              products={sortedProducts}
+              products={paginatedProducts}
               categories={categoriesRes.data}
             />
 
